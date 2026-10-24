@@ -1,0 +1,10 @@
+// Tailwind v3: merge into theme.extend.colors in tailwind.config.ts (shadcn init already maps the base tokens).
+// Also set  darkMode: undefined  (do not configure dark mode).
+success: { DEFAULT: "hsl(var(--success))", soft: "hsl(var(--success-soft))" },
+warning: { DEFAULT: "hsl(var(--warning))", soft: "hsl(var(--warning-soft))" },
+info:    { DEFAULT: "hsl(var(--info))",    soft: "hsl(var(--info-soft))" },
+danger:  { DEFAULT: "hsl(var(--danger))",  soft: "hsl(var(--danger-soft))" },
+// Usage: className="bg-success-soft text-success"
+
+// Tailwind v4: replace the three @tailwind lines with  @import "tailwindcss";  and expose tokens in
+// @theme inline { --color-success: hsl(var(--success)); --color-success-soft: hsl(var(--success-soft)); ... }

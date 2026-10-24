@@ -72,4 +72,5 @@ ehthumbs_vista.db
 # Local Exports & Temp Files
 /temp
 /tmp
+/untrack
 *.xlsx.tmp

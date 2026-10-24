@@ -1,0 +1,280 @@
+// FYPMS spec v5.2 §9 (review fixes F-01..F-14, F-17 applied). Copy to /firestore.rules.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // Helper Functions
+    // ==========================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Any Google account can obtain a Firebase Auth token, so "signed in" is NOT enough.
+    // isMember() = registered via roster/whitelist AND an @htu.edu.gh verified email.
+    function isMember() {
+      return isSignedIn()
+        && request.auth.token.registered == true
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*@htu\\.edu\\.gh');
+    }
+
+    function isOwner(uid) {
+      return isMember() && request.auth.uid == uid;
+    }
+
+    function hasActiveRole(role) {
+      return isMember() && request.auth.token.activeRole == role;
+    }
+
+    function hasAnyRole(rolesList) {
+      return isMember() && (
+        request.auth.token.activeRole in rolesList ||
+        request.auth.token.roles.hasAny(rolesList)
+      );
+    }
+
+    function teamData(teamId) {
+      return get(/databases/$(database)/documents/teams/$(teamId)).data;
+    }
+
+    function isTeamMember(teamId) {
+      return isMember() && request.auth.uid in teamData(teamId).member_ids;
+    }
+
+    function isAssignedSupervisor(teamId) {
+      return isMember() && request.auth.uid == teamData(teamId).assigned_supervisor_id;
+    }
+
+    // Principle: collections that carry state-machine or integrity logic are written ONLY
+    // by Server Actions (Admin SDK bypasses rules). Rules deny the matching client writes
+    // as defense in depth. Client writes remain only where live UX requires them
+    // (evaluations, peer_evaluations, notifications read-flag, defense_panels, rubrics, courses).
+
+    // ==========================================
+    // 0. Rosters, Staff Whitelist, Invite Codes (server-managed)
+    // ==========================================
+    match /rosters/{yearId}/students/{indexNumber} {
+      allow read: if isMember() && (
+        resource.data.user_uid == request.auth.uid ||
+        hasAnyRole(['coordinator', 'admin'])
+      );
+      allow create, update, delete: if false;   // import-rosters.ts / complete-signup.ts only
+    }
+
+    match /staff_whitelist/{email} {
+      allow read: if hasAnyRole(['coordinator', 'admin']);
+      allow create, update, delete: if false;   // manage-staff-whitelist.ts only
+    }
+
+    match /invite_codes/{code} {
+      allow read, write: if false;              // server-only lookup: code -> team_id
+    }
+
+    // ==========================================
+    // 1. Users (profile edits go through update-profile.ts)
+    // ==========================================
+    match /users/{userId} {
+      allow read: if isMember();
+      allow create, update, delete: if false;
+    }
+
+    // Gated consultation details. A student can read only after a server-written grant exists.
+    match /supervisor_contacts/{supervisorId} {
+      allow read: if isOwner(supervisorId)
+        || hasAnyRole(['coordinator', 'admin'])
+        || (isMember() && exists(/databases/$(database)/documents/supervisor_contacts/$(supervisorId)/grants/$(request.auth.uid)));
+      allow write: if false;
+
+      match /grants/{studentId} {
+        allow read: if isOwner(studentId) || isOwner(supervisorId) || hasAnyRole(['coordinator', 'admin']);
+        allow write: if false;
+      }
+    }
+
+    // ==========================================
+    // 2. Courses & Academic Years
+    // ==========================================
+    match /courses/{courseId} {
+      allow read: if isMember();
+      allow write: if hasAnyRole(['coordinator', 'admin']);
+    }
+
+    match /academic_years/{yearId} {
+      allow read: if isMember();
+      allow create: if hasAnyRole(['coordinator', 'admin']) && request.resource.data.grades_published == false;
+      // grades_published may only be flipped by publish-grades.ts (Admin SDK)
+      allow update: if hasAnyRole(['coordinator', 'admin'])
+        && request.resource.data.grades_published == resource.data.grades_published;
+      allow delete: if false;
+
+      match /counters/{counterId} {
+        allow read, write: if false;            // group-number sequence, server-only
+      }
+    }
+
+    // ==========================================
+    // 3. Teams (create/join/assign/score via Server Actions)
+    // ==========================================
+    match /teams/{teamId} {
+      allow read: if isMember();
+      allow create, delete: if false;
+      // Leader may rename the team only.
+      allow update: if isMember()
+        && resource.data.leader_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'updated_at']);
+
+      match /members/{memberId} {
+        allow read: if isMember();
+        allow write: if false;
+      }
+
+      // Holds the invite code. Visible only to the team and coordinators.
+      match /private/{docId} {
+        allow read: if isTeamMember(teamId) || hasAnyRole(['coordinator', 'admin']);
+        allow write: if false;
+      }
+    }
+
+    // ==========================================
+    // 4. Topics (state machine enforced in Server Actions)
+    // ==========================================
+    match /topics/{topicId} {
+      allow read: if isMember();
+      allow write: if false;
+
+      match /history/{historyId} {
+        allow read: if isMember();
+        allow write: if false;
+      }
+    }
+
+    // ==========================================
+    // 5. Supervisions
+    // ==========================================
+    match /supervisions/{supervisionId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    // ==========================================
+    // 6. Chapters (sequential rule + versioning in Server Actions)
+    // ==========================================
+    match /chapters/{chapterId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    // ==========================================
+    // 7. Defense Panels
+    // ==========================================
+    match /defense_panels/{panelId} {
+      allow read: if isMember();
+      allow write: if hasAnyRole(['coordinator', 'admin']);
+    }
+
+    // ==========================================
+    // 8. Rubrics
+    // ==========================================
+    match /rubrics/{rubricId} {
+      allow read: if isMember();
+      allow write: if hasAnyRole(['coordinator', 'admin']);
+    }
+
+    // ==========================================
+    // 9. Evaluations (live marksheet; team-level scoring only in v1)
+    // ==========================================
+    match /evaluations/{evalId} {
+      // Evaluators and staff always; students only after publication, for their own team.
+      allow read: if isMember() && (
+        resource.data.evaluator_id == request.auth.uid ||
+        hasAnyRole(['supervisor', 'panel_member', 'coordinator', 'admin']) ||
+        (resource.data.is_published == true && isTeamMember(resource.data.team_id))
+      );
+
+      // Deterministic id enforces one document per evaluator per team: {teamId}__{evaluatorId}__team
+      allow create: if hasAnyRole(['supervisor', 'panel_member', 'coordinator', 'admin'])
+        && request.resource.data.evaluator_id == request.auth.uid
+        && request.resource.data.is_published == false
+        && (!('student_id' in request.resource.data) || request.resource.data.student_id == null)
+        && evalId == request.resource.data.team_id + '__' + request.auth.uid + '__team';
+
+      // Evaluators edit their own unpublished sheet; they can never publish it themselves.
+      allow update: if isMember()
+        && resource.data.is_published == false
+        && resource.data.evaluator_id == request.auth.uid
+        && request.resource.data.is_published == false
+        && request.resource.data.evaluator_id == resource.data.evaluator_id
+        && request.resource.data.team_id == resource.data.team_id;
+
+      allow delete: if hasAnyRole(['admin']) && resource.data.is_published == false;
+      // Publishing and post-publication amendments: Admin SDK only (publish-grades.ts, amend-grade.ts).
+    }
+
+    // ==========================================
+    // 10. Peer Evaluations (strict anonymity, immutable)
+    // ==========================================
+    match /peer_evaluations/{peerEvalId} {
+      allow read: if isMember() && (
+        resource.data.evaluator_id == request.auth.uid ||
+        hasAnyRole(['supervisor', 'coordinator', 'admin'])
+      );
+
+      // id = {teamId}__{evaluatorId}__{evaluateeId}: one rating per pair; no self-rating; 1-10 scale
+      allow create: if isMember()
+        && request.resource.data.evaluator_id == request.auth.uid
+        && isTeamMember(request.resource.data.team_id)
+        && request.resource.data.evaluatee_id != request.auth.uid
+        && request.resource.data.evaluatee_id in teamData(request.resource.data.team_id).member_ids
+        && peerEvalId == request.resource.data.team_id + '__' + request.auth.uid + '__' + request.resource.data.evaluatee_id
+        && request.resource.data.punctuality_score >= 1 && request.resource.data.punctuality_score <= 10
+        && request.resource.data.technical_contribution_score >= 1 && request.resource.data.technical_contribution_score <= 10
+        && request.resource.data.teamwork_score >= 1 && request.resource.data.teamwork_score <= 10;
+
+      allow update, delete: if false;
+    }
+
+    // ==========================================
+    // 11. Software Deliverables (doc id = teamId)
+    // ==========================================
+    match /software_deliverables/{teamId} {
+      allow read: if isMember();
+
+      allow create: if isTeamMember(teamId)
+        && !('approved_by_supervisor_at' in request.resource.data);
+
+      allow update: if isMember() && (
+        // Team edits links/notes but cannot touch sign-off fields
+        (isTeamMember(teamId)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['approved_by_supervisor_at', 'supervisor_signoff_notes']))
+        // Assigned supervisor can only sign off
+        || (isAssignedSupervisor(teamId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['approved_by_supervisor_at', 'supervisor_signoff_notes']))
+        || hasAnyRole(['coordinator', 'admin'])
+      );
+
+      allow delete: if hasAnyRole(['coordinator', 'admin']);
+    }
+
+    // ==========================================
+    // 12. Notifications (written by Server Actions only)
+    // ==========================================
+    match /notifications/{notifId} {
+      allow read: if isMember() && resource.data.user_id == request.auth.uid;
+      allow update: if isMember() && resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read']);
+      allow create: if false;
+      allow delete: if isMember() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ==========================================
+    // 13. Audit Logs (immutable, append-only via Admin SDK)
+    // ==========================================
+    match /audit_logs/{logId} {
+      allow read: if hasAnyRole(['coordinator', 'admin']);
+      allow create, update, delete: if false;
+    }
+  }
+}
