@@ -1,6 +1,6 @@
 # FYPMS — Final Year Project Management System (HTU Computer Science)
 
-Stack: Next.js 15 App Router · TypeScript strict · Tailwind + shadcn/ui · Firebase Auth + Firestore · Vercel · React Hook Form + Zod · exceljs · @react-pdf/renderer · Lucide.
+Stack: Next.js 16 App Router · TypeScript strict · Tailwind + shadcn/ui · Firebase Auth + Firestore · Vercel · React Hook Form + Zod · exceljs · @react-pdf/renderer · Lucide.
 Spec: v5.2 (`docs/fypms-docs.md`). §13 lists review findings already folded into the schema and rules.
 
 ## Token discipline (read first)

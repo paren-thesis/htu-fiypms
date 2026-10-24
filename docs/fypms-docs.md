@@ -2,7 +2,7 @@
 
 ### **System Requirements & Technical Specification Manual — Version 5.2 (Google Sign-In + Roster Gating · Review Amendments)**
 **Ho Technical University — Department of Computer Science**  
-*Technology Stack: Next.js 15 (App Router) · Vercel · Firebase Authentication · Cloud Firestore · Tailwind CSS · TypeScript 5*  
+*Technology Stack: Next.js 16 (App Router) · Vercel · Firebase Authentication · Cloud Firestore · Tailwind CSS · TypeScript 5*  
 *October 2026*
 
 ---
@@ -15,7 +15,7 @@ The system consolidates disparate, manual workflows—student roster onboarding,
 
 ### **Core Objectives**
 - **Eliminate Administrative Overhead:** Replace paper marksheets, manual Excel record-keeping, and scattered email threads with centralized, auditable digital workflows.
-- **Serverless & Edge Architecture:** Deliver instantaneous page transitions and reactive state synchronization globally using **Next.js 15 (App Router)** hosted on **Vercel's Global Edge Network** with dedicated Node.js Server Actions for heavy operations.
+- **Serverless & Edge Architecture:** Deliver instantaneous page transitions and reactive state synchronization globally using **Next.js 16 (App Router)** hosted on **Vercel's Global Edge Network** with dedicated Node.js Server Actions for heavy operations.
 - **Google Identity + Cohort Gating:** Institutional authentication via Google Workspace (@htu.edu.gh). Students are admitted only if their 10-digit index number appears in the current cohort roster; faculty are admitted only if their email appears in the staff whitelist. Multi-role RBAC is enforced via JWT Custom Claims (roles[], activeRole, registered, profileComplete).
 - **Reactive Cloud Data Store:** Provide sub-second response times and real-time live browser synchronization via **Cloud Firestore**, allowing live score streaming during oral defense sessions.
 - **Roster-First Onboarding:** Coordinators import student rosters via CSV (filename-detected course track with explicit confirmation). Import writes to a dedicated /rosters collection — no Firebase Auth users are created at import time. Students self-provision their Auth account on first Google sign-in, subject to a roster gate. Faculty are provisioned via a coordinator-maintained staff whitelist.
@@ -110,7 +110,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
 
 | **Layer** | **Technology Selected** | **Architectural Purpose** |
 | :--- | :--- | :--- |
-| **Framework** | **Next.js 15 (App Router)** | Full-stack architecture utilizing React Server Components (RSC) for fast pre-rendered page shells and Server Actions for secure backend operations. |
+| **Framework** | **Next.js 16 (App Router)** | Full-stack architecture utilizing React Server Components (RSC) for fast pre-rendered page shells and Server Actions for secure backend operations. |
 | **Hosting & CDN** | **Vercel** | Serverless edge execution, global CDN asset delivery, automated branch previews, and zero-configuration HTTPS. |
 | **Identity & Auth** | **Firebase Authentication** | Managed cloud identity via Google Workspace OAuth restricted to @htu.edu.gh. JWT Custom Claims encode roles[], activeRole, registered, and profileComplete for edge-safe RBAC. |
 | **Database** | **Google Cloud Firestore** | Serverless NoSQL document database providing real-time document listeners (`onSnapshot`), atomic batch writes, and multi-region durability. |
@@ -139,7 +139,7 @@ To prevent runtime errors and cold-start timeouts:
 graph TD
     User([End Users: Students, Lecturers, Coordinators, Panel]) -->|HTTPS / Edge Routing| Vercel[Vercel Global Edge Network]
 
-    subgraph NextJS [Next.js 15 Full-Stack Application]
+    subgraph NextJS [Next.js 16 Full-Stack Application]
         Vercel --> RSC[React Server Components<br/>Edge/Node Shells]
         Vercel --> ClientUI[Interactive Client Components<br/>Digital Marksheets, Live Listeners, Forms]
         Vercel --> Actions[Node.js Server Actions & Route Handlers<br/>maxDuration=60, Admin Auth, Broadsheets]
@@ -1199,7 +1199,7 @@ service cloud.firestore {
 
 ---
 
-# **11. Project Directory Architecture (Next.js 15 App Router)**
+# **11. Project Directory Architecture (Next.js 16 App Router)**
 
 ```
 ├── src/
