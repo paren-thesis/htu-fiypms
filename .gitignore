@@ -1,6 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# ==========================================
+# Dependencies
+# ==========================================
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +10,66 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# ==========================================
+# Next.js & Turbopack
+# ==========================================
 /.next/
 /out/
-
-# production
 /build
+.turbo/
 
-# misc
-.DS_Store
+# Environment Variables & Secrets
+# Ignore all .env files EXCEPT the committed template
+.env*
+!.env.example
+
+# Firebase Admin SDK & GCP Service Account Keys
+*firebase-adminsdk*.json
+serviceAccountKey.json
+*service-account*.json
+credentials.json
 *.pem
 
-# debug
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs & Debugging
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# Vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Operating System & IDEs
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Local Exports & Temp Files
+/temp
+/tmp
+*.xlsx.tmp
