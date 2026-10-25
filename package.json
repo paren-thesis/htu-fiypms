@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.rules.config.ts\"",
+    "test:server": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.server.config.ts\"",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
