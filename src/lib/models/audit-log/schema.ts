@@ -3,7 +3,9 @@ import { z } from 'zod';
 export const auditLogActionSchema = z.enum([
   'roster.imported',
   'staff.whitelist_added',
+  'staff.whitelist_updated',
   'staff.whitelist_deactivated',
+  'staff.whitelist_reactivated',
   'student.signup_completed',
   'faculty.signup_completed',
   'identity_conflict',
