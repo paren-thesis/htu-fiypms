@@ -14,7 +14,7 @@ description: FYPMS student roster CSV import and staff whitelist management. Use
 - Dry-run: full report (`Total / Imported / Skipped / Errors`, per-row messages), zero writes.
 - Commit: batches of 25/50/100 (default 50) via `db.batch()`, `merge: false`; existing index → Skipped (Duplicate); duplicate within file → flagged. Add `import_batch_id` (uuid), `user_uid: null`, `signup_completed_at: null`.
 - One `audit_logs` entry per import: `roster.imported`.
-- Server Action: `export const runtime = 'nodejs'; export const maxDuration = 60;` Allowed callers: supervisor, coordinator, admin (verify via token; Admin SDK bypasses rules).
+- Server Action: `export const runtime = 'nodejs'; export const maxDuration = 60;` Allowed callers: **coordinator and admin only**; every other role, including supervisor, gets 403 (spec D-05). Verify roles from the token because the Admin SDK bypasses rules.
 - UI: modal with steps Upload → Confirm course → Dry-run report → Commit → Summary.
 
 # Staff whitelist (`manage-staff-whitelist.ts`, page `/admin/staff-whitelist`)

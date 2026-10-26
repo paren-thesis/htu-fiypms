@@ -18,10 +18,11 @@ Soft-minimal, institutional, data-first. Off-white canvas, white cards with hair
 # App shell
 Left sidebar (icon-only collapse at ≤1024px, slide-over drawer on mobile) + slim top bar: breadcrumb · ⌘K command palette · notifications bell · **RoleSwitcher** (shows active role badge) · avatar menu. Nav is filtered by `activeRole`:
 - student: Dashboard · My Team · Proposals · Supervisor · Chapters · Deliverables · Peer Evaluation · Grades · Archive
-- supervisor: Dashboard · My Teams · Proposal Review · Chapter Review · Sign-off · Assessments · Roster Import · Archive
+- supervisor: Dashboard · My Teams · Proposal Review · Chapter Review · Sign-off · Assessments · Archive
 - coordinator: Dashboard · Students & Pool · Staff Whitelist · Matching · Rubrics · Defense · Reports · Audit Logs
 - panel_member: Dashboard · My Panels · Marksheet
-- admin: Users & Roles · Audit Logs · Overrides · Backups
+- admin: Students & Pool · Staff Whitelist · Users & Roles · Audit Logs · Overrides · Backups
+Roster import (`/students`) and the staff whitelist are coordinator/admin only (spec D-05): never show them to supervisors, and guard the routes too.
 
 # Page patterns
 - **Dashboard home = bento grid** (`grid grid-cols-1 md:grid-cols-6 gap-4`, cards spanning 2–3 cols): Project Journey stepper (full width) · Next deadline · Team · Supervisor · Latest feedback · Notifications.

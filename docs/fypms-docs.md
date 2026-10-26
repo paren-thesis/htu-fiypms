@@ -1,8 +1,8 @@
 # **FINAL YEAR PROJECT MANAGEMENT SYSTEM**
 
-### **System Requirements & Technical Specification Manual — Version 5.2 (Google Sign-In + Roster Gating · Review Amendments)**
+### **System Requirements & Technical Specification Manual — Version 5.2.1 (Google Sign-In + Roster Gating · Review Amendments)**
 **Ho Technical University — Department of Computer Science**  
-*Technology Stack: Next.js 16 (App Router) · Vercel · Firebase Authentication · Cloud Firestore · Tailwind CSS · TypeScript 5*  
+*Technology Stack: Next.js 15 (App Router) · Vercel · Firebase Authentication · Cloud Firestore · Tailwind CSS · TypeScript 5*  
 *October 2026*
 
 ---
@@ -15,7 +15,7 @@ The system consolidates disparate, manual workflows—student roster onboarding,
 
 ### **Core Objectives**
 - **Eliminate Administrative Overhead:** Replace paper marksheets, manual Excel record-keeping, and scattered email threads with centralized, auditable digital workflows.
-- **Serverless & Edge Architecture:** Deliver instantaneous page transitions and reactive state synchronization globally using **Next.js 16 (App Router)** hosted on **Vercel's Global Edge Network** with dedicated Node.js Server Actions for heavy operations.
+- **Serverless & Edge Architecture:** Deliver instantaneous page transitions and reactive state synchronization globally using **Next.js 15 (App Router)** hosted on **Vercel's Global Edge Network** with dedicated Node.js Server Actions for heavy operations.
 - **Google Identity + Cohort Gating:** Institutional authentication via Google Workspace (@htu.edu.gh). Students are admitted only if their 10-digit index number appears in the current cohort roster; faculty are admitted only if their email appears in the staff whitelist. Multi-role RBAC is enforced via JWT Custom Claims (roles[], activeRole, registered, profileComplete).
 - **Reactive Cloud Data Store:** Provide sub-second response times and real-time live browser synchronization via **Cloud Firestore**, allowing live score streaming during oral defense sessions.
 - **Roster-First Onboarding:** Coordinators import student rosters via CSV (filename-detected course track with explicit confirmation). Import writes to a dedicated /rosters collection — no Firebase Auth users are created at import time. Students self-provision their Auth account on first Google sign-in, subject to a roster gate. Faculty are provisioned via a coordinator-maintained staff whitelist.
@@ -35,9 +35,9 @@ The platform employs a dynamic Role-Based Access Control (RBAC) model allowing a
          ┌───────────────────────────┼───────────────────────────┐
          │                           │                           │
     🎓 Student                 👨‍🏫 Supervisor               📋 Coordinator
-(Teams, Proposals, Drive   (Roster Import, Topic Review,    (Workload Allocations,
-Reviews, Deliverables,     Chapter Feedback, Continuous      Rubric Setup, Defense
-Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
+(Teams, Proposals, Drive   (Topic Review, Chapter       (Roster Import, Whitelist,
+Reviews, Deliverables,     Feedback, Continuous         Workload Allocations,
+Peer Evals, Grade Views)   Assessment, Repo Sign-off)   Rubrics, Defense, Broadsheets)
          │                           │                           │
          └───────────────────────────┼───────────────────────────┘
                                      │
@@ -63,8 +63,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
 *Role: Academic staff assigned to guide, mentor, and assess student groups.*
 
 **Primary Goals**
-- Maintain a staff whitelist entry (added by a coordinator) before first sign-in.
-- Import student rosters via CSV to `/rosters` (filename-detected course with confirmation; no Auth users created at import time).
+- Maintain a staff whitelist entry (added by a coordinator or admin) before first sign-in. Supervisors cannot import student rosters or manage the staff whitelist (D-05).
 - Review submitted group topics; approve one topic or request structured revisions with persistent feedback notes.
 - Accept or decline group assignments suggested by the coordinator's matching algorithm.
 - Review sequential chapter submissions with line-item status (`Approved` or `Revision Needed`) and detailed line feedback.
@@ -87,7 +86,8 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
 
 **Primary Goals**
 - Configure active academic sessions (`2025/2026`), semesters, and course tracks (`BTECH-CS`, `BTECH-ICT`, `HND-CS`, `HND-ICT`).
-- Manage the staff whitelist — adding, updating, and deactivating faculty access.
+- Manage the staff whitelist — adding, updating, and deactivating faculty access (coordinators and admins only, D-05).
+- Import student rosters via CSV to `/rosters` (filename-detected course with confirmation; no Auth users created at import time). Admins have the same permission; supervisors do not (D-05).
 - Manage unassigned student pool with auto-grouping tools and manual overrides.
 - Compute supervisor match scores using the mathematically bounded Jaccard tag similarity and capacity formula, scoped to supervisors whose `programmes[]` include the team's `course_id`.
 - Build and activate department defense rubrics with custom criteria, maximum points, and percentage weights (e.g. Supervisor: 40%, Defense Panel: 60%).
@@ -99,6 +99,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
 *Role: IT personnel managing platform security, user permissions, and audit logs.*
 
 **Primary Goals**
+- Import student roster CSVs and manage the staff whitelist, with the same permissions as the coordinator (D-05).
 - Manage user accounts, role assignments, and permission matrices via Firebase Custom Claims.
 - Execute global administrative overrides (e.g. forced group disbanding, emergency deadline extensions, member transfers).
 - Monitor immutable system audit trails with action badges, actor metadata, and payload JSON deltas.
@@ -110,7 +111,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)       Panels, Broadsheets)
 
 | **Layer** | **Technology Selected** | **Architectural Purpose** |
 | :--- | :--- | :--- |
-| **Framework** | **Next.js 16 (App Router)** | Full-stack architecture utilizing React Server Components (RSC) for fast pre-rendered page shells and Server Actions for secure backend operations. |
+| **Framework** | **Next.js 15 (App Router)** | Full-stack architecture utilizing React Server Components (RSC) for fast pre-rendered page shells and Server Actions for secure backend operations. |
 | **Hosting & CDN** | **Vercel** | Serverless edge execution, global CDN asset delivery, automated branch previews, and zero-configuration HTTPS. |
 | **Identity & Auth** | **Firebase Authentication** | Managed cloud identity via Google Workspace OAuth restricted to @htu.edu.gh. JWT Custom Claims encode roles[], activeRole, registered, and profileComplete for edge-safe RBAC. |
 | **Database** | **Google Cloud Firestore** | Serverless NoSQL document database providing real-time document listeners (`onSnapshot`), atomic batch writes, and multi-region durability. |
@@ -139,7 +140,7 @@ To prevent runtime errors and cold-start timeouts:
 graph TD
     User([End Users: Students, Lecturers, Coordinators, Panel]) -->|HTTPS / Edge Routing| Vercel[Vercel Global Edge Network]
 
-    subgraph NextJS [Next.js 16 Full-Stack Application]
+    subgraph NextJS [Next.js 15 Full-Stack Application]
         Vercel --> RSC[React Server Components<br/>Edge/Node Shells]
         Vercel --> ClientUI[Interactive Client Components<br/>Digital Marksheets, Live Listeners, Forms]
         Vercel --> Actions[Node.js Server Actions & Route Handlers<br/>maxDuration=60, Admin Auth, Broadsheets]
@@ -169,10 +170,10 @@ graph TD
 | **FR-01.1** | Users authenticate exclusively via Google Sign-In (Firebase Auth GoogleAuthProvider). Only email addresses ending in `@htu.edu.gh` are accepted. All other domains are rejected before any Firestore lookup. | High |
 | **FR-01.2** | System enforces multi-role RBAC via Firebase Auth Custom Claims. Claims schema: `{ roles: string[], activeRole: string, registered: boolean, profileComplete: boolean }`. Allowed roles: `student`, `supervisor`, `coordinator`, `admin`, `panel_member`. | High |
 | **FR-01.3** | **Active Role Switching:** Faculty with multiple roles switch active contexts via a navbar dropdown. The action invokes `switch-role.ts` Server Action, which calls `adminAuth.setCustomUserClaims(uid, { ...claims, activeRole })`, returns a fresh ID token, and the client calls `getIdToken(true)` before navigation. The client MUST await the new token before rendering role-scoped UI. | High |
-| **FR-01.4** | **Student Roster CSV Import:** Supervisors and Coordinators can bulk-import student rosters via CSV (required columns: `index_number`, `full_name`, `contact`). Import writes to `rosters/{academicYearId}/students/{indexNumber}`. The import interface includes filename-based course detection (with explicit UI confirmation), batch-size controls (25, 50, 100), template download, dry-run mode, and summary metrics (`Total`, `Imported`, `Skipped`, `Errors`). NO Firebase Auth users are created at import time — see §5.1 and §5.2. | High |
+| **FR-01.4** | **Student Roster CSV Import:** Only Coordinators and Admins can bulk-import student rosters via CSV (supervisors, panel members and students are rejected with 403, D-05) (required columns: `index_number`, `full_name`, `contact`). Import writes to `rosters/{academicYearId}/students/{indexNumber}`. The import interface includes filename-based course detection (with explicit UI confirmation), batch-size controls (25, 50, 100), template download, dry-run mode, and summary metrics (`Total`, `Imported`, `Skipped`, `Errors`). NO Firebase Auth users are created at import time — see §5.1 and §5.2. | High |
 | **FR-01.5** | **Student Index Format Validation:** Index numbers MUST match the strict regex `^[0-9]{10}$`. Emails are derived deterministically as `${indexNumber}@htu.edu.gh`. Records failing this regex are rejected at import with a per-row error message. | High |
 | **FR-01.6** | **First Sign-In Roster Linkage (`complete-signup.ts`):** On first Google Sign-In, the authenticated email is matched against the current cohort roster. If the email matches `^[0-9]{10}@htu\.edu\.gh$`, the index number is extracted and the doc `rosters/{currentYear}/students/{indexNumber}` is read. If found and `user_uid` is null, the Server Action sets `user_uid = request.auth.uid` (write-once), creates `users/{uid}`, and mints claims `{ roles: ['student'], activeRole: 'student', registered: true, profileComplete: true }`. If not found, the user is redirected to `/not-registered` with a coordinator contact message. | High |
-| **FR-01.7** | **Faculty Whitelist Gating:** Supervisors, coordinators, panel members, and admins MUST be added to `staff_whitelist/{email}` by a coordinator or admin before they can access the system. On first Google Sign-In, if the email does not match the student pattern, the Server Action reads `staff_whitelist/{email}`. If found and `is_active` is true, the Server Action creates `users/{uid}` with `profile_complete: false` and mints claims `{ roles: staffDoc.roles, activeRole: staffDoc.roles[0], registered: true, profileComplete: false }`. If not found, the user is redirected to `/not-registered` with a coordinator/HoD contact message. | High |
+| **FR-01.7** | **Faculty Whitelist Gating:** Supervisors, coordinators, panel members, and admins MUST be added to `staff_whitelist/{email}` by a coordinator or admin (never by a supervisor, D-05) before they can access the system. On first Google Sign-In, if the email does not match the student pattern, the Server Action reads `staff_whitelist/{email}`. If found and `is_active` is true, the Server Action creates `users/{uid}` with `profile_complete: false` and mints claims `{ roles: staffDoc.roles, activeRole: staffDoc.roles[0], registered: true, profileComplete: false }`. If not found, the user is redirected to `/not-registered` with a coordinator/HoD contact message. | High |
 | **FR-01.8** | **Unregistered Access Handling:** Users whose Google account is not in the roster or staff whitelist see an unclosable `/not-registered` page with: (a) the attempted email, (b) a category-specific error message, (c) a contact email for the coordinator, and (d) a sign-out button. All routes redirect to `/not-registered` while `token.registered == false`. Unregistered users are NOT deleted from Firebase Auth — they remain for audit purposes but cannot reach any authenticated route. | High |
 | **FR-01.9** | **Profile Completion Gate (Faculty):** Newly registered faculty have `profileComplete: false`. Middleware redirects them to `/complete-profile` until they set `office_location`, `consultation_hours`, `research_interests[]`, and `max_team_capacity`. Students skip this gate (auto-profileComplete: true). | High |
 | **FR-01.10** | **Category Integrity (Cross-Cutting):** A student's `course_id` is authoritatively set from their roster entry at first sign-in. It is immutable thereafter except via a dedicated admin action. Category integrity is enforced at five points: (1) team join validates joining student's `course_id` matches `team.course_id`; (2) `group_number` prefix is derived from `course_id`; (3) supervisor matching filters candidates to those whose staff `programmes[]` includes the team's `course_id`; (4) broadsheet export groups strictly by `course_id`; (5) defense panel assignment filters examiners by programme match, with coordinator override logged to `audit_logs`. | High |
@@ -1199,7 +1200,7 @@ service cloud.firestore {
 
 ---
 
-# **11. Project Directory Architecture (Next.js 16 App Router)**
+# **11. Project Directory Architecture (Next.js 15 App Router)**
 
 ```
 ├── src/
@@ -1229,7 +1230,7 @@ service cloud.firestore {
 │   │   ├── reports/
 │   │   │   └── page.tsx                   # Broadsheet Exporters (XLSX, CSV, Printable PDF)
 │   │   ├── students/
-│   │   │   └── page.tsx                   # Roster import + unassigned student pool
+│   │   │   └── page.tsx                   # Roster import + unassigned pool (coordinator/admin only)
 │   │   ├── peer-evaluation/
 │   │   │   └── page.tsx                   # Confidential 360° peer ratings (FR-06.4)
 │   │   ├── deliverables/
@@ -1252,7 +1253,7 @@ service cloud.firestore {
 │   │   │   └── page.tsx                   # Security Audit Trail Viewer
 │   │   └── actions/
 │   │       ├── complete-signup.ts         # Server Action: Google sign-in → roster/whitelist linkage
-│   │       ├── import-rosters.ts          # Server Action: CSV → /rosters batch write
+│   │       ├── import-rosters.ts          # Server Action: CSV → /rosters batch write (coordinator/admin only)
 │   │       ├── manage-staff-whitelist.ts  # Server Action: Add/edit/deactivate staff
 │   │       ├── switch-role.ts             # Server Action: Active Role Context Claim Switching
 │   │       ├── update-profile.ts          # Server Action: Faculty/student profile edits (field allow-list)
@@ -1350,6 +1351,7 @@ To guarantee institutional reliability and satisfy external reviewers, the platf
   - A student cannot read another team's invite code, and `invite_codes` is unreadable from clients (F-06).
   - Students cannot read `/evaluations` before `is_published`; peer ratings reject self-rating, non-teammates, duplicates and scores outside 1 to 10 (F-04, F-09).
   - Roster CSV rows missing or with an invalid `contact` are rejected with a per-row error (D-04).
+  - A supervisor calling `import-rosters` or `manage-staff-whitelist` receives 403; the roster import controls, `/students` and the staff whitelist page are hidden from supervisors (D-05).
 
 ### **12.3 End-to-End System Testing (Playwright)**
 - **Authentication & Onboarding Flow:**
@@ -1395,6 +1397,7 @@ A security and consistency review of v5.1 found the issues below. Each one has b
 | **D-02** | **Grading granularity:** The final mark is awarded **per team**. Every member receives the team's composite score. There is no grade classification (First Class, Pass, and so on) until thresholds are defined; `grade_classification` stays unset. Individual scoring (`student_id`) is reserved for a future version. Peer evaluations are advisory evidence for the supervisor's team-level continuous assessment and never change individual marks. |
 | **D-03** | **Email deferred:** Resend is removed from v5.2 scope. No email provider is integrated; FR-09.3 is deferred and notifications are in-app only. |
 | **D-04** | **CSV columns:** The roster import CSV is `index_number`, `full_name`, `contact` (required phone number, stored on the roster document only). The broadsheet CSV exports `index_number`, `full_name`, `contact` followed by the team's scores (FR-10.1b). |
+| **D-05** | **Roster and whitelist permissions:** Only coordinators and admins may import student roster CSVs and manage the staff whitelist. Supervisors have neither permission. This supersedes the FR-01.4 wording in v5.1 and v5.2, which allowed supervisors to import. |
 
 ## **13.2 Open Items**
 
@@ -1408,5 +1411,6 @@ A security and consistency review of v5.1 found the issues below. Each one has b
 
 | **Version** | **Changes** |
 | :--- | :--- |
+| **5.2.1** | Roster import and staff whitelist management restricted to coordinators and admins (D-05). Updated personas, FR-01.4, FR-01.7, architecture diagram, directory-tree comments and a 403 test case in §12.2. |
 | **5.2** | Added §13 review findings and decisions. Rewrote §9 Firestore rules (F-01 to F-14, F-17). Added collections `supervisor_contacts` (+`grants`), `invite_codes`, `teams/{id}/private`, `academic_years/{id}/counters` (§8). Added `contact` to roster schema and CSV (D-04). Team-level final mark and optional `grade_classification` (D-02). Email deferred (D-03). Light-mode only, HTU blue and white (D-01). Expanded directory tree and Server Actions (§11). Added FR-06.6 and FR-10.1b. Added rules tests to §12.2. |
 | 5.1 | Google Sign-In and roster gating. |
