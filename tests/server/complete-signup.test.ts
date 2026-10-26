@@ -18,6 +18,13 @@ async function getEmulatorIdToken(
   displayName?: string
 ): Promise<string> {
   try {
+    const existing = await adminAuth.getUserByEmail(email);
+    await adminAuth.deleteUser(existing.uid);
+  } catch {
+    // Ignore
+  }
+
+  try {
     await adminAuth.deleteUser(uid);
   } catch {
     // User doesn't exist yet, ignore

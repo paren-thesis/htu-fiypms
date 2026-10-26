@@ -61,7 +61,7 @@ describe('Server Models: Course & Academic Year', () => {
   it('manages course sequence counters and increments in transaction', async () => {
     const yearId = '2026-2027';
     const courseId = 'btech-cs';
-
+    await adminDb.collection('academic_years').doc(yearId).collection('counters').doc(courseId).delete();
     await initCounter(yearId, courseId, 1);
     const counter = await getCounter(yearId, courseId);
     expect(counter?.next_sequence).toBe(1);
