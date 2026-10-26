@@ -277,12 +277,22 @@ export interface SoftwareDeliverableDocument {
   submitted_at: FirebaseFirestore.Timestamp;
 }
 
+export type NotificationType =
+  | "topic_status"
+  | "chapter_review"
+  | "defense_schedule"
+  | "grade_published"
+  | "supervision_assignment"
+  | "team_update"
+  | "team_invite"
+  | "system";
+
 export interface NotificationDocument {
   id: string;
   user_id: string; // Recipient UID
   title: string;
   body: string;
-  type: "topic_status" | "chapter_review" | "defense_schedule" | "grade_published";
+  type: NotificationType;
   target_url?: string;
   is_read: boolean;
   created_at: FirebaseFirestore.Timestamp;

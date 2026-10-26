@@ -19,5 +19,9 @@ Agents read this file (not the spec) to check what exists. `fypms-create-model` 
 | SoftwareDeliverableDocument | software_deliverables | members read · team + assigned supervisor write | src/types/firestore.ts | spec v5.2 |
 | SupervisorContactDocument | supervisor_contacts (+grants) | owner/coordinator/admin or granted student read · server write | src/types/firestore.ts | spec v5.2 |
 | InviteCodeDocument | invite_codes | none · server only | src/types/firestore.ts | spec v5.2 |
-| NotificationDocument | notifications | owner read · server create | src/types/firestore.ts | spec v5.2 |
+| NotificationDocument | notifications | owner read · server create | src/types/firestore.ts | spec v5.2 (amended A1) |
 | AuditLogDocument | audit_logs | coordinator/admin read · server write | src/types/firestore.ts | spec v5.2 |
+
+## Amendments
+- **A1 (Prompt 01-03):** Extended `NotificationDocument.type` union with `'supervision_assignment' | 'team_update' | 'team_invite' | 'system'` to support full lifecycle event notifications.
+
