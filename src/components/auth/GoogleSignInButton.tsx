@@ -61,10 +61,7 @@ export function GoogleSignInButton({ className, onSuccess }: GoogleSignInButtonP
         toast.error("Sign-in was cancelled before completion.");
       } else if (error?.code === "auth/network-request-failed") {
         toast.error("Network connection error. Please verify your internet connection.");
-      } else if (
-        error?.message?.includes("@htu.edu.gh") ||
-        error?.message?.includes("Access denied")
-      ) {
+      } else if (error?.message) {
         toast.error(error.message);
       } else {
         toast.error("Failed to sign in. Please try again with your @htu.edu.gh account.");

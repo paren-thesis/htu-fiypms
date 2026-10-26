@@ -13,7 +13,7 @@
     "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.rules.config.ts\"",
     "test:server": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.server.config.ts\"",
     "e2e": "playwright test",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

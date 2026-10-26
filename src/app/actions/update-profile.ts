@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+//export const runtime = 'nodejs';
 
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -9,7 +9,7 @@ import { requireUser } from '@/lib/auth/require-user';
 import { HttpError } from '@/lib/errors';
 import { writeAuditInTx } from '@/lib/audit';
 
-export const updateProfileInputSchema = z
+const updateProfileInputSchema = z
   .object({
     idToken: z.string().min(1, 'Token is required'),
     office_location: z.string().trim().optional(),

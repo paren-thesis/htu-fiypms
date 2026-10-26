@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 
 import { z } from 'zod';
 import { adminAuth } from '@/lib/firebase/admin';
@@ -9,7 +9,7 @@ import { HttpError } from '@/lib/errors';
 import { writeAudit } from '@/lib/audit';
 import { userRoleEnum, type UserRole } from '@/lib/models/user/schema';
 
-export const switchRoleInputSchema = z.object({
+const switchRoleInputSchema = z.object({
   idToken: z.string().min(1, 'Token is required'),
   role: userRoleEnum,
 });
