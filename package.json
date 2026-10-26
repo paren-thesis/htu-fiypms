@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.rules.config.ts\"",
     "test:server": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.server.config.ts\"",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
@@ -50,6 +51,7 @@
     "eslint-config-next": "16.4.3",
     "firebase-tools": "^15.34.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.7"
   }
