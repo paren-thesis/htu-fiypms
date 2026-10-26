@@ -11,15 +11,10 @@ interface GoogleSignInButtonProps {
   onSuccess?: () => void;
 }
 
-// Placeholder for Server Action to be implemented in 02-03
-async function completeSignupPlaceholder(idToken: string): Promise<{ ok: boolean }> {
-  // Placeholder stub for complete-signup Server Action
-  console.log("completeSignup placeholder executed with token length:", idToken.length);
-  return { ok: true };
-}
+import { completeSignup } from "@/app/actions/complete-signup";
 
 export function GoogleSignInButton({ className, onSuccess }: GoogleSignInButtonProps) {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, refreshToken } = useAuth();
   const [loading, setLoading] = React.useState(false);
   const router = useRouter();
 
@@ -28,18 +23,35 @@ export function GoogleSignInButton({ className, onSuccess }: GoogleSignInButtonP
     try {
       await signInWithGoogle();
 
-      // Retrieve fresh ID token for signup linkage placeholder
-      const currentUser = (await import("@/lib/firebase/client")).auth.currentUser;
+      // Retrieve fresh ID token for signup linkage
+      const { auth } = await import("@/lib/firebase/client");
+      const currentUser = auth.currentUser;
+
       if (currentUser) {
         const idToken = await currentUser.getIdToken();
-        await completeSignupPlaceholder(idToken);
-      }
+        const signupRes = await completeSignup(idToken);
 
-      toast.success("Signed in successfully with your HTU account");
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push("/");
+        if (!signupRes.ok) {
+          // Unregistered user in cohort roster / staff whitelist
+          await currentUser.getIdToken(true);
+          await refreshToken();
+          router.push("/not-registered");
+          return;
+        }
+
+        // Successfully linked -> force refresh claims and sync cookie
+        await currentUser.getIdToken(true);
+        await refreshToken();
+
+        toast.success("Signed in successfully with your HTU account");
+
+        if (onSuccess) {
+          onSuccess();
+        } else if (signupRes.profileComplete === false) {
+          router.push("/complete-profile");
+        } else {
+          router.push("/");
+        }
       }
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
