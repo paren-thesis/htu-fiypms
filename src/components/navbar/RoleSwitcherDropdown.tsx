@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronDown, Check, Shield } from "lucide-react";
-import { useDevSession } from "@/context/DevSession";
+import { useAuth } from "@/context/AuthContext";
 import { type UserRole } from "@/config/nav";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,7 +24,7 @@ const ROLE_LABELS: Record<UserRole, { label: string; description: string }> = {
 };
 
 export function RoleSwitcherDropdown() {
-  const { activeRole, setActiveRole, availableRoles } = useDevSession();
+  const { activeRole, setActiveRole, availableRoles } = useAuth();
 
   const currentRoleInfo = ROLE_LABELS[activeRole] ?? {
     label: activeRole,
@@ -53,7 +53,7 @@ export function RoleSwitcherDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 p-1">
         <DropdownMenuLabel className="px-2 py-1.5 text-xs text-muted-foreground">
-          Switch Active Role (Dev)
+          Switch Active Role
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRoles.map((role) => {

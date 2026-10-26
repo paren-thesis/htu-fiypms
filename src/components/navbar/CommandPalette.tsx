@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { ALL_ROUTES_LIST, getNavItemsForRole } from "@/config/nav";
-import { useDevSession } from "@/context/DevSession";
+import { useAuth } from "@/context/AuthContext";
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
-  const { activeRole } = useDevSession();
+  const { activeRole } = useAuth();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {

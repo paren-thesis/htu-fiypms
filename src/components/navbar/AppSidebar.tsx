@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GraduationCap } from "lucide-react";
 import { cn } from "cn";
-import { useDevSession } from "@/context/DevSession";
+import { useAuth } from "@/context/AuthContext";
 import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -13,7 +13,7 @@ export function AppSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab");
-  const { activeRole } = useDevSession();
+  const { activeRole } = useAuth();
   const navItems = getNavItemsForRole(activeRole);
 
   return (

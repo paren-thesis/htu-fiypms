@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { LogOut, User, Bell } from "lucide-react";
-import { useDevSession } from "@/context/DevSession";
+import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -16,18 +16,21 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function AvatarMenu() {
-  const { user, activeRole } = useDevSession();
+  const { user, activeRole, signOut } = useAuth();
+
+  const userName = user?.displayName || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "";
 
   const initials = React.useMemo(() => {
-    if (!user.name) return "U";
-    const parts = user.name.trim().split(/\s+/);
+    if (!userName) return "U";
+    const parts = userName.trim().split(/\s+/);
     const first = parts[0]?.charAt(0);
     const second = parts[1]?.charAt(0);
     if (first && second) {
       return `${first}${second}`.toUpperCase();
     }
-    return user.name.slice(0, 2).toUpperCase();
-  }, [user.name]);
+    return userName.slice(0, 2).toUpperCase();
+  }, [userName]);
 
   return (
     <DropdownMenu>
@@ -48,8 +51,8 @@ export function AvatarMenu() {
       <DropdownMenuContent align="end" className="w-56 p-1">
         <DropdownMenuLabel className="font-normal px-2 py-2">
           <div className="flex flex-col space-y-1">
-            <p className="text-xs font-semibold leading-none text-foreground">{user.name}</p>
-            <p className="text-[11px] leading-none text-muted-foreground truncate">{user.email}</p>
+            <p className="text-xs font-semibold leading-none text-foreground">{userName}</p>
+            <p className="text-[11px] leading-none text-muted-foreground truncate">{userEmail}</p>
             <div className="pt-1">
               <span className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary capitalize">
                 {activeRole.replace("_", " ")}
@@ -71,11 +74,12 @@ export function AvatarMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="text-xs text-danger cursor-pointer">
-          <Link href="/login" className="flex items-center gap-2">
-            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Sign Out</span>
-          </Link>
+        <DropdownMenuItem
+          className="text-xs text-danger cursor-pointer flex items-center gap-2"
+          onClick={() => void signOut()}
+        >
+          <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

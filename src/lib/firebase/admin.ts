@@ -13,13 +13,17 @@ function initAdminApp(): App {
   }
 
   const projectId =
+    process.env.FIREBASE_ADMIN_PROJECT_ID ||
     process.env.FIREBASE_PROJECT_ID ||
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
     process.env.GCLOUD_PROJECT ||
     'demo-fypms';
 
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY);
+  const clientEmail =
+    process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = formatPrivateKey(
+    process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY
+  );
 
   if (clientEmail && privateKey) {
     return initializeApp({

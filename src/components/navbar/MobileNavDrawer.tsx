@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { GraduationCap, Menu } from "lucide-react";
 import { cn } from "cn";
-import { useDevSession } from "@/context/DevSession";
+import { useAuth } from "@/context/AuthContext";
 import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
 import {
   Sheet,
@@ -21,7 +21,7 @@ export function MobileNavDrawer() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab");
-  const { activeRole } = useDevSession();
+  const { activeRole } = useAuth();
   const navItems = getNavItemsForRole(activeRole);
 
   return (
