@@ -54,7 +54,7 @@ export function AppSidebar({ className }: { className?: string }) {
               : pathname.startsWith(item.href);
 
           return (
-            <Tooltip key={item.href} delayDuration={0}>
+            <Tooltip key={`${item.title}-${item.href}`} delayDuration={0}>
               <TooltipTrigger asChild>
                 <Link
                   href={item.href}

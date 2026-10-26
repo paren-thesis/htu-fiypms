@@ -59,7 +59,7 @@ export function MobileNavDrawer() {
 
             return (
               <Link
-                key={item.href}
+                key={`${item.title}-${item.href}`}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
