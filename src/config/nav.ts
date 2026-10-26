@@ -66,7 +66,7 @@ export const ROLE_NAV_CONFIG: Record<UserRole, NavItem[]> = {
   panel_member: [
     { title: "Dashboard", href: "/", icon: LayoutDashboard },
     { title: "My Panels", href: "/defense", icon: Calendar },
-    { title: "Marksheet", href: "/defense", icon: ListChecks },
+    { title: "Marksheet", href: "/defense?tab=marksheet", icon: ListChecks },
   ],
   admin: [
     // Spec D-05: Admin sees both Students and Staff Whitelist
@@ -100,4 +100,36 @@ export const ALL_ROUTES_LIST: { title: string; href: string; category?: string }
 
 export function getNavItemsForRole(role: UserRole): NavItem[] {
   return ROLE_NAV_CONFIG[role] ?? ROLE_NAV_CONFIG.student;
+}
+
+/**
+ * Accurately determines if a navigation item is currently active.
+ * Handles exact matching for dashboard (/), subpath prefixes, and
+ * tab differentiation between "My Panels" (/defense) and "Marksheet" (/defense?tab=marksheet).
+ */
+export function isNavItemActive(
+  item: { title: string; href: string },
+  pathname: string,
+  currentTab?: string | null
+): boolean {
+  if (item.href === "/") {
+    return pathname === "/";
+  }
+
+  // Panel Member "Marksheet" item (targeted via ?tab=marksheet or dynamic [panelId] route)
+  if (item.title === "Marksheet") {
+    if (pathname === "/defense" && currentTab === "marksheet") return true;
+    if (pathname.startsWith("/defense/")) return true;
+    return false;
+  }
+
+  // Panel Member "My Panels" item (the schedule overview at /defense)
+  if (item.title === "My Panels") {
+    if (currentTab === "marksheet") return false;
+    if (pathname.startsWith("/defense/")) return false;
+    return pathname === "/defense";
+  }
+
+  // Generic matching for all other routes
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }

@@ -2,15 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { GraduationCap } from "lucide-react";
 import { cn } from "cn";
 import { useDevSession } from "@/context/DevSession";
-import { getNavItemsForRole } from "@/config/nav";
+import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function AppSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
   const { activeRole } = useDevSession();
   const navItems = getNavItemsForRole(activeRole);
 
@@ -48,10 +50,7 @@ export function AppSidebar({ className }: { className?: string }) {
       <nav className="flex-1 overflow-y-auto p-2 lg:p-3 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+          const isActive = isNavItemActive(item, pathname, currentTab);
 
           return (
             <Tooltip key={`${item.title}-${item.href}`} delayDuration={0}>

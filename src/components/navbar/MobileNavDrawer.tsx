@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { GraduationCap, Menu } from "lucide-react";
 import { cn } from "cn";
 import { useDevSession } from "@/context/DevSession";
-import { getNavItemsForRole } from "@/config/nav";
+import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
 import {
   Sheet,
   SheetContent,
@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 export function MobileNavDrawer() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
   const { activeRole } = useDevSession();
   const navItems = getNavItemsForRole(activeRole);
 
@@ -52,10 +54,7 @@ export function MobileNavDrawer() {
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+            const isActive = isNavItemActive(item, pathname, currentTab);
 
             return (
               <Link
