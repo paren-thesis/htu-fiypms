@@ -25,6 +25,10 @@ export const auditLogActionSchema = z.enum([
   'team.renamed',
   'team.auto_grouped',
   'defense.scheduled',
+  'supervision.override',
+  'supervision.proposed',
+  'supervision.accepted',
+  'supervision.declined',
 ]);
 
 export type AuditLogAction = z.infer<typeof auditLogActionSchema>;

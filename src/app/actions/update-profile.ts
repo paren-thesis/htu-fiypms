@@ -8,6 +8,8 @@ import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';
 import { HttpError } from '@/lib/errors';
 import { writeAuditInTx } from '@/lib/audit';
+import { getCurrentAcademicYear } from '@/lib/models/academic-year/repo';
+import { ensureSupervisionDoc } from '@/lib/models/supervision';
 
 const updateProfileInputSchema = z
   .object({
@@ -172,6 +174,14 @@ export async function updateProfile(
     ...currentClaims,
     profileComplete: true,
   });
+
+  // 7. If user is a supervisor, ensure supervision document for current academic year
+  if (authUser.roles.includes('supervisor') || authUser.activeRole === 'supervisor') {
+    const activeYear = await getCurrentAcademicYear();
+    if (activeYear) {
+      await ensureSupervisionDoc(authUser.uid, activeYear.id, capacity);
+    }
+  }
 
   return {
     ok: true,

@@ -108,6 +108,16 @@ export interface AcademicYearDocument {
   created_at: FirebaseFirestore.Timestamp;
 }
 
+export interface SupervisorAssignment {
+  status: 'proposed' | 'accepted' | 'declined';
+  proposed_by: string;
+  proposed_at: FirebaseFirestore.Timestamp;
+  window_expires_at: FirebaseFirestore.Timestamp;
+  responded_at?: FirebaseFirestore.Timestamp;
+  decline_reason?: string;
+  override_reason?: string;
+}
+
 export interface TeamDocument {
   id: string;
   name: string;
@@ -127,6 +137,7 @@ export interface TeamDocument {
     | "completed"
     | "disbanded";
   assigned_supervisor_id?: string;
+  supervisor_assignment?: SupervisorAssignment;
   approved_topic_id?: string;
   scores_summary?: {
     supervisor_score: number; // Weighted 40%
@@ -335,7 +346,11 @@ export interface AuditLogDocument {
     | "team.joined"
     | "team.renamed"
     | "team.auto_grouped"
-    | "defense.scheduled";
+    | "defense.scheduled"
+    | "supervision.override"
+    | "supervision.proposed"
+    | "supervision.accepted"
+    | "supervision.declined";
   target_type: string;
   target_id: string;
   description: string;

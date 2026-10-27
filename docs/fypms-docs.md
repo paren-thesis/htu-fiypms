@@ -1398,6 +1398,7 @@ A security and consistency review of v5.1 found the issues below. Each one has b
 | **D-03** | **Email deferred:** Resend is removed from v5.2 scope. No email provider is integrated; FR-09.3 is deferred and notifications are in-app only. |
 | **D-04** | **CSV columns:** The roster import CSV is `index_number`, `full_name`, `contact` (required phone number, stored on the roster document only). The broadsheet CSV exports `index_number`, `full_name`, `contact` followed by the team's scores (FR-10.1b). |
 | **D-05** | **Roster and whitelist permissions:** Only coordinators and admins may import student roster CSVs and manage the staff whitelist. Supervisors have neither permission. This supersedes the FR-01.4 wording in v5.1 and v5.2, which allowed supervisors to import. |
+| **A-02** | **Supervisor assignment workflow:** Added `supervisor_assignment` to `TeamDocument` (`status: 'proposed' | 'accepted' | 'declined'`, `proposed_by`, `proposed_at`, `window_expires_at`, `responded_at?`, `decline_reason?`, `override_reason?`). Assignment begins as `proposed` by coordinator/admin with a 72-hour expiration window (`SUPERVISOR_RESPONSE_WINDOW_HOURS`). Supervisor accepts (transactional capacity check: `current_assigned_count < max_capacity` else 409) or declines (clearing `assigned_supervisor_id` and recording reason). Gated contact grants are created only after both topic is approved AND assignment is accepted. |
 
 ## **13.2 Open Items**
 

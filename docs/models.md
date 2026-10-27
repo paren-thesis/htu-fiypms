@@ -8,9 +8,9 @@ Agents read this file (not the spec) to check what exists. `fypms-create-model` 
 | StaffWhitelistDocument | staff_whitelist | coordinator/admin read · server write | src/types/firestore.ts | spec v5.2 |
 | CourseDocument | courses | members read · coordinator/admin write | src/types/firestore.ts | spec v5.2 |
 | AcademicYearDocument | academic_years (+counters) | members read · coordinator/admin write (not grades_published) | src/types/firestore.ts | spec v5.2 |
-| TeamDocument | teams (+members, private) | members read · server write (leader renames) | src/types/firestore.ts | spec v5.2 |
+| TeamDocument | teams (+members, private) | members read · server write (leader renames; supervisor_assignment per A2) | src/types/firestore.ts | spec v5.2 (A2) |
 | TopicDocument | topics (+history) | members read · server write | src/types/firestore.ts | spec v5.2 |
-| SupervisionDocument | supervisions | members read · server write | src/types/firestore.ts | spec v5.2 |
+| SupervisionDocument | supervisions (id: `${uid}__${year}`) | members read · server write | src/lib/models/supervision/* | 06-02 |
 | ChapterDocument | chapters | members read · server write | src/types/firestore.ts | spec v5.2 |
 | RubricDocument | rubrics | members read · coordinator/admin write | src/types/firestore.ts | spec v5.2 |
 | DefensePanelDocument | defense_panels | members read · coordinator/admin write | src/types/firestore.ts | spec v5.2 |
