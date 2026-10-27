@@ -8,7 +8,7 @@ try {
     filename: serverOnlyPath,
     loaded: true,
     exports: {},
-  } as any;
+  } as unknown as NodeModule;
 } catch {
   // Ignore if server-only is not present
 }

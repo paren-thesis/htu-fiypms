@@ -11,7 +11,7 @@ import {
   serializeTimestamps,
 } from '@/lib/serialize';
 import { Timestamp } from 'firebase-admin/firestore';
-import { z, ZodError } from 'zod';
+import { z } from 'zod';
 import { fx, staffUid, studentEmail, studentUid } from '../../fixtures';
 import { resetTestEmulator } from '../helpers/reset';
 

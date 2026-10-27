@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { expectNoHorizontalScroll, expectTouchTarget } from './helpers';
+import { expectNoHorizontalScroll } from './helpers';
 
 test.describe('Dev Login & Navigation E2E', () => {
   test('lists fixture users and renders responsive UI without overflow at 375, 768, 1280px', async ({ page }) => {
@@ -21,7 +21,6 @@ test.describe('Dev Login & Navigation E2E', () => {
     await page.waitForLoadState('networkidle');
 
     // Click sign in as coordinator
-    const coordinatorCard = page.locator('div').filter({ hasText: /^Dr\. Samuel K\. Ampofo/ }).first();
     const signInBtn = page.getByRole('button', { name: /Sign in as coordinator/i });
     await signInBtn.click();
 

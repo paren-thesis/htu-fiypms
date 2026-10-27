@@ -53,13 +53,35 @@ function getLifecycleIndex(status: TeamDocument["status"]): number {
   }
 }
 
-export function TeamDetailsView({ team, currentUserUid }: TeamDetailsViewProps) {
+export function TeamDetailsView({ team: initialTeam, currentUserUid }: TeamDetailsViewProps) {
+  const [liveTeam, setLiveTeam] = React.useState<TeamDocument | null>(null);
+  const team = liveTeam ?? initialTeam;
   const isLeader = team.leader_id === currentUserUid;
   const [renameModalOpen, setRenameModalOpen] = React.useState(false);
   const [inviteCode, setInviteCode] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
   const [memberUsers, setMemberUsers] = React.useState<Record<string, UserDocument>>({});
   const [loadingMembers, setLoadingMembers] = React.useState(true);
+
+  // Live listener on teams/{id} for immediate real-time member changes
+  React.useEffect(() => {
+    if (!initialTeam.id) return;
+
+    const teamRef = doc(db, "teams", initialTeam.id);
+    const unsub = onSnapshot(
+      teamRef,
+      (snap) => {
+        if (snap.exists()) {
+          setLiveTeam(snap.data() as TeamDocument);
+        }
+      },
+      (error) => {
+        console.warn("Unable to listen to team doc:", error.message);
+      }
+    );
+
+    return () => unsub();
+  }, [initialTeam.id]);
 
   // 1. Live listener / fetch for invite code from teams/{id}/private/invite
   React.useEffect(() => {

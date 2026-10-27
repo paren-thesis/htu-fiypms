@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { POST } from '@/app/api/dev/token/route';
 import { runSeed } from '../../scripts/seed';
 import { resetTestEmulator } from '../helpers/reset';
-import { fx, studentEmail, studentUid, staffUid } from '../../fixtures';
+import { fx, studentEmail, staffUid } from '../../fixtures';
 
 describe('Dev Token API (/api/dev/token)', () => {
   beforeAll(async () => {
