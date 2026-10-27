@@ -1,0 +1,59 @@
+{
+  "prompt_id": "01-01",
+  "phase": 1,
+  "phase_name": "data-foundation",
+  "title": "Types, rules, indexes and emulator",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-scaffold-roadmap",
+    "fypms-test-data"
+  ],
+  "depends_on": [
+    "00-01"
+  ],
+  "spec_sections": [
+    "section 8.1",
+    "section 9",
+    "section 10"
+  ],
+  "models": [
+    {
+      "name": "all 18 models",
+      "collection": "*",
+      "work": "Install the shared type definitions, security rules and indexes"
+    }
+  ],
+  "build": [
+    "Copy fypms-firestore-data/references/types.ts to src/types/firestore.ts. Export every interface. If the global FirebaseFirestore namespace does not resolve, add `import type {} from 'firebase-admin/firestore'` at the top.",
+    "Copy references/firestore.rules to /firestore.rules and references/firestore.indexes.json to /firestore.indexes.json unchanged.",
+    "Create firebase.json (emulators: auth 9099, firestore 8080, ui enabled; firestore rules + indexes paths) and .firebaserc with a placeholder default project.",
+    "Create docs/models.md only if missing (the pack ships it). Do not change its rows.",
+    "Create firebase.test.json from fypms-test-data/references (project demo-fypms-test, Auth 9199, Firestore 8180, hub 4410, logging 4510, UI disabled). firebase.json is the DEV emulator (project demo-fypms, Auth 9099, Firestore 8080, UI 4000). Both must be able to run at the same time",
+    "Add npm scripts emu, emu:reset, emu:reset:test (and later seed/check scripts) from fypms-test-data/references/fixtures-contract.md; scripts/emulator-reset.mjs and the fixtures/ folder ship with the pack, do not rewrite them"
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "firestore.rules",
+    "firestore.indexes.json",
+    "firebase.json",
+    ".firebaserc",
+    "firebase.test.json",
+    "package.json",
+    "scripts/emulator-reset.mjs",
+    "fixtures/*"
+  ],
+  "out_of_scope": [
+    "Rules tests (01-02)",
+    "Any repo or action code"
+  ],
+  "acceptance": [
+    "tsc passes with src/types/firestore.ts included",
+    "Firestore emulator starts and loads firestore.rules without syntax errors",
+    "Dev and test emulators start together without a port clash"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npx firebase emulators:exec --only firestore \"echo rules-ok\""
+  ]
+}

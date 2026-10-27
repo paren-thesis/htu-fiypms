@@ -1,0 +1,59 @@
+{
+  "prompt_id": "12-04",
+  "phase": 12,
+  "phase_name": "notifications-archive-admin-hardening",
+  "title": "Hardening, end-to-end tests and release checklist",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-testing",
+    "fypms-scaffold-roadmap",
+    "fypms-firestore-data",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "12-03",
+    "12-02",
+    "12-01",
+    "11-03"
+  ],
+  "spec_sections": [
+    "section 12 (testing)",
+    "section 13 (all findings)"
+  ],
+  "models": [
+    {
+      "name": "all models",
+      "collection": "*",
+      "work": "final verification only"
+    }
+  ],
+  "build": [
+    "Run npx tsc --noEmit, npm run lint, npm run test, npm run test:rules and npm run test:server; fix failures with the _standards on_error procedure.",
+    "Playwright e2e against the emulators (helpers create Auth emulator users with claims): (1) registered student reaches the dashboard, (2) unknown email lands on /not-registered, (3) faculty completes /complete-profile, (4) category mismatch join shows the 409 message, (5) full path proposal approved + supervisor accepted unlocks contact details, (6) two evaluators score and the coordinator sees the live composite, (7) publishing grades blocks further evaluation writes. Add @axe-core/playwright checks on /, /my-team, /proposals, /defense/[panelId] and /reports.",
+    "Static audits recorded as commands in the checklist: no `dark:` in src, no firebase-admin import outside server modules, no `any`, every finding F-01 to F-17 has at least one test that references its id in a test name.",
+    "Create vercel.json (function maxDuration for generate-broadsheet and import-rosters, cron only if the stretch reminder was built), confirm runtime nodejs on all Server Actions, finalise .env.example, and make sure /dev/ui is not reachable in production.",
+    "Write docs/release-checklist.md: results of each command, Firebase production setup steps (project, authorized domains including the Vercel domain, deploy rules and indexes, seed with --prod), Vercel env vars, first-admin bootstrap, and known deferred items (email, grade classification, cross-category override, supervisor access to student contact)."
+  ],
+  "files": [
+    "e2e/*.spec.ts",
+    "playwright.config.ts",
+    "vercel.json",
+    "docs/release-checklist.md",
+    ".env.example"
+  ],
+  "out_of_scope": [
+    "New features"
+  ],
+  "acceptance": [
+    "All suites green",
+    "Checklist file lists each command with its pass/fail result"
+  ],
+  "verify": [
+    "npm run typecheck",
+    "npm run lint",
+    "npm run test",
+    "npm run test:rules",
+    "npm run test:server",
+    "npx playwright test"
+  ]
+}

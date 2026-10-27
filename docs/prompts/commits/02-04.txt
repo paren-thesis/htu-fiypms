@@ -1,0 +1,8 @@
+feat(auth): add role switcher and switch-role action
+
+- Server action updates activeRole claim and audits the switch
+- Client refreshes token and session cookie after switching
+
+Prompt: 02-04
+Models: UserDocument
+Refs: FR-01.3

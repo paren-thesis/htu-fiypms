@@ -1,0 +1,11 @@
+feat(roster): add roster model and CSV import with dry-run
+
+- Parse and validate index_number, full_name, contact
+- Add dry-run and batched commit with duplicate skipping
+- Add roster import modal and /students table (coordinator/admin only)
+- Return 403 to supervisors calling import-rosters
+- Tabs above the table with layout checks at 3 widths
+
+Prompt: 03-02
+Models: RosterStudentDocument
+Refs: FR-01.4, FR-01.5

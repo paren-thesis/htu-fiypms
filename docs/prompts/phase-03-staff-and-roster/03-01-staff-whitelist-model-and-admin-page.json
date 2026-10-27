@@ -1,0 +1,56 @@
+{
+  "prompt_id": "03-01",
+  "phase": 3,
+  "phase_name": "staff-and-roster",
+  "title": "Staff whitelist model and admin page",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-auth-gating",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "02-05"
+  ],
+  "spec_sections": [
+    "FR-01.7",
+    "FR-01.11"
+  ],
+  "models": [
+    {
+      "name": "StaffWhitelistDocument",
+      "collection": "staff_whitelist",
+      "work": "schema, repo, CRUD actions, page"
+    }
+  ],
+  "build": [
+    "models/staff-whitelist (schema, repo) and src/app/actions/manage-staff-whitelist.ts with add, update, deactivate, reactivate. Doc id = lowercase email ending @htu.edu.gh. Fields per StaffWhitelistDocument (full_name, roles[], department, programmes[], is_active, added_by_uid, added_at, user_uid null).",
+    "Deactivate sets is_active false and, when user_uid exists, revokes refresh tokens (revokeRefreshTokens); writeAudit staff.whitelist_added|deactivated.",
+    "Callers: coordinator and admin only. Block removing your own coordinator role and deactivating yourself.",
+    "/admin/staff-whitelist page: searchable table (role and programme filters, status badge), add/edit sheet with role multi-select and programme multi-select (from courses), deactivate/reactivate confirm dialog.",
+    "Tests: email validation, duplicate add, self-deactivation blocked, non-coordinator 403."
+  ],
+  "files": [
+    "src/lib/models/staff-whitelist/*",
+    "src/app/actions/manage-staff-whitelist.ts",
+    "src/app/admin/staff-whitelist/page.tsx",
+    "src/components/auth/StaffWhitelistTable.tsx",
+    "tests/server/staff-whitelist.test.ts"
+  ],
+  "out_of_scope": [
+    "Whitelist CSV import",
+    "Admin users page (12-03)"
+  ],
+  "acceptance": [
+    "Adding a faculty email lets that person sign in via 02-03",
+    "Deactivated staff are locked out after their token refresh",
+    "A supervisor calling any whitelist action receives 403 and /admin/staff-whitelist is hidden from their nav"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx tsc --noEmit"
+  ],
+  "rules": [
+    "Supervisors get 403 on every whitelist action and cannot open the page (D-05)"
+  ]
+}

@@ -8,7 +8,7 @@
     "code": "",
     "stack": "First 10-15 lines only"
   },
-  "where": { "route": "/students", "role": "supervisor", "file": "", "line": 0, "command": "" },
+  "where": { "route": "/students", "role": "supervisor", "file": "", "line": 0, "command": "", "screenshot": "docs/screenshots/<file>.png" },
   "repro": ["Step 1", "Step 2"],
   "prompt_id": "00-03",
   "recent_changes": "What changed just before it broke",

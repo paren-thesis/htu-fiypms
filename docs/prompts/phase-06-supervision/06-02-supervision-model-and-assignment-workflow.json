@@ -1,0 +1,65 @@
+{
+  "prompt_id": "06-02",
+  "phase": 6,
+  "phase_name": "supervision",
+  "title": "Supervision model and assignment workflow",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-supervisor-matching",
+    "fypms-firestore-data",
+    "fypms-teams-topics",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "06-01"
+  ],
+  "spec_sections": [
+    "FR-04.2",
+    "FR-04.3",
+    "FR-04.4",
+    "section 8.1 (SupervisionDocument, TeamDocument)"
+  ],
+  "models": [
+    {
+      "name": "SupervisionDocument",
+      "collection": "supervisions",
+      "work": "per supervisor per year: capacity and assigned teams"
+    },
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "add supervisor_assignment (spec amendment A2)"
+    }
+  ],
+  "build": [
+    "Spec amendment A2: add to TeamDocument `supervisor_assignment?: { status: 'proposed' | 'accepted' | 'declined'; proposed_by: string; proposed_at: Timestamp; window_expires_at: Timestamp; responded_at?: Timestamp; decline_reason?: string; override_reason?: string }`. Update src/types/firestore.ts, docs/models.md and leave a note in docs/fypms-docs.md section 13.",
+    "models/supervision (schema, repo): doc id `${supervisorUid}__${academicYearId}`, max_capacity from the supervisor's profile.max_team_capacity (default 5). ensureSupervisionDoc(supervisorUid, yearId) is called from update-profile when a supervisor completes their profile, plus scripts/backfill-supervisions.ts for existing supervisors.",
+    "src/app/actions/get-supervisor-recommendations.ts (coordinator/admin): team tags = union of tech_stack of the team's current topics (approved topic if present); candidates from staff_whitelist + supervisions; returns rankSupervisors output.",
+    "src/app/actions/propose-supervisor.ts (coordinator/admin): supervisor must list the team's course_id unless override_reason is supplied (then writeAudit supervision.override); sets team.assigned_supervisor_id and supervisor_assignment proposed with window_expires_at = now + SUPERVISOR_RESPONSE_WINDOW_HOURS (72); notify the supervisor (supervision_assignment). An expired proposal may be replaced.",
+    "src/app/actions/respond-supervisor-assignment.ts (the proposed supervisor only): accept runs a transaction: window not expired, supervision.current_assigned_count < max_capacity (else 409), increment count, arrayUnion team id, set status at_capacity when full, mark accepted, call ensureContactGrants, notify team and coordinators. Decline clears assigned_supervisor_id, records the reason, notifies coordinators.",
+    "Server tests: programme filter and override audit, capacity race (two accepts at count = max - 1), expiry, decline path, grants created only after both acceptance and approved topic."
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "src/lib/models/supervision/*",
+    "src/app/actions/{get-supervisor-recommendations,propose-supervisor,respond-supervisor-assignment}.ts",
+    "scripts/backfill-supervisions.ts",
+    "tests/server/supervision.test.ts",
+    "docs/models.md"
+  ],
+  "assumptions": [
+    "Response window is 72 hours (constant, spec says 'designated window')",
+    "Matching uses the union of the team's current topic tags"
+  ],
+  "out_of_scope": [
+    "UI (06-03)"
+  ],
+  "acceptance": [
+    "Capacity race test passes",
+    "A supervisor outside the course appears only through an audited override"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx tsc --noEmit"
+  ]
+}

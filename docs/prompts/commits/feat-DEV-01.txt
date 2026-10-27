@@ -1,0 +1,9 @@
+feat(dev): add seed:full and emulator-only dev login
+
+- seed:full creates Auth users, claims, users docs and contacts from
+  the fixtures (teams and supervisions when those models exist)
+- Add /dev/login and /api/dev/token, disabled in production and
+  without emulator variables
+Tests: npm run seed:full, check:data, production build returns 404
+
+Prompt: DEV-01

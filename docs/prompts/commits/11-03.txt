@@ -1,0 +1,9 @@
+feat(appeals): add grade appeals model and workflow
+
+- Add grade_appeals model, rules and tests (spec amendment A4)
+- Submit within window and resolve actions
+- Appeal UI for students and coordinators
+
+Prompt: 11-03
+Models: GradeAppealDocument (NEW)
+Refs: FR-10.4

@@ -1,0 +1,8 @@
+feat(defense): add defense scheduling UI
+
+- Coordinator panel and slot editor with conflict badges
+- Panel member and student schedule views
+
+Prompt: 08-03
+Models: DefensePanelDocument
+Refs: FR-07.1, FR-07.2, FR-07.3, FR-07.4

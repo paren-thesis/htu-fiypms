@@ -1,0 +1,47 @@
+{
+  "prompt_id": "05-02",
+  "phase": 5,
+  "phase_name": "proposals",
+  "title": "Proposals page for teams",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "05-01"
+  ],
+  "spec_sections": [
+    "FR-03.1",
+    "FR-03.2",
+    "FR-03.5"
+  ],
+  "models": [
+    {
+      "name": "TopicDocument",
+      "collection": "topics",
+      "work": "realtime read, form UI"
+    }
+  ],
+  "build": [
+    "/proposals student view: three rank slots (1, 2, 3) as cards with StatusBadge, title, abstract excerpt and reviewer notes; empty slot shows 'Add proposal'. Create/edit sheet with RHF + Zod (all fields, tech_stack chip input). Leader sees Submit / Resubmit buttons; others see read-only status.",
+    "History drawer per topic listing versions and what changed (title, abstract, tags).",
+    "Show duplicate warnings returned by submit-topic in an Alert with links to similar past topics.",
+    "LockedCard when the team has fewer than 4 members. Realtime onSnapshot on topics where team_id equals the team id, with unsubscribe."
+  ],
+  "files": [
+    "src/app/proposals/page.tsx",
+    "src/components/proposals/*"
+  ],
+  "out_of_scope": [
+    "Supervisor review view (05-03)"
+  ],
+  "acceptance": [
+    "Resubmitting after revision_requested increments version and shows the history entry",
+    "Non-leaders cannot submit"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

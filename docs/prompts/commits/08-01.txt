@@ -1,0 +1,9 @@
+feat(rubrics): add rubric model and builder
+
+- Validate weights and point totals
+- Activate exactly one rubric in a transaction
+- Add rubric builder page with template
+
+Prompt: 08-01
+Models: RubricDocument
+Refs: FR-06.1

@@ -1,0 +1,10 @@
+feat(staff): add staff whitelist model, actions and admin page
+
+- Add add/update/deactivate/reactivate actions with audit
+- Revoke sessions on deactivation
+- Add /admin/staff-whitelist table and forms (coordinator/admin only)
+- Return 403 to supervisors and other roles
+
+Prompt: 03-01
+Models: StaffWhitelistDocument
+Refs: FR-01.7, FR-01.11

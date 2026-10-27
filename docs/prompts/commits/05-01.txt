@@ -1,0 +1,9 @@
+feat(topics): add topic model, state machine and submission
+
+- Add pure topic state machine with exhaustive tests
+- Add submit/resubmit with versioning and history snapshots
+- Add duplicate-topic similarity warnings
+
+Prompt: 05-01
+Models: TopicDocument, Topic history (subcollection)
+Refs: FR-03.1, FR-03.2, FR-03.3, FR-03.5

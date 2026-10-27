@@ -1,12 +1,10 @@
-fix(rsc): serialize Firestore documents across Server-to-Client component boundary
+fix(ui): show a single indicator on the current stepper step
 
-Symptom: Runtime Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported.
-Cause: Class A code defect: Firestore Timestamp class instances (imported_at, created_at, etc.) were passed directly from RSC to Client Components without serialization.
-- Added serializeForClient helper in src/lib/serialize.ts to strip custom class prototypes and produce plain objects
-- Serialized roster students before passing to StudentsRosterTable in src/app/(shell)/students/page.tsx
-- Serialized staff whitelist members before passing to StaffWhitelistTable in src/app/(shell)/admin/staff-whitelist/page.tsx
-Tests: npm run build, npx vitest run src/lib/roster, vitest server tests (45/45 passed)
+Symptom: current step circle showed a doubled blue ring
+Cause: border and ring (or outline) stacked on one element (V)
+- Use one indicator and keep the ring unclipped by its parent
+- Add Playwright layout spec at 375, 768 and 1280 px
+Tests: e2e/ui/lifecycle-stepper.spec.ts
 
 Fixes: BUG-003
-Prompt: 03-02
-Refs: FR-01.4, FR-01.7
+Prompt: 00-02

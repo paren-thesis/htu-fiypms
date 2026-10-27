@@ -1,0 +1,8 @@
+feat(chapters): add chapters page
+
+- Student timeline with submit/resubmit and feedback thread
+- Supervisor review queue and coordinator progress matrix
+
+Prompt: 07-02
+Models: ChapterDocument
+Refs: FR-05.1, FR-05.2, FR-05.3

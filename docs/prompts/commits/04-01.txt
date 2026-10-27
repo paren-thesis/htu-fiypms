@@ -1,0 +1,10 @@
+feat(teams): add team model with create, join and invite codes
+
+- Transactional create/join with course-category integrity (409)
+- Add concurrency-safe group numbers via counters
+- Store invite codes server-side (F-06)
+
+Prompt: 04-01
+Models: TeamDocument, TeamMember (subcollection), InviteCodeDocument,
+  TeamInviteDocument, CounterDocument
+Refs: FR-02.1, FR-02.2, FR-02.3, FR-02.4a, FR-02.5, FR-02.5a

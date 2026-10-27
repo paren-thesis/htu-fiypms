@@ -1,0 +1,45 @@
+{
+  "task": "fix_bug",
+  "bug_id": "BUG-004",
+  "skills": [
+    "fypms-fix-bug",
+    "fypms-ui-qa",
+    "fypms-test-data"
+  ],
+  "run_after": [
+    "BUG-002"
+  ],
+  "symptom": "On /students: (1) roster rows show invented data (Student 0323080104, std0323080104@htu.edu.gh, 0240000000, indexes 0323080xxx) instead of the fixture students; (2) the Cohort Roster / Unassigned Pool tabs render as a left column beside the table; (3) the Next.js dev badge covers the 'Coordinator Workspace' text in the sidebar footer.",
+  "expected": "Rows come from fixtures with email = <index>@htu.edu.gh; tabs sit above the table; the dev badge covers nothing.",
+  "error": {
+    "type": "behaviour",
+    "message": "Data mismatch and layout defects"
+  },
+  "where": {
+    "screenshot": "docs/screenshots/mismatch.png",
+    "route": "/students",
+    "role": "coordinator"
+  },
+  "prompt_id": "03-02",
+  "classify_hint": "E for (1), V for (2) and (3)",
+  "fix_plan": [
+    "Data: after BUG-002 run npm run dev:fresh. Then grep for where 'std' + index emails and 0240000000 are produced (code, seed or test). Make studentEmail() in fixtures/index.ts the only builder; make import-rosters derive the email from it and reject CSV rows that carry another email; add the check to check:data.",
+    "Layout: tabs above the table (Tabs root flex-col, TabsList w-fit, TabsContent mt-4), table inside an overflow-x-auto container, no horizontal page scroll.",
+    "Dev badge: move or disable the Next.js dev indicator through the devIndicators option for the installed Next version; do not alter the sidebar layout for it.",
+    "Add e2e/ui/students.spec.ts (375, 768, 1280 px: tabs above table, no horizontal scroll, sidebar footer visible) and a server test that roster email equals studentEmail(index)."
+  ],
+  "constraints": {
+    "max_files": 8,
+    "no_new_deps": true,
+    "update_docs": true
+  },
+  "acceptance": [
+    "/students lists the 40 fixture students with fixture emails and contacts",
+    "Playwright students spec passes at the three widths",
+    "Sidebar footer fully visible in dev"
+  ],
+  "verify": [
+    "npm run check:data",
+    "npx playwright test e2e/ui/students.spec.ts"
+  ]
+}

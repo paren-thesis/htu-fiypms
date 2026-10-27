@@ -1,0 +1,668 @@
+{
+  "name": "FYPMS JSON prompt pack",
+  "spec_version": "5.2",
+  "how_to_run": "In Antigravity say: Run docs/prompts/<file>.json  (or paste the file contents). One prompt per conversation, in order.",
+  "standards": "docs/prompts/_standards.json",
+  "skills_used": [
+    "fypms-auth-gating",
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-notifications",
+    "fypms-reports-export",
+    "fypms-roster-import",
+    "fypms-scaffold-roadmap",
+    "fypms-supervisor-matching",
+    "fypms-teams-topics",
+    "fypms-testing",
+    "fypms-ui-design-system"
+  ],
+  "spec_amendments": {
+    "A1": "NotificationDocument.type extended (01-03)",
+    "A2": "TeamDocument.supervisor_assignment (06-02)",
+    "A3": "ChapterDocument.history[] (07-01)",
+    "A4a": "DefensePanelDocument.is_published/published_at if missing (08-02)",
+    "A4": "New model grade_appeals (11-03)",
+    "A5": "New model archived_projects (12-02)"
+  },
+  "prompts": [
+    {
+      "id": "00-01",
+      "phase": 0,
+      "file": "phase-00-scaffold/00-01-scaffold-project.json",
+      "title": "Scaffold project",
+      "models": [],
+      "depends_on": [],
+      "status": "todo"
+    },
+    {
+      "id": "00-02",
+      "phase": 0,
+      "file": "phase-00-scaffold/00-02-design-tokens-and-ui-kit.json",
+      "title": "Design tokens and UI kit",
+      "models": [],
+      "depends_on": [
+        "00-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "00-03",
+      "phase": 0,
+      "file": "phase-00-scaffold/00-03-app-shell-and-empty-pages.json",
+      "title": "App shell and empty pages",
+      "models": [],
+      "depends_on": [
+        "00-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "01-01",
+      "phase": 1,
+      "file": "phase-01-data-foundation/01-01-types-rules-indexes-and-emulator.json",
+      "title": "Types, rules, indexes and emulator",
+      "models": [
+        "all 18 models"
+      ],
+      "depends_on": [
+        "00-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "01-02",
+      "phase": 1,
+      "file": "phase-01-data-foundation/01-02-rules-test-harness-and-baseline-tests.json",
+      "title": "Rules test harness and baseline tests",
+      "models": [
+        "UserDocument",
+        "TeamDocument",
+        "SupervisorContactDocument",
+        "EvaluationDocument",
+        "PeerEvaluationDocument"
+      ],
+      "depends_on": [
+        "01-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "01-03",
+      "phase": 1,
+      "file": "phase-01-data-foundation/01-03-server-infrastructure-audit-log-and-notifications-models.json",
+      "title": "Server infrastructure, audit log and notifications models",
+      "models": [
+        "AuditLogDocument",
+        "NotificationDocument"
+      ],
+      "depends_on": [
+        "01-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "01-04",
+      "phase": 1,
+      "file": "phase-01-data-foundation/01-04-course-and-academic-year-models-with-seed-script.json",
+      "title": "Course and academic year models with seed script",
+      "models": [
+        "CourseDocument",
+        "AcademicYearDocument"
+      ],
+      "depends_on": [
+        "01-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "02-01",
+      "phase": 2,
+      "file": "phase-02-authentication/02-01-firebase-clients-authcontext-login-and-session-cookie.json",
+      "title": "Firebase clients, AuthContext, login and session cookie",
+      "models": [
+        "UserDocument"
+      ],
+      "depends_on": [
+        "01-03",
+        "00-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "02-02",
+      "phase": 2,
+      "file": "phase-02-authentication/02-02-edge-middleware-and-gate-pages.json",
+      "title": "Edge middleware and gate pages",
+      "models": [
+        "(none)"
+      ],
+      "depends_on": [
+        "02-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "02-03",
+      "phase": 2,
+      "file": "phase-02-authentication/02-03-complete-signup-roster-and-whitelist-linkage.json",
+      "title": "complete-signup: roster and whitelist linkage",
+      "models": [
+        "UserDocument",
+        "RosterStudentDocument",
+        "StaffWhitelistDocument"
+      ],
+      "depends_on": [
+        "02-02",
+        "01-04"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "02-04",
+      "phase": 2,
+      "file": "phase-02-authentication/02-04-role-switcher-and-switch-role-action.json",
+      "title": "Role switcher and switch-role action",
+      "models": [
+        "UserDocument"
+      ],
+      "depends_on": [
+        "02-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "02-05",
+      "phase": 2,
+      "file": "phase-02-authentication/02-05-faculty-profile-completion-and-supervisor-contacts.json",
+      "title": "Faculty profile completion and supervisor contacts",
+      "models": [
+        "SupervisorContactDocument",
+        "UserDocument"
+      ],
+      "depends_on": [
+        "02-04"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "03-01",
+      "phase": 3,
+      "file": "phase-03-staff-and-roster/03-01-staff-whitelist-model-and-admin-page.json",
+      "title": "Staff whitelist model and admin page",
+      "models": [
+        "StaffWhitelistDocument"
+      ],
+      "depends_on": [
+        "02-05"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "03-02",
+      "phase": 3,
+      "file": "phase-03-staff-and-roster/03-02-roster-model-and-csv-import.json",
+      "title": "Roster model and CSV import",
+      "models": [
+        "RosterStudentDocument"
+      ],
+      "depends_on": [
+        "03-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "04-01",
+      "phase": 4,
+      "file": "phase-04-teams/04-01-team-model-create-join-and-invite-codes.json",
+      "title": "Team model: create, join and invite codes",
+      "models": [
+        "TeamDocument",
+        "TeamMember (subcollection)",
+        "InviteCodeDocument",
+        "TeamInviteDocument",
+        "CounterDocument"
+      ],
+      "depends_on": [
+        "03-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "04-02",
+      "phase": 4,
+      "file": "phase-04-teams/04-02-my-team-page.json",
+      "title": "My Team page",
+      "models": [
+        "TeamDocument"
+      ],
+      "depends_on": [
+        "04-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "04-03",
+      "phase": 4,
+      "file": "phase-04-teams/04-03-unassigned-pool-and-auto-grouping.json",
+      "title": "Unassigned pool and auto-grouping",
+      "models": [
+        "TeamDocument"
+      ],
+      "depends_on": [
+        "04-01",
+        "03-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "05-01",
+      "phase": 5,
+      "file": "phase-05-proposals/05-01-topic-model-state-machine-and-submission.json",
+      "title": "Topic model, state machine and submission",
+      "models": [
+        "TopicDocument",
+        "Topic history (subcollection)"
+      ],
+      "depends_on": [
+        "04-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "05-02",
+      "phase": 5,
+      "file": "phase-05-proposals/05-02-proposals-page-for-teams.json",
+      "title": "Proposals page for teams",
+      "models": [
+        "TopicDocument"
+      ],
+      "depends_on": [
+        "05-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "05-03",
+      "phase": 5,
+      "file": "phase-05-proposals/05-03-topic-review-and-supervisor-contact-grants.json",
+      "title": "Topic review and supervisor contact grants",
+      "models": [
+        "TopicDocument",
+        "TeamDocument",
+        "SupervisorContact grants"
+      ],
+      "depends_on": [
+        "05-02",
+        "02-05"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "06-01",
+      "phase": 6,
+      "file": "phase-06-supervision/06-01-matching-engine-pure-logic.json",
+      "title": "Matching engine (pure logic)",
+      "models": [],
+      "depends_on": [
+        "05-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "06-02",
+      "phase": 6,
+      "file": "phase-06-supervision/06-02-supervision-model-and-assignment-workflow.json",
+      "title": "Supervision model and assignment workflow",
+      "models": [
+        "SupervisionDocument",
+        "TeamDocument"
+      ],
+      "depends_on": [
+        "06-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "06-03",
+      "phase": 6,
+      "file": "phase-06-supervision/06-03-supervision-page-for-all-roles.json",
+      "title": "Supervision page for all roles",
+      "models": [
+        "SupervisionDocument",
+        "SupervisorContactDocument"
+      ],
+      "depends_on": [
+        "06-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "07-01",
+      "phase": 7,
+      "file": "phase-07-chapters/07-01-chapter-model-and-review-actions.json",
+      "title": "Chapter model and review actions",
+      "models": [
+        "ChapterDocument"
+      ],
+      "depends_on": [
+        "06-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "07-02",
+      "phase": 7,
+      "file": "phase-07-chapters/07-02-chapters-page.json",
+      "title": "Chapters page",
+      "models": [
+        "ChapterDocument"
+      ],
+      "depends_on": [
+        "07-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "08-01",
+      "phase": 8,
+      "file": "phase-08-rubrics-and-defense-scheduling/08-01-rubric-model-and-builder.json",
+      "title": "Rubric model and builder",
+      "models": [
+        "RubricDocument"
+      ],
+      "depends_on": [
+        "06-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "08-02",
+      "phase": 8,
+      "file": "phase-08-rubrics-and-defense-scheduling/08-02-defense-panel-model-scheduling-and-conflict-detection.json",
+      "title": "Defense panel model, scheduling and conflict detection",
+      "models": [
+        "DefensePanelDocument"
+      ],
+      "depends_on": [
+        "08-01",
+        "07-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "08-03",
+      "phase": 8,
+      "file": "phase-08-rubrics-and-defense-scheduling/08-03-defense-scheduling-ui.json",
+      "title": "Defense scheduling UI",
+      "models": [
+        "DefensePanelDocument"
+      ],
+      "depends_on": [
+        "08-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "09-01",
+      "phase": 9,
+      "file": "phase-09-marksheet-and-aggregation/09-01-evaluation-model-and-score-aggregation.json",
+      "title": "Evaluation model and score aggregation",
+      "models": [
+        "EvaluationDocument"
+      ],
+      "depends_on": [
+        "08-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "09-02",
+      "phase": 9,
+      "file": "phase-09-marksheet-and-aggregation/09-02-digital-marksheet-real-time.json",
+      "title": "Digital marksheet (real-time)",
+      "models": [
+        "EvaluationDocument"
+      ],
+      "depends_on": [
+        "09-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "10-01",
+      "phase": 10,
+      "file": "phase-10-peer-eval-and-deliverables/10-01-peer-evaluation-model-and-pages.json",
+      "title": "Peer evaluation model and pages",
+      "models": [
+        "PeerEvaluationDocument"
+      ],
+      "depends_on": [
+        "09-01",
+        "04-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "10-02",
+      "phase": 10,
+      "file": "phase-10-peer-eval-and-deliverables/10-02-software-deliverables-and-supervisor-sign-off.json",
+      "title": "Software deliverables and supervisor sign-off",
+      "models": [
+        "SoftwareDeliverableDocument"
+      ],
+      "depends_on": [
+        "07-01",
+        "08-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "11-01",
+      "phase": 11,
+      "file": "phase-11-grades-and-reports/11-01-broadsheet-exports-xlsx-csv-pdf.json",
+      "title": "Broadsheet exports (XLSX, CSV, PDF)",
+      "models": [
+        "TeamDocument",
+        "RosterStudentDocument"
+      ],
+      "depends_on": [
+        "09-01",
+        "10-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "11-02",
+      "phase": 11,
+      "file": "phase-11-grades-and-reports/11-02-publish-lock-and-amend-grades-student-grades-page.json",
+      "title": "Publish, lock and amend grades; student grades page",
+      "models": [
+        "EvaluationDocument",
+        "TeamDocument",
+        "AcademicYearDocument"
+      ],
+      "depends_on": [
+        "11-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "11-03",
+      "phase": 11,
+      "file": "phase-11-grades-and-reports/11-03-grade-appeals-new-model.json",
+      "title": "Grade appeals (new model)",
+      "models": [
+        "GradeAppealDocument (NEW)"
+      ],
+      "depends_on": [
+        "11-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "12-01",
+      "phase": 12,
+      "file": "phase-12-notifications-archive-admin-hardening/12-01-notification-centre-and-live-toasts.json",
+      "title": "Notification centre and live toasts",
+      "models": [
+        "NotificationDocument"
+      ],
+      "depends_on": [
+        "01-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "12-02",
+      "phase": 12,
+      "file": "phase-12-notifications-archive-admin-hardening/12-02-project-archive-new-model-and-search.json",
+      "title": "Project archive (new model) and search",
+      "models": [
+        "ArchivedProjectDocument (NEW)"
+      ],
+      "depends_on": [
+        "11-02"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "12-03",
+      "phase": 12,
+      "file": "phase-12-notifications-archive-admin-hardening/12-03-audit-log-viewer-admin-users-and-team-overrides.json",
+      "title": "Audit log viewer, admin users and team overrides",
+      "models": [
+        "AuditLogDocument",
+        "UserDocument",
+        "TeamDocument"
+      ],
+      "depends_on": [
+        "11-02",
+        "04-03"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "12-04",
+      "phase": 12,
+      "file": "phase-12-notifications-archive-admin-hardening/12-04-hardening-end-to-end-tests-and-release-checklist.json",
+      "title": "Hardening, end-to-end tests and release checklist",
+      "models": [
+        "all models"
+      ],
+      "depends_on": [
+        "12-03",
+        "12-02",
+        "12-01",
+        "11-03"
+      ],
+      "status": "todo"
+    }
+  ],
+  "models_index": {
+    "UserDocument": [
+      "01-02",
+      "02-01",
+      "02-03",
+      "02-04",
+      "02-05",
+      "12-03"
+    ],
+    "TeamDocument": [
+      "01-02",
+      "04-01",
+      "04-02",
+      "04-03",
+      "05-03",
+      "06-02",
+      "11-01",
+      "11-02",
+      "12-03"
+    ],
+    "SupervisorContactDocument": [
+      "01-02",
+      "02-05",
+      "06-03"
+    ],
+    "EvaluationDocument": [
+      "01-02",
+      "09-01",
+      "09-02",
+      "11-02"
+    ],
+    "PeerEvaluationDocument": [
+      "01-02",
+      "10-01"
+    ],
+    "AuditLogDocument": [
+      "01-03",
+      "12-03"
+    ],
+    "NotificationDocument": [
+      "01-03",
+      "12-01"
+    ],
+    "CourseDocument": [
+      "01-04"
+    ],
+    "AcademicYearDocument": [
+      "01-04",
+      "11-02"
+    ],
+    "RosterStudentDocument": [
+      "02-03",
+      "03-02",
+      "11-01"
+    ],
+    "StaffWhitelistDocument": [
+      "02-03",
+      "03-01"
+    ],
+    "TeamMember (subcollection)": [
+      "04-01"
+    ],
+    "InviteCodeDocument": [
+      "04-01"
+    ],
+    "TeamInviteDocument": [
+      "04-01"
+    ],
+    "CounterDocument": [
+      "04-01"
+    ],
+    "TopicDocument": [
+      "05-01",
+      "05-02",
+      "05-03"
+    ],
+    "Topic history (subcollection)": [
+      "05-01"
+    ],
+    "SupervisorContact grants": [
+      "05-03"
+    ],
+    "SupervisionDocument": [
+      "06-02",
+      "06-03"
+    ],
+    "ChapterDocument": [
+      "07-01",
+      "07-02"
+    ],
+    "RubricDocument": [
+      "08-01"
+    ],
+    "DefensePanelDocument": [
+      "08-02",
+      "08-03"
+    ],
+    "SoftwareDeliverableDocument": [
+      "10-02"
+    ],
+    "GradeAppealDocument (NEW)": [
+      "11-03"
+    ],
+    "ArchivedProjectDocument (NEW)": [
+      "12-02"
+    ]
+  }
+}

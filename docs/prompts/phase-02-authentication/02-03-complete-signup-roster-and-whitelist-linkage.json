@@ -1,0 +1,70 @@
+{
+  "prompt_id": "02-03",
+  "phase": 2,
+  "phase_name": "authentication",
+  "title": "complete-signup: roster and whitelist linkage",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-firestore-data",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "02-02",
+    "01-04"
+  ],
+  "spec_sections": [
+    "FR-01.5",
+    "FR-01.6",
+    "FR-01.7",
+    "FR-01.10",
+    "section 5.2"
+  ],
+  "models": [
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "create on first sign-in"
+    },
+    {
+      "name": "RosterStudentDocument",
+      "collection": "rosters/{year}/students",
+      "work": "link user_uid (write-once)"
+    },
+    {
+      "name": "StaffWhitelistDocument",
+      "collection": "staff_whitelist",
+      "work": "link user_uid (write-once)"
+    }
+  ],
+  "build": [
+    "models/user (schema, repo) and src/app/actions/complete-signup.ts implementing section 5.2 exactly (read references/signin-flow.md first).",
+    "Student path: email matches ^[0-9]{10}@htu\\.edu\\.gh$ -> roster lookup in the current academic year inside a transaction -> create users/{uid} with profile.course_id from the roster, roles ['student'] -> set claims {roles, activeRole:'student', registered:true, profileComplete:true} -> set roster.user_uid and signup_completed_at.",
+    "Staff path: lookup staff_whitelist/{email}; require is_active; create users doc from whitelist (roles, programmes); claims with profileComplete:false; set whitelist.user_uid.",
+    "Same index with a different uid -> HttpError 409 and an audit log identity_conflict; not found -> registered:false claims and a result code the client uses to route to /not-registered. Never delete the Auth user.",
+    "After success the client calls getIdToken(true) and refreshes the __session cookie; wire this into the login flow from 02-01.",
+    "Emulator tests (tests/server): student happy path, staff happy path, unknown email, inactive staff, identity conflict, second sign-in is idempotent."
+  ],
+  "files": [
+    "src/lib/models/user/*",
+    "src/app/actions/complete-signup.ts",
+    "tests/server/complete-signup.test.ts",
+    "src/context/AuthContext.tsx"
+  ],
+  "rules": [
+    "course_id comes only from the roster entry and is immutable afterwards",
+    "user_uid is write-once"
+  ],
+  "out_of_scope": [
+    "Role switching (02-04)",
+    "Faculty profile form (02-05)"
+  ],
+  "acceptance": [
+    "All six emulator tests pass",
+    "A student signup yields claims with registered:true, profileComplete:true and the roster course_id"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx tsc --noEmit"
+  ]
+}

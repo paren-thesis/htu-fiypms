@@ -1,0 +1,9 @@
+feat(auth): add Google login, AuthContext and session cookie
+
+- Add client SDK singleton and AuthContext with claims
+- Add /api/session route with server-side domain check
+- Wire /login and remove DevSession
+
+Prompt: 02-01
+Models: UserDocument
+Refs: FR-01.1, FR-01.2

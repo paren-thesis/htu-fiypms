@@ -1,0 +1,50 @@
+{
+  "prompt_id": "07-02",
+  "phase": 7,
+  "phase_name": "chapters",
+  "title": "Chapters page",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "07-01"
+  ],
+  "spec_sections": [
+    "FR-05.1",
+    "FR-05.2",
+    "FR-05.3"
+  ],
+  "models": [
+    {
+      "name": "ChapterDocument",
+      "collection": "chapters",
+      "work": "realtime read, forms"
+    }
+  ],
+  "build": [
+    "/chapters student view: vertical timeline of chapters 1 to 5 with StatusBadge, lock icon for chapters not yet allowed, submit/resubmit dialog (link validated with the 07-01 helper), version history, and the supervisor feedback thread.",
+    "Supervisor view: team selector (their accepted teams) and a review queue of pending submissions; open-link button (target _blank, rel noopener noreferrer), approve or request revision with a line-item feedback composer.",
+    "Coordinator view: read-only progress matrix (teams x chapters) with status chips.",
+    "Realtime onSnapshot with unsubscribe; skeleton, empty and error states."
+  ],
+  "files": [
+    "src/app/chapters/page.tsx",
+    "src/components/chapters/*"
+  ],
+  "stretch_optional": [
+    "FR-05.4 reminders: /api/cron/chapter-reminders (Vercel cron, protected by CRON_SECRET) notifies supervisors of chapters pending longer than 5 days"
+  ],
+  "out_of_scope": [
+    "Reminder cron (stretch only)"
+  ],
+  "acceptance": [
+    "Student cannot open a locked chapter's dialog",
+    "Supervisor decision updates the student's view live"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "prompt_id": "12-03",
+  "phase": 12,
+  "phase_name": "notifications-archive-admin-hardening",
+  "title": "Audit log viewer, admin users and team overrides",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "11-02",
+    "04-03"
+  ],
+  "spec_sections": [
+    "FR-01.10",
+    "FR-02.7",
+    "section 8.1 (AuditLogDocument)"
+  ],
+  "models": [
+    {
+      "name": "AuditLogDocument",
+      "collection": "audit_logs",
+      "work": "read-only viewer"
+    },
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "admin role and course actions"
+    },
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "admin overrides"
+    }
+  ],
+  "build": [
+    "/audit-logs (coordinator/admin): filters (action, actor, date range, target), cursor pagination, detail drawer showing the details payload (old/new values); add any needed composite indexes.",
+    "src/app/actions/admin-users.ts (admin only): updateRoles (keeps users.roles, staff_whitelist.roles and custom claims consistent; cannot remove the last admin), forceRevokeSession (revokeRefreshTokens), changeStudentCourse (the only way course_id changes: written justification, student must not be on a team, updates users and the roster entry, audited).",
+    "src/app/actions/admin-team-override.ts (admin only): changeMaxMembers, transferMember between teams of the same course (transaction, counts, grants and invite data kept consistent), disbandTeam (status disbanded, revoke contact grants, free members, notify members with team_update). Everything audited.",
+    "/admin/users: users table with role badges and the actions above; a 'Teams' tab for team overrides.",
+    "Tests for each action including the last-admin guard, course change blocked when on a team, transfer rejected across programmes."
+  ],
+  "files": [
+    "src/app/audit-logs/page.tsx",
+    "src/app/admin/users/page.tsx",
+    "src/app/actions/{admin-users,admin-team-override}.ts",
+    "src/components/admin/*",
+    "tests/server/admin.test.ts"
+  ],
+  "out_of_scope": [
+    "Backups UI"
+  ],
+  "acceptance": [
+    "Every admin action writes an audit entry visible in /audit-logs",
+    "Cross-programme transfers are rejected"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx tsc --noEmit"
+  ]
+}

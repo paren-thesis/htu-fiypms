@@ -1,0 +1,432 @@
+===== 00-01 =====
+chore(scaffold): initialize Next.js project and tooling
+
+- Next.js App Router, TypeScript strict, Tailwind, ESLint, src dir
+- Add Firebase, Zod, RHF, exceljs, react-pdf and test dependencies
+- Add vitest configs for unit, rules and server tests
+- Create folder skeleton, .env.example and npm scripts
+
+Prompt: 00-01
+
+===== 00-02 =====
+feat(ui): add HTU light theme tokens and common UI kit
+
+- Light-mode only tokens in HTU blue and white
+- Add shadcn components and Inter font
+- Add StatusBadge, EmptyState, LockedCard, PageHeader, BentoCard,
+  LifecycleStepper
+- Add dev-only /dev/ui preview page
+- Single-indicator stepper node and layout checks at 3 widths
+
+Prompt: 00-02
+
+===== 00-03 =====
+feat(shell): add app shell, role-filtered nav and placeholder routes
+
+- Sidebar, top bar, command palette and role switcher UI
+- Add nav config per role mapped to real routes
+- Add temporary DevSession provider (replaced in 02-01)
+- Add placeholder pages and loading skeletons for every route
+- Show /students and staff whitelist only to coordinator and admin
+- Move Next.js dev badge off the sidebar footer
+
+Prompt: 00-03
+Refs: FR-01.3
+
+===== 01-01 =====
+feat(data): add Firestore types, rules, indexes and emulator config
+
+- Add src/types/firestore.ts with all document interfaces
+- Add firestore.rules (v5.2 review fixes) and firestore.indexes.json
+- Add firebase.json and .firebaserc for local emulators
+- Add firebase.test.json so tests use separate emulator ports
+- Add emu scripts and fixtures folder
+
+Prompt: 01-01
+
+===== 01-02 =====
+test(rules): add rules test harness and baseline security tests
+
+- Add emulator-backed rules test helpers with claim factory
+- Cover unregistered access, user/team write denial, invite codes,
+  contact grants
+- Cover evaluation, peer evaluation, roster and audit log rules
+- Run on the test emulator with an emulator guard and fixture users
+
+Prompt: 01-02
+Models: UserDocument, TeamDocument, SupervisorContactDocument,
+  EvaluationDocument, PeerEvaluationDocument
+
+===== 01-03 =====
+feat(infra): add admin SDK, requireUser, audit and notification helpers
+
+- Add Admin SDK singleton, HttpError and requireUser
+- Add writeAudit, notify and Timestamp serializers
+- Add audit-log and notification model layers
+- Extend notification types (spec amendment A1)
+
+Prompt: 01-03
+Models: AuditLogDocument, NotificationDocument
+Refs: FR-09.1, FR-09.2
+
+===== 01-04 =====
+feat(data): add course and year models with fixture seed
+
+- Add course and academic-year schemas and repos
+- Add group-number prefix and format helpers with tests
+- Add fixture-based seed (base mode), check-data and dev:fresh scripts
+- Seed courses, year, counters, roster and staff whitelist only
+
+Prompt: 01-04
+Models: CourseDocument, AcademicYearDocument
+Refs: FR-02.2, FR-02.5a
+
+===== 02-01 =====
+feat(auth): add Google login, AuthContext and session cookie
+
+- Add client SDK singleton and AuthContext with claims
+- Add /api/session route with server-side domain check
+- Wire /login and remove DevSession
+
+Prompt: 02-01
+Models: UserDocument
+Refs: FR-01.1, FR-01.2
+
+===== 02-02 =====
+feat(auth): add edge middleware, route gate and not-registered page
+
+- Verify Firebase ID token at the edge with jose
+- Add pure decideRoute gate logic with tests
+- Add unclosable /not-registered page
+- Block supervisors from /students and /admin/staff-whitelist
+
+Prompt: 02-02
+Refs: FR-01.8, FR-01.9
+
+===== 02-03 =====
+feat(auth): implement complete-signup with roster and whitelist linkage
+
+- Student path links roster entry and sets course_id from roster
+- Staff path links whitelist entry and sets claims
+- 409 plus audit on identity conflict
+- Add emulator tests for all paths
+
+Prompt: 02-03
+Models: UserDocument, RosterStudentDocument, StaffWhitelistDocument
+Refs: FR-01.5, FR-01.6, FR-01.7, FR-01.10
+
+===== 02-04 =====
+feat(auth): add role switcher and switch-role action
+
+- Server action updates activeRole claim and audits the switch
+- Client refreshes token and session cookie after switching
+
+Prompt: 02-04
+Models: UserDocument
+Refs: FR-01.3
+
+===== 02-05 =====
+feat(auth): add faculty profile completion and supervisor contacts
+
+- Add supervisor_contacts model layer
+- Add update-profile action with field allow-list
+- Add /complete-profile form and profileComplete claim update
+
+Prompt: 02-05
+Models: SupervisorContactDocument, UserDocument
+Refs: FR-01.9, FR-04.4
+
+===== 03-01 =====
+feat(staff): add staff whitelist model, actions and admin page
+
+- Add add/update/deactivate/reactivate actions with audit
+- Revoke sessions on deactivation
+- Add /admin/staff-whitelist table and forms (coordinator/admin only)
+- Return 403 to supervisors and other roles
+
+Prompt: 03-01
+Models: StaffWhitelistDocument
+Refs: FR-01.7, FR-01.11
+
+===== 03-02 =====
+feat(roster): add roster model and CSV import with dry-run
+
+- Parse and validate index_number, full_name, contact
+- Add dry-run and batched commit with duplicate skipping
+- Add roster import modal and /students table (coordinator/admin only)
+- Return 403 to supervisors calling import-rosters
+- Tabs above the table with layout checks at 3 widths
+
+Prompt: 03-02
+Models: RosterStudentDocument
+Refs: FR-01.4, FR-01.5
+
+===== 04-01 =====
+feat(teams): add team model with create, join and invite codes
+
+- Transactional create/join with course-category integrity (409)
+- Add concurrency-safe group numbers via counters
+- Store invite codes server-side (F-06)
+
+Prompt: 04-01
+Models: TeamDocument, TeamMember (subcollection), InviteCodeDocument,
+  TeamInviteDocument, CounterDocument
+Refs: FR-02.1, FR-02.2, FR-02.3, FR-02.4a, FR-02.5, FR-02.5a
+
+===== 04-02 =====
+feat(teams): add My Team page
+
+- Create and join forms, team card with live members
+- Show invite code to team members only
+- Leader rename
+
+Prompt: 04-02
+Models: TeamDocument
+Refs: FR-02.1, FR-02.3, FR-02.4
+
+===== 04-03 =====
+feat(teams): add unassigned pool and auto-grouping
+
+- Add pure autoGroup that never mixes courses
+- Add preview and commit action with audit and notifications
+- Add pool tab on /students above the content
+
+Prompt: 04-03
+Models: TeamDocument
+Refs: FR-02.6, FR-02.7, FR-01.10
+
+===== 05-01 =====
+feat(topics): add topic model, state machine and submission
+
+- Add pure topic state machine with exhaustive tests
+- Add submit/resubmit with versioning and history snapshots
+- Add duplicate-topic similarity warnings
+
+Prompt: 05-01
+Models: TopicDocument, Topic history (subcollection)
+Refs: FR-03.1, FR-03.2, FR-03.3, FR-03.5
+
+===== 05-02 =====
+feat(topics): add proposals page for teams
+
+- Three ranked proposal slots with status badges
+- Create/edit form, submit and resubmit, history drawer
+
+Prompt: 05-02
+Models: TopicDocument
+Refs: FR-03.1, FR-03.2, FR-03.5
+
+===== 05-03 =====
+feat(topics): add topic review and supervisor contact grants
+
+- Add open and decide review actions with authorisation rules
+- Approve sets team approved topic and status
+- Add ensureContactGrants helper (F-03)
+- Add supervisor review queue
+
+Prompt: 05-03
+Models: TopicDocument, TeamDocument, SupervisorContact grants
+Refs: FR-03.4, FR-04.4
+
+===== 06-01 =====
+feat(matching): add Jaccard matching engine
+
+- Add capacityScore, matchScore and rankSupervisors
+- Programme-scoped candidates, top 3 with breakdown
+- Unit tests including fixed score vector
+
+Prompt: 06-01
+Refs: FR-04.1, FR-04.2, FR-04.2a
+
+===== 06-02 =====
+feat(supervision): add supervision model and assignment workflow
+
+- Add supervisions repo and capacity tracking
+- Add recommend, propose and respond actions
+- Add team.supervisor_assignment (spec amendment A2)
+
+Prompt: 06-02
+Models: SupervisionDocument, TeamDocument
+Refs: FR-04.2, FR-04.3, FR-04.4
+
+===== 06-03 =====
+feat(supervision): add supervision page for all roles
+
+- Coordinator matching and override UI
+- Supervisor request accept/decline with countdown
+- Student supervisor card with gated contact details
+
+Prompt: 06-03
+Models: SupervisionDocument, SupervisorContactDocument
+Refs: FR-04.2, FR-04.3, FR-04.4
+
+===== 07-01 =====
+feat(chapters): add chapter model, submission and review actions
+
+- Sequential submission with link allowlist and version history
+- Supervisor review with line-item feedback
+- Auto defense_ready after chapter 5 (amendment A3)
+
+Prompt: 07-01
+Models: ChapterDocument
+Refs: FR-05.1, FR-05.2, FR-05.3
+
+===== 07-02 =====
+feat(chapters): add chapters page
+
+- Student timeline with submit/resubmit and feedback thread
+- Supervisor review queue and coordinator progress matrix
+
+Prompt: 07-02
+Models: ChapterDocument
+Refs: FR-05.1, FR-05.2, FR-05.3
+
+===== 08-01 =====
+feat(rubrics): add rubric model and builder
+
+- Validate weights and point totals
+- Activate exactly one rubric in a transaction
+- Add rubric builder page with template
+
+Prompt: 08-01
+Models: RubricDocument
+Refs: FR-06.1
+
+===== 08-02 =====
+feat(defense): add panel model, scheduling and conflict detection
+
+- Add pure conflict detection for examiners and venues
+- Add panel and slot management with programme rules
+- Add publish action that blocks on conflicts and notifies
+
+Prompt: 08-02
+Models: DefensePanelDocument
+Refs: FR-07.1, FR-07.2, FR-07.2a, FR-07.3, FR-07.4
+
+===== 08-03 =====
+feat(defense): add defense scheduling UI
+
+- Coordinator panel and slot editor with conflict badges
+- Panel member and student schedule views
+
+Prompt: 08-03
+Models: DefensePanelDocument
+Refs: FR-07.1, FR-07.2, FR-07.3, FR-07.4
+
+===== 09-01 =====
+feat(grading): add evaluation model and score aggregation
+
+- Add pure scoring and composite calculation with tests
+- Add idempotent aggregate-defense and conclude-slot actions
+- Final mark stored per team only
+
+Prompt: 09-01
+Models: EvaluationDocument
+Refs: FR-06.2, FR-06.3, FR-06.6
+
+===== 09-02 =====
+feat(grading): add real-time digital marksheet
+
+- Mobile-first marksheet with optimistic debounced saves
+- Live chair/coordinator composite via onSnapshot
+- Locked state after publication
+
+Prompt: 09-02
+Models: EvaluationDocument
+Refs: FR-06.2, FR-06.3
+
+===== 10-01 =====
+feat(peer): add peer evaluation model and pages
+
+- Submit-once teammate ratings validated server-side
+- Anonymous aggregated summary with free-rider flag
+- Add /peer-evaluation page
+
+Prompt: 10-01
+Models: PeerEvaluationDocument
+Refs: FR-06.4, FR-06.5, FR-06.6
+
+===== 10-02 =====
+feat(deliverables): add software deliverables and supervisor sign-off
+
+- Validate repo, demo and cloud links
+- Submit and sign-off actions with audit
+- Add /deliverables page for students, supervisors and coordinators
+
+Prompt: 10-02
+Models: SoftwareDeliverableDocument
+Refs: FR-08.1, FR-08.2, FR-08.3
+
+===== 11-01 =====
+feat(reports): add broadsheet exports (XLSX, CSV, PDF)
+
+- CSV with index_number, full_name, contact and team scores
+- Excel with formulas and PDF with signature lines per programme
+- Add /reports page with preview and downloads
+
+Prompt: 11-01
+Models: TeamDocument, RosterStudentDocument
+Refs: FR-10.1, FR-10.1a, FR-10.1b
+
+===== 11-02 =====
+feat(grading): add publish, lock and amend grades with grades page
+
+- Pre-flight checks, publish, lock and 7-day appeal window
+- Audited amend-grade action
+- Student grades page and coordinator publish panel
+
+Prompt: 11-02
+Models: EvaluationDocument, TeamDocument, AcademicYearDocument
+Refs: FR-10.2, FR-10.3, FR-10.4
+
+===== 11-03 =====
+feat(appeals): add grade appeals model and workflow
+
+- Add grade_appeals model, rules and tests (spec amendment A4)
+- Submit within window and resolve actions
+- Appeal UI for students and coordinators
+
+Prompt: 11-03
+Models: GradeAppealDocument (NEW)
+Refs: FR-10.4
+
+===== 12-01 =====
+feat(notifications): add notification centre and live toasts
+
+- Add useNotifications hook and toast diffing
+- Add bell dropdown and /notifications page
+
+Prompt: 12-01
+Models: NotificationDocument
+Refs: FR-09.1, FR-09.2
+
+===== 12-02 =====
+feat(archive): add archived projects model and search
+
+- Add archived_projects model, rules and index (amendment A5)
+- Idempotent archive on publish plus backfill action
+- Add token-based /archive search
+
+Prompt: 12-02
+Models: ArchivedProjectDocument (NEW)
+Refs: FR-11.1, FR-11.2, FR-11.3
+
+===== 12-03 =====
+feat(admin): add audit log viewer, admin users and team overrides
+
+- Add filtered, paginated /audit-logs
+- Add role, session revoke and course change admin actions
+- Add team size, transfer and disband overrides
+
+Prompt: 12-03
+Models: AuditLogDocument, UserDocument, TeamDocument
+Refs: FR-01.10, FR-02.7
+
+===== 12-04 =====
+chore(release): add e2e tests, a11y checks and release checklist
+
+- Add Playwright flows and axe checks
+- Add vercel.json and docs/release-checklist.md
+- Run all suites and static audits
+
+Prompt: 12-04

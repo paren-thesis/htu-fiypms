@@ -1,0 +1,8 @@
+chore(scaffold): initialize Next.js project and tooling
+
+- Next.js App Router, TypeScript strict, Tailwind, ESLint, src dir
+- Add Firebase, Zod, RHF, exceljs, react-pdf and test dependencies
+- Add vitest configs for unit, rules and server tests
+- Create folder skeleton, .env.example and npm scripts
+
+Prompt: 00-01

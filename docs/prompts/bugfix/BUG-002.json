@@ -1,0 +1,49 @@
+{
+  "task": "fix_bug",
+  "bug_id": "BUG-002",
+  "skills": [
+    "fypms-fix-bug",
+    "fypms-test-data"
+  ],
+  "symptom": "The dev Auth emulator holds users that are not in fixtures/testusers.json (admin_ag, coord_ag, coord.rosterimport, coord.whitelist, coord@htu.edu.gh, lifecycle.<timestamp> with UIDs like admin-ag-1, coord-valid-1, faculty-lifecycle-<timestamp>) and Firestore holds invented roster rows.",
+  "expected": "The dev emulator contains only fixture data. Automated tests never write to it.",
+  "error": {
+    "type": "other",
+    "message": "Unknown users and records in the dev emulator"
+  },
+  "where": {
+    "screenshot": "docs/screenshots/auth_entry_error.png",
+    "command": "npm run check:data"
+  },
+  "repro": [
+    "Run the rules/server/e2e tests or the old seed script",
+    "Open http://localhost:4000 and look at Authentication and Firestore"
+  ],
+  "prompt_id": "01-04",
+  "recent_changes": "Prompts 01-02 to 03-02 added rules, server and e2e tests and scripts/seed.ts that create users and records.",
+  "classify_hint": "E (data) with D (config)",
+  "fix_plan": [
+    "Find every writer: grep -rn 'createUser\\|createCustomToken\\|setCustomUserClaims\\|admin_ag\\|coord_ag\\|lifecycle\\|rosterimport\\|std\\${\\|0240000000\\|SEED_' scripts tests e2e src and report which target the dev emulator or use a dev project id.",
+    "Use fixtures/ (testusers.json, staff-profiles.json, index.ts, shipped with the pack). Replace every invented user, index number, email, contact and group in scripts, tests and e2e with fx.* accessors.",
+    "Rewrite scripts/seed.ts as base mode per fypms-test-data/references/fixtures-contract.md (mode full prints 'not available yet'); add scripts/check-data.ts; keep scripts/emulator-reset.mjs as shipped; add npm scripts emu, emu:reset, emu:reset:test, seed:base, seed:full, check:data, dev:fresh, test:rules, test:server.",
+    "Create firebase.test.json (shipped under fypms-test-data/references), keep firebase.json for dev, make tests use project demo-fypms-test and ports 9199/8180, wire tests/setup/emulator-guard.ts into vitest.rules.config.ts and vitest.server.config.ts, add tests/helpers/reset.ts and call it in afterAll.",
+    "Rewrite the lifecycle, roster-import and whitelist tests so they use fixture users only and clean up; delete any code path that creates Auth users in the dev emulator.",
+    "Record the bug in docs/bugs.md (class E) and write docs/prompts/commits/fix-BUG-002.txt."
+  ],
+  "constraints": {
+    "max_files": 25,
+    "no_new_deps": false,
+    "update_docs": true
+  },
+  "acceptance": [
+    "npm run dev:fresh ends with check:data passing: 4 courses, 1 academic year, 40 roster students, 6 staff entries, 0 Auth users",
+    "npm run test:rules and npm run test:server pass while the dev emulator is running, and check:data still passes afterwards",
+    "The emulator guard aborts a test run that targets 8080 or 9099"
+  ],
+  "verify": [
+    "npm run dev:fresh",
+    "npm run test:rules",
+    "npm run test:server",
+    "npm run check:data"
+  ]
+}

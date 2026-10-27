@@ -1,0 +1,59 @@
+{
+  "prompt_id": "04-03",
+  "phase": 4,
+  "phase_name": "teams",
+  "title": "Unassigned pool and auto-grouping",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-ui-design-system",
+    "fypms-testing",
+    "fypms-ui-qa"
+  ],
+  "depends_on": [
+    "04-01",
+    "03-02"
+  ],
+  "spec_sections": [
+    "FR-02.6",
+    "FR-02.7 (admin overrides are phase 12)",
+    "FR-01.10"
+  ],
+  "models": [
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "bulk create via createTeamInTx"
+    }
+  ],
+  "build": [
+    "src/lib/teams/auto-group.ts (pure): autoGroup(students, {min:4, max:5}) clusters strictly by course_id. Choose the largest g with 4g <= n and distribute sizes as evenly as possible up to 5; students that cannot fit are returned as leftovers. Deterministic ordering by index number; leader = first by index number. Unit tests for n = 3, 4, 5, 9, 11, 12, 13, 17 and for mixed courses never merging.",
+    "src/app/actions/auto-group-students.ts: coordinator or admin; mode 'preview' | 'commit'; pool = students with a users doc in the current year and no active team; commit creates teams with createTeamInTx in transactions (one per team), writes audit team.auto_grouped and notifies members (team_update).",
+    "/students gets an 'Unassigned pool' tab: counts per course, list of pooled students, a separate 'not yet signed in' list from the roster, Preview auto-group (groups table + leftovers), Commit with confirm dialog. Button disabled before the formation deadline unless the caller is admin.",
+    "Cross-category merging is NOT implemented in v1: the action rejects any request to merge courses."
+  ],
+  "files": [
+    "src/lib/teams/auto-group.ts",
+    "src/lib/teams/auto-group.test.ts",
+    "src/app/actions/auto-group-students.ts",
+    "src/app/students/page.tsx",
+    "src/components/students/UnassignedPool.tsx",
+    "tests/server/auto-group.test.ts"
+  ],
+  "assumptions": [
+    "The formation deadline is read from AcademicYearDocument.deadlines (use the existing field); if absent the button is enabled"
+  ],
+  "out_of_scope": [
+    "Admin transfer, disband and size overrides (12-03)"
+  ],
+  "acceptance": [
+    "Unit tests pass and no group ever mixes courses",
+    "Commit is idempotent: a second run finds an empty pool",
+    "Leftovers are reported, not force-assigned",
+    "Pool and roster tabs stay above their content at 375, 768 and 1280 px"
+  ],
+  "verify": [
+    "npx vitest run src/lib/teams",
+    "npm run test:server"
+  ]
+}

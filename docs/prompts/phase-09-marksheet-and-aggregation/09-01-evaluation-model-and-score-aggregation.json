@@ -1,0 +1,56 @@
+{
+  "prompt_id": "09-01",
+  "phase": 9,
+  "phase_name": "marksheet-and-aggregation",
+  "title": "Evaluation model and score aggregation",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "08-02"
+  ],
+  "spec_sections": [
+    "FR-06.2",
+    "FR-06.3",
+    "FR-06.6",
+    "section 8.1 (EvaluationDocument)",
+    "section 13 (F-04, F-08)"
+  ],
+  "models": [
+    {
+      "name": "EvaluationDocument",
+      "collection": "evaluations",
+      "work": "schema, repo, scoring logic, aggregate + conclude actions"
+    }
+  ],
+  "build": [
+    "src/lib/defense/scoring.ts (pure): clampScores(rubric, scores), computeTotal(rubric, scores), normalise(total, maxScore) -> 0..100, compositeScore(rubric, supervisorEval|null, panelEvals[]) = supervisor*supervisor_weight_pct/100 + panelAvg*panel_weight_pct/100 rounded to 2 dp; returns incomplete when the supervisor or all panel evaluations are missing. Exhaustive unit tests (different max_score, unknown criterion keys ignored, idempotent).",
+    "models/evaluation (schema, repo) and src/lib/defense/eval-id.ts: evaluationId(teamId, evaluatorUid) = `${teamId}__${uid}__team`. student_id is always null in v1.",
+    "src/app/actions/aggregate-defense.ts: callable by the panel chair of the team's panel, coordinator or admin. Loads the rubric referenced by the evaluations, recomputes every total from scores (ignores client total_score), counts only evaluations from the team's assigned supervisor and members of the team's panel, writes team.scores_summary {supervisor_score, panel_average_score, composite_final_score, is_locked:false} (grade_classification stays unset), returns the list of missing evaluators. Re-running gives the identical result.",
+    "src/app/actions/conclude-defense-slot.ts: panel chair or coordinator; sets the slot status completed, then runs the aggregation.",
+    "Server tests: 1 supervisor + 3 panelists aggregate, outsider evaluations ignored, tampered total_score ignored, idempotent rerun, non-chair rejected. Extend the rules test: evaluator write denied once is_published is true."
+  ],
+  "files": [
+    "src/lib/defense/{scoring,eval-id}.ts",
+    "src/lib/defense/scoring.test.ts",
+    "src/lib/models/evaluation/*",
+    "src/app/actions/{aggregate-defense,conclude-defense-slot}.ts",
+    "tests/server/aggregate.test.ts",
+    "tests/rules/*.rules.test.ts"
+  ],
+  "out_of_scope": [
+    "Marksheet UI (09-02)"
+  ],
+  "acceptance": [
+    "Scoring unit tests pass and results are stable across reruns",
+    "Final mark is stored per team only"
+  ],
+  "verify": [
+    "npx vitest run src/lib/defense",
+    "npm run test:server",
+    "npm run test:rules"
+  ]
+}

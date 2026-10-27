@@ -1,0 +1,9 @@
+feat(supervision): add supervision model and assignment workflow
+
+- Add supervisions repo and capacity tracking
+- Add recommend, propose and respond actions
+- Add team.supervisor_assignment (spec amendment A2)
+
+Prompt: 06-02
+Models: SupervisionDocument, TeamDocument
+Refs: FR-04.2, FR-04.3, FR-04.4

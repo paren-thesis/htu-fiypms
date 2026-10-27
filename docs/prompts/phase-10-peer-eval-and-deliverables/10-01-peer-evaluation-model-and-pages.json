@@ -1,0 +1,59 @@
+{
+  "prompt_id": "10-01",
+  "phase": 10,
+  "phase_name": "peer-eval-and-deliverables",
+  "title": "Peer evaluation model and pages",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "09-01",
+    "04-02"
+  ],
+  "spec_sections": [
+    "FR-06.4",
+    "FR-06.5",
+    "FR-06.6",
+    "section 8.1 (PeerEvaluationDocument)",
+    "section 13 (F-09)"
+  ],
+  "models": [
+    {
+      "name": "PeerEvaluationDocument",
+      "collection": "peer_evaluations",
+      "work": "schema, repo, submit + summary actions, UI"
+    }
+  ],
+  "build": [
+    "models/peer-evaluation (schema, repo); id `${teamId}__${evaluatorUid}__${evaluateeUid}`.",
+    "src/app/actions/submit-peer-evaluation.ts (student): evaluatee must be a different teammate on the same team, scores are integers 1 to 10 for punctuality, technical_contribution and teamwork, average_score computed server-side to 1 decimal, immutable once written, allowed when team.status is defense_ready or completed.",
+    "src/lib/peer/summary.ts (pure): summarise(ratings) returns per-student mean of ratings received, count, and a free-rider flag when the mean is below 75 percent of the team mean or below 5. Unit-tested.",
+    "src/app/actions/get-peer-summary.ts: assigned supervisor, coordinator or admin; returns only aggregates (no rater identities, no raw rows).",
+    "/peer-evaluation student view: one card per teammate with three sliders, comments, a single confirm-and-submit step that warns it cannot be changed, then a read-only 'submitted' state; students never see any rating about themselves. Supervisor/coordinator view: summary table with flags and a note that peer data is advisory for the team's continuous assessment."
+  ],
+  "files": [
+    "src/lib/models/peer-evaluation/*",
+    "src/lib/peer/*",
+    "src/app/actions/{submit-peer-evaluation,get-peer-summary}.ts",
+    "src/app/peer-evaluation/page.tsx",
+    "tests/server/peer-evaluation.test.ts"
+  ],
+  "rules": [
+    "Peer ratings never change individual marks (D-02)"
+  ],
+  "out_of_scope": [
+    "Changing evaluation scores based on peer data"
+  ],
+  "acceptance": [
+    "Self-rating, non-teammate rating and a second submission are rejected",
+    "Summary output contains no rater ids"
+  ],
+  "verify": [
+    "npx vitest run src/lib/peer",
+    "npm run test:server"
+  ]
+}

@@ -1,0 +1,9 @@
+chore(skills): add bug-fix, spec-change and git-recovery skills
+
+- fypms-fix-bug: classify, reproduce, fix, prove, record loop with
+  JSON bug reports and a common-errors table
+- fypms-spec-change: impact search and consistent updates across spec,
+  skills, prompts, commit messages, code and tests
+- fypms-git-recovery: safe undo/redo recipes for branch-per-prompt work
+- Add docs/bugs.md (seeded with BUG-001) and route fix_bug and
+  spec_change JSON prompts in AGENTS.md

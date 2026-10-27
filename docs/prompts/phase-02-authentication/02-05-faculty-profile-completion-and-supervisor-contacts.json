@@ -1,0 +1,60 @@
+{
+  "prompt_id": "02-05",
+  "phase": 2,
+  "phase_name": "authentication",
+  "title": "Faculty profile completion and supervisor contacts",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-firestore-data",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "02-04"
+  ],
+  "spec_sections": [
+    "FR-01.9",
+    "FR-04.4",
+    "section 8.1 (SupervisorContactDocument)",
+    "section 13 (F-03)"
+  ],
+  "models": [
+    {
+      "name": "SupervisorContactDocument",
+      "collection": "supervisor_contacts",
+      "work": "schema, repo, write via actions"
+    },
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "profile fields via update-profile"
+    }
+  ],
+  "build": [
+    "models/supervisor-contact (schema, repo): doc id = supervisor uid; fields phone?, office_location, consultation_hours, updated_at. Grants subcollection helpers (grant/revoke) are added now but used in 05-03 and 06-02.",
+    "src/app/actions/update-profile.ts: field allow-list. Faculty: research_interests[], max_team_capacity (>=1, default 5) go to users.profile; office_location, consultation_hours, phone go ONLY to supervisor_contacts. First successful run sets profile_complete true and claim profileComplete:true, then the client refreshes the token and cookie.",
+    "/complete-profile form (RHF + Zod): office_location, consultation_hours, research_interests as chips, max_team_capacity, phone optional; redirect to / when done.",
+    "Students cannot call update-profile for faculty fields and cannot change course_id (reject with 403)."
+  ],
+  "files": [
+    "src/lib/models/supervisor-contact/*",
+    "src/app/actions/update-profile.ts",
+    "src/app/complete-profile/page.tsx",
+    "tests/server/update-profile.test.ts"
+  ],
+  "rules": [
+    "Gated contact data never lands in users"
+  ],
+  "out_of_scope": [
+    "Granting contact access to students (05-03)"
+  ],
+  "acceptance": [
+    "After completion the user passes the middleware gate",
+    "research_interests[] saved lowercased and trimmed",
+    "Student attempt to change course_id returns 403"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npm run test:rules"
+  ]
+}

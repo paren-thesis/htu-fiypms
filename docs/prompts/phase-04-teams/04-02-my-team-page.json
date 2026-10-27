@@ -1,0 +1,47 @@
+{
+  "prompt_id": "04-02",
+  "phase": 4,
+  "phase_name": "teams",
+  "title": "My Team page",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "04-01"
+  ],
+  "spec_sections": [
+    "FR-02.1",
+    "FR-02.3",
+    "FR-02.4"
+  ],
+  "models": [
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "read + realtime listener"
+    }
+  ],
+  "build": [
+    "/my-team (student): with no team show two cards (Create team form, Join with code form); with a team show a team card (name, group number, StatusBadge, LifecycleStepper position), member list (names from users docs, leader badge), invite code with copy button (read from teams/{id}/private/invite), leader-only rename, and a Supervisor placeholder LockedCard.",
+    "Client onSnapshot on teams/{id} for live member changes; unsubscribe on unmount; skeleton and error states.",
+    "Forms via RHF + Zod calling the 04-01 actions; map 409 and full-team errors to friendly inline messages.",
+    "Non-student roles opening /my-team see a short explanation and a link to /students or /supervision."
+  ],
+  "files": [
+    "src/app/my-team/page.tsx",
+    "src/components/students/*"
+  ],
+  "out_of_scope": [
+    "Pool and auto-group (04-03)"
+  ],
+  "acceptance": [
+    "Create then join from two student accounts updates the first account's member list live",
+    "Invite code visible to team members only"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "prompt_id": "11-03",
+  "phase": 11,
+  "phase_name": "grades-and-reports",
+  "title": "Grade appeals (new model)",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-notifications",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "11-02"
+  ],
+  "spec_sections": [
+    "FR-10.4",
+    "section 8 (new collection grade_appeals, spec amendment A4)"
+  ],
+  "models": [
+    {
+      "name": "GradeAppealDocument (NEW)",
+      "collection": "grade_appeals",
+      "work": "new model: types, rules, schema, repo, actions, UI"
+    }
+  ],
+  "build": [
+    "Spec amendment A4: add `GradeAppealDocument { id: '${teamId}__${studentUid}'; team_id; student_id; reason (20 to 2000 chars); status: 'submitted' | 'under_review' | 'resolved' | 'rejected'; resolution_notes?; resolved_by?; resolved_at?; created_at; updated_at }` to src/types/firestore.ts, add the collection to docs/models.md and note it in docs/fypms-docs.md section 13.",
+    "firestore.rules: new match block for grade_appeals: read for the owning student, coordinator and admin; all client writes denied. Add rules tests.",
+    "models/grade-appeal (schema, repo). src/app/actions/submit-grade-appeal.ts (student): grades published, now <= grade_appeal_deadline, caller is a member of the team, one appeal per student; notify coordinators (system). src/app/actions/resolve-grade-appeal.ts (coordinator/admin): status under_review | resolved | rejected with notes; notify the student; any actual grade change must go through amend-grade.",
+    "UI on /grades: student appeal dialog with the countdown and a read-only status once submitted; coordinator appeals table (status filter) with resolve dialog.",
+    "Tests: window enforcement, duplicate appeal, non-member rejected, resolve flow."
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "firestore.rules",
+    "src/lib/models/grade-appeal/*",
+    "src/app/actions/{submit-grade-appeal,resolve-grade-appeal}.ts",
+    "src/app/grades/page.tsx",
+    "tests/server/grade-appeals.test.ts",
+    "tests/rules/grade-appeals.rules.test.ts",
+    "docs/models.md"
+  ],
+  "assumptions": [
+    "Appeals are one per student, not per team",
+    "FR-10.4 is Medium priority and the spec defines no storage, so this model is an addition"
+  ],
+  "out_of_scope": [
+    "Email notifications (deferred)"
+  ],
+  "acceptance": [
+    "Appeal after the deadline is rejected",
+    "Students can read only their own appeal"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npm run test:rules"
+  ]
+}

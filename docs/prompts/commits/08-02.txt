@@ -1,0 +1,9 @@
+feat(defense): add panel model, scheduling and conflict detection
+
+- Add pure conflict detection for examiners and venues
+- Add panel and slot management with programme rules
+- Add publish action that blocks on conflicts and notifies
+
+Prompt: 08-02
+Models: DefensePanelDocument
+Refs: FR-07.1, FR-07.2, FR-07.2a, FR-07.3, FR-07.4

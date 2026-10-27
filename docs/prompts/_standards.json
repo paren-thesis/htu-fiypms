@@ -1,0 +1,78 @@
+{
+  "purpose": "Shared rules for every FYPMS prompt. Read once per conversation; do not restate.",
+  "token_rules": [
+    "Never open docs/fypms-docs.md whole. Find a part with: grep -n 'FR-02' docs/fypms-docs.md, then sed -n 'START,ENDp'.",
+    "Model list and access summary: docs/models.md. Document types: src/types/firestore.ts.",
+    "Edit files directly. Do not paste whole files in chat and do not repeat this prompt back.",
+    "Do only `build`. Anything in `out_of_scope` belongs to a later prompt.",
+    "Verify with the narrowest command (single file/test). Never run the whole suite after a small change.",
+    "Before diagnosing a bug, grep docs/bugs.md for the same symptom."
+  ],
+  "layout": {
+    "types": "src/types/firestore.ts (interfaces only here)",
+    "model_schema": "src/lib/models/<kebab-model>/schema.ts",
+    "model_repo": "src/lib/models/<kebab-model>/repo.ts",
+    "actions": "src/app/actions/<verb>-<kebab-model>.ts",
+    "pure_logic": "src/lib/<domain>/*.ts (no I/O, unit-tested)",
+    "tests": "co-located *.test.ts for unit; tests/rules/*.rules.test.ts; tests/server/*.test.ts (Admin SDK on emulator); e2e/*.spec.ts",
+    "pages": "src/app/<route>/page.tsx (routes sit directly under src/app per spec section 11)"
+  },
+  "model_layer": {
+    "schema": "Zod create schema `.strict()`; update schema = partial of updatable fields only. Server-managed fields (id, created_at, updated_at, created_by, counters, status transitions) never appear in input schemas.",
+    "repo": "`import 'server-only'`; Admin SDK; typed get/list/create/update helpers; no business rules; strip undefined before writes; serverTimestamp for created_at/updated_at.",
+    "action": "'use server' -> requireUser(idToken, roles) -> Zod parse -> mutate (runTransaction when read-then-write) -> writeAudit -> notify. Return {ok:true,...} or {ok:false,errors}; catch ZodError and HttpError. Export only async functions. `export const runtime = 'nodejs'`.",
+    "rules": "Only touch firestore.rules when the prompt says so; add the smallest block; use isMember()/hasAnyRole()/isTeamMember()/isAssignedSupervisor(); never loosen existing blocks; add or update a rules test for every change.",
+    "registry": "Add or update the model's row in docs/models.md (model, collection, access, code location, date).",
+    "client_reads": "Client components read Firestore only where the prompt says (onSnapshot with unsubscribe); everything else is RSC + repo."
+  },
+  "ui": [
+    "Light mode only, HTU blue and white; semantic tokens from fypms-ui-design-system; no dark: classes; no hex in components.",
+    "Reuse shadcn components and src/components/common (StatusBadge, EmptyState, LockedCard, PageHeader, BentoCard, LifecycleStepper).",
+    "Every page: loading.tsx skeleton, empty state with CTA, error state, role-gated content; forms use React Hook Form + Zod + sonner toasts.",
+    "Touch targets >= 44px, visible focus ring, aria-live for live scores/toasts."
+  ],
+  "security": [
+    "Never trust client input for uid, role or course_id; derive from the verified token or server docs.",
+    "firebase-admin only in server modules; never in client components or middleware.",
+    "Enforce category integrity (course_id) wherever teams, supervisors or panels are matched."
+  ],
+  "quality_gates": [
+    "npx tsc --noEmit passes",
+    "eslint passes on changed files",
+    "new/changed tests pass",
+    "no `any`, no @ts-ignore, no eslint-disable",
+    "no dark: classes",
+    "no invented test data (users, emails, phones) outside fixtures/",
+    "layout checks at 375/768/1280 for UI prompts"
+  ],
+  "on_error": [
+    "If the fypms-fix-bug skill is installed, use its loop (classify A/B/C/D, reproduce, fix, prove, record in docs/bugs.md). Class B (the spec, a skill or a prompt was wrong) goes to fypms-spec-change first.",
+    "Match the error text against fypms-testing and fypms-firestore-data guidance first, then reproduce with the narrowest command.",
+    "State the root cause in one sentence before editing; smallest fix; re-run the same command.",
+    "Never fix a rules error by loosening rules; never skip or delete a failing test; max 3 attempts then report status 'blocked' with hypotheses."
+  ],
+  "assumption_policy": "When the spec is silent, follow the prompt's `assumptions`. Otherwise pick the simplest option and list it in `assumptions_made`. Ask the user only if blocked.",
+  "reply_format": {
+    "status": "done | blocked",
+    "prompt_id": "",
+    "files_created": [],
+    "files_modified": [],
+    "models_touched": [],
+    "verified": {
+      "tsc": true,
+      "tests": "command + result"
+    },
+    "assumptions_made": [],
+    "blockers": [],
+    "next_prompt": ""
+  },
+  "test_data": [
+    "Only fixtures/testusers.json and fixtures/staff-profiles.json (through fixtures/index.ts) may supply users, students, staff, groups or contacts. Never invent or generate them.",
+    "Automated tests use the test emulator only (firebase.test.json, project demo-fypms-test, Auth 9199, Firestore 8180). The dev emulator (demo-fypms, 9099/8080) holds only seeded fixture data.",
+    "Seed and check scripts are idempotent and exit unless the emulator host variables are set; tests clean up after themselves."
+  ],
+  "ui_qa": [
+    "After building a page or shared component, check 375, 768 and 1280 px for each role that can open it (seed:base data) and add or extend a Playwright layout assertion (fypms-ui-qa).",
+    "One indicator per state (never border + ring + outline together); tabs sit above their content; tables scroll inside their own container; no element hidden by the dev badge."
+  ]
+}

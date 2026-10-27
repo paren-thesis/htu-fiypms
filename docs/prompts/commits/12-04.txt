@@ -1,0 +1,7 @@
+chore(release): add e2e tests, a11y checks and release checklist
+
+- Add Playwright flows and axe checks
+- Add vercel.json and docs/release-checklist.md
+- Run all suites and static audits
+
+Prompt: 12-04

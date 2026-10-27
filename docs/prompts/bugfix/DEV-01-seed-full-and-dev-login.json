@@ -1,0 +1,61 @@
+{
+  "prompt_id": "DEV-01",
+  "phase": null,
+  "phase_name": "optional dev tooling",
+  "title": "seed:full and dev login (emulator only)",
+  "optional": true,
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-test-data",
+    "fypms-auth-gating",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "02-05"
+  ],
+  "spec_sections": [
+    "FR-01.5",
+    "FR-01.6",
+    "FR-01.7",
+    "FR-01.9"
+  ],
+  "models": [
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "seeded"
+    },
+    {
+      "name": "SupervisorContactDocument",
+      "collection": "supervisor_contacts",
+      "work": "seeded"
+    }
+  ],
+  "build": [
+    "scripts/seed.ts --mode full per fypms-test-data/references/fixtures-contract.md: Auth users (uid stu-<index> / staff-<localpart>, emailVerified, claims from fx.claimsFor), users docs via the same internal function complete-signup uses, roster/whitelist linkage, supervisor_contacts from staff-profiles.json. Seed teams only if createTeamInTx exists (04-01) and supervisions only if models/supervision exists (06-02); otherwise skip and print what was skipped",
+    "Dev login: src/app/dev/login/page.tsx lists the fixture users grouped by role (name, email, role); clicking one calls src/app/api/dev/token/route.ts, which returns an Admin SDK createCustomToken(uid, claims), and the client signs in with signInWithCustomToken so the existing AuthContext sets the __session cookie",
+    "Both the page and the route return notFound()/404 unless NODE_ENV is not production AND FIREBASE_AUTH_EMULATOR_HOST is set; add /dev/login to the public paths of the route gate only in that condition"
+  ],
+  "files": [
+    "scripts/seed.ts",
+    "src/app/dev/login/page.tsx",
+    "src/app/api/dev/token/route.ts",
+    "src/lib/auth/route-gate.ts"
+  ],
+  "rules": [
+    "Dev login must be impossible in production builds and without the emulator variables",
+    "Users come only from fixtures"
+  ],
+  "out_of_scope": [
+    "Seeding topics, chapters or evaluations"
+  ],
+  "acceptance": [
+    "After npm run emu:reset && npm run seed:full && npm run check:data, signing in as any fixture user through /dev/login lands on the correct dashboard with the right nav",
+    "A production build returns 404 for /dev/login and /api/dev/token"
+  ],
+  "verify": [
+    "npm run seed:full",
+    "npm run check:data",
+    "npm run build"
+  ]
+}

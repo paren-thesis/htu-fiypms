@@ -1,0 +1,56 @@
+{
+  "prompt_id": "02-02",
+  "phase": 2,
+  "phase_name": "authentication",
+  "title": "Edge middleware and gate pages",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "02-01"
+  ],
+  "spec_sections": [
+    "FR-01.8",
+    "FR-01.9",
+    "section 11.1"
+  ],
+  "models": [
+    {
+      "name": "(none)",
+      "collection": "-",
+      "work": "claims only, no Firestore"
+    }
+  ],
+  "build": [
+    "src/lib/auth/verify-token-edge.ts: verify the Firebase ID token from the __session cookie with jose createRemoteJWKSet (Google securetoken JWKS), issuer https://securetoken.google.com/<projectId>, audience <projectId>; return claims or null.",
+    "src/lib/auth/route-gate.ts (pure): decideRoute(claims|null, pathname) -> 'allow' | {redirect}. Order: no token -> /login; registered !== true -> /not-registered; profileComplete false and activeRole !== student -> /complete-profile; role-based access per nav.ts (e.g. students cannot open /rubrics; supervisors cannot open /students or /admin/staff-whitelist, which are coordinator/admin only per D-05). Public: /login, /not-registered, /api/session, static assets.",
+    "src/middleware.ts uses the two functions above with a matcher excluding _next and static files; no firebase-admin, no Firestore.",
+    "/not-registered page: unclosable (no nav), shows attempted email, category message (student vs staff, passed via query/session), coordinator contact from NEXT_PUBLIC_COORDINATOR_EMAIL, and a sign-out button.",
+    "Unit tests for decideRoute covering every redirect and every role/route pair."
+  ],
+  "files": [
+    "src/lib/auth/verify-token-edge.ts",
+    "src/lib/auth/route-gate.ts",
+    "src/lib/auth/route-gate.test.ts",
+    "src/middleware.ts",
+    "src/app/not-registered/page.tsx",
+    ".env.example"
+  ],
+  "rules": [
+    "Middleware is a UX guard only; Firestore rules and Server Actions remain the enforcement layer"
+  ],
+  "out_of_scope": [
+    "complete-profile form (02-05)"
+  ],
+  "acceptance": [
+    "decideRoute tests pass",
+    "Unauthenticated users hit /login; registered:false users are locked to /not-registered",
+    "decideRoute redirects a supervisor away from /students and /admin/staff-whitelist"
+  ],
+  "verify": [
+    "npx vitest run src/lib/auth",
+    "npx tsc --noEmit"
+  ]
+}

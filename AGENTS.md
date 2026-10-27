@@ -16,6 +16,9 @@ Spec: v5.2 (`docs/fypms-docs.md`). §13 lists review findings already folded int
 - **Roster CSV import and staff whitelist management: coordinator and admin only** (supervisors get 403 and never see those pages).
 - TypeScript strict, no `any`. Doc types live in `src/types/firestore.ts`. Firestore fields are `snake_case`.
 - Every Server Action: `'use server'` → `adminAuth.verifyIdToken(token)` → role/ownership check → Zod parse → mutate (transaction/batch) → write `audit_logs`. Node runtime.
+- **Test and seed data comes only from `fixtures/testusers.json` and `fixtures/staff-profiles.json`** (via `fixtures/index.ts`). Never invent users, index numbers, emails, phones or groups (`fypms-test-data`).
+- **Automated tests run only on the test emulator** (`firebase.test.json`, project `demo-fypms-test`, ports 9199/8180), never on the dev emulator.
+- **After any UI change check 375, 768 and 1280 px**; visual bugs and screenshots go to `fypms-ui-qa`.
 - Never trust client input for role, uid, or `course_id`; derive from the verified token or server-side docs.
 - Client SDK writes are allowed only to `evaluations`, `peer_evaluations`, notification read-flags, `defense_panels`, `rubrics`, `courses`. Everything else is a Server Action (rules deny it).
 - `firebase-admin` only in `lib/firebase/admin.ts` + Server Actions/Route Handlers. Never import it in client components or middleware.
@@ -31,4 +34,4 @@ Before diagnosing a bug, grep `docs/bugs.md`; log every fixed bug there. If the 
 Registry of existing models: `docs/models.md` (read it instead of the spec).
 
 ## Skills (auto-loaded by description; name one explicitly to force it)
-fypms-scaffold-roadmap · fypms-ui-design-system · fypms-auth-gating · fypms-firestore-data · fypms-roster-import · fypms-teams-topics · fypms-supervisor-matching · fypms-defense-grading · fypms-reports-export · fypms-notifications · fypms-testing · fypms-fix-bug · fypms-spec-change · fypms-git-recovery (optional: fypms-create-model)
+fypms-scaffold-roadmap · fypms-ui-design-system · fypms-auth-gating · fypms-firestore-data · fypms-roster-import · fypms-teams-topics · fypms-supervisor-matching · fypms-defense-grading · fypms-reports-export · fypms-notifications · fypms-testing · fypms-fix-bug · fypms-spec-change · fypms-git-recovery · fypms-test-data · fypms-ui-qa (optional: fypms-create-model)

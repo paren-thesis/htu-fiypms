@@ -1,0 +1,59 @@
+{
+  "prompt_id": "02-01",
+  "phase": 2,
+  "phase_name": "authentication",
+  "title": "Firebase clients, AuthContext, login and session cookie",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "01-03",
+    "00-03"
+  ],
+  "spec_sections": [
+    "FR-01.1",
+    "FR-01.2",
+    "section 5.2 (signin-flow reference)",
+    "section 11.1"
+  ],
+  "models": [
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "read-only here (no writes)"
+    }
+  ],
+  "build": [
+    "src/lib/firebase/client.ts: client SDK singleton, GoogleAuthProvider with hd=htu.edu.gh as a hint only.",
+    "src/context/AuthContext.tsx: user, claims (roles, activeRole, registered, profileComplete), loading; subscribes with onIdTokenChanged; exposes signInWithGoogle, signOut, refreshToken (getIdToken(true)). Replace DevSession everywhere and delete it.",
+    "src/app/api/session/route.ts: POST verifies the ID token with Admin SDK, requires email_verified and an @htu.edu.gh email (else 403 before any Firestore access), sets the httpOnly __session cookie (SameSite=Lax, Secure in production, 1h); DELETE clears it. AuthContext calls it on every token change.",
+    "Wire the /login button: popup sign-in, then (stub) call completeSignup placeholder that is implemented in 02-03; show friendly errors for popup closed, wrong domain and network."
+  ],
+  "files": [
+    "src/lib/firebase/client.ts",
+    "src/context/AuthContext.tsx",
+    "src/app/api/session/route.ts",
+    "src/app/login/page.tsx",
+    "src/app/layout.tsx",
+    "src/components/auth/*"
+  ],
+  "rules": [
+    "Domain check happens on the server, not only the client",
+    "Cookie never readable from JS"
+  ],
+  "out_of_scope": [
+    "Middleware (02-02)",
+    "complete-signup (02-03)"
+  ],
+  "acceptance": [
+    "Signing in with a non-htu Google account is rejected with a clear message and no cookie is set",
+    "Cookie is set and cleared on sign-in/out",
+    "Unit test for the session route's domain and email_verified checks"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npx vitest run src/app/api"
+  ]
+}

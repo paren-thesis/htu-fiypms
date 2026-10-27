@@ -1,0 +1,9 @@
+feat(teams): add My Team page
+
+- Create and join forms, team card with live members
+- Show invite code to team members only
+- Leader rename
+
+Prompt: 04-02
+Models: TeamDocument
+Refs: FR-02.1, FR-02.3, FR-02.4

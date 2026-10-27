@@ -1,0 +1,29 @@
+{
+  "task": "create_model",
+  "model": "ModelName",
+  "collection": "collection_name",
+  "description": "One sentence: what this model stores and who uses it.",
+  "doc_id": "auto",
+  "course_scoped": false,
+  "timestamps": true,
+  "audit": true,
+  "owner_field": null,
+  "fields": [
+    { "name": "title", "type": "string", "required": true, "max": 120, "writable_by_client": false },
+    { "name": "team_id", "type": "ref", "ref": "teams", "required": true, "index": true },
+    { "name": "status", "type": "enum", "values": ["draft", "submitted"], "default": "draft" }
+  ],
+  "access": {
+    "read": ["any_member"],
+    "create": "server",
+    "update": "server",
+    "delete": "none"
+  },
+  "actions": [
+    { "name": "create", "roles": ["coordinator", "admin"] }
+  ],
+  "queries": [
+    { "where": [["team_id", "=="]], "orderBy": "created_at desc", "limit": 20 }
+  ],
+  "generate": ["types", "zod", "repo", "rules", "indexes", "actions", "tests", "registry"]
+}

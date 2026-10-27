@@ -1,0 +1,10 @@
+feat(data): add course and year models with fixture seed
+
+- Add course and academic-year schemas and repos
+- Add group-number prefix and format helpers with tests
+- Add fixture-based seed (base mode), check-data and dev:fresh scripts
+- Seed courses, year, counters, roster and staff whitelist only
+
+Prompt: 01-04
+Models: CourseDocument, AcademicYearDocument
+Refs: FR-02.2, FR-02.5a

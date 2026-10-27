@@ -1,0 +1,66 @@
+{
+  "prompt_id": "03-02",
+  "phase": 3,
+  "phase_name": "staff-and-roster",
+  "title": "Roster model and CSV import",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-roster-import",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing",
+    "fypms-ui-qa",
+    "fypms-test-data"
+  ],
+  "depends_on": [
+    "03-01"
+  ],
+  "spec_sections": [
+    "FR-01.4",
+    "FR-01.5",
+    "section 5.1 (pipeline reference)"
+  ],
+  "models": [
+    {
+      "name": "RosterStudentDocument",
+      "collection": "rosters/{year}/students",
+      "work": "schema, repo, import action, import UI"
+    }
+  ],
+  "build": [
+    "models/roster (schema, repo). Row schema: index_number ^[0-9]{10}$, full_name non-empty, contact required (strip spaces and dashes, match ^\\+?[0-9]{7,15}$, store normalised). Email derived, never read from CSV.",
+    "src/lib/roster/csv.ts (pure): parse with papaparse, require the header index_number,full_name,contact, detect course from the filename (btech_cs, btech_ict, hnd_cs, hnd_ict variants), validate rows, flag duplicates inside the file, produce a per-row report. Unit-tested.",
+    "src/app/actions/import-rosters.ts: caller coordinator or admin ONLY (supervisors and every other role get 403, spec D-05); revalidates every row server-side; dryRun mode returns the report with zero writes; commit mode writes in batches (25/50/100, default 50), skips existing index numbers, sets user_uid null, signup_completed_at null, import_batch_id; one audit roster.imported entry. runtime nodejs, maxDuration 60.",
+    "/students page (visible to coordinator and admin only; supervisors get a redirect from the route gate): Import button -> modal steps Upload, Confirm course, Dry-run report, Commit, Summary; template CSV download (header + one example row); roster table with filters (course, linked/unlinked). The unassigned-pool tab is added in 04-03.",
+    "Tests: csv unit tests (bad index, short contact, duplicates, wrong header), server test for dry-run vs commit idempotent re-import, and a supervisor call returning 403.",
+    "Layout: the Cohort Roster / Unassigned Pool tabs sit ABOVE the table (Tabs root flex-col, TabsList w-fit, TabsContent mt-4), the table scrolls inside its own overflow-x container, and the page never scrolls sideways. Roster email is always studentEmail(index) from fixtures/index.ts, never built anywhere else. Tests use only fixture students"
+  ],
+  "files": [
+    "src/lib/models/roster/*",
+    "src/lib/roster/csv.ts",
+    "src/lib/roster/csv.test.ts",
+    "src/app/actions/import-rosters.ts",
+    "src/app/students/page.tsx",
+    "src/components/students/RosterImportModal.tsx",
+    "tests/server/import-rosters.test.ts"
+  ],
+  "rules": [
+    "Import never creates Firebase Auth users",
+    "contact is stored on the roster document only"
+  ],
+  "out_of_scope": [
+    "Unassigned pool and auto-group (04-03)"
+  ],
+  "acceptance": [
+    "Dry-run writes nothing",
+    "Re-importing the same file reports all rows as Skipped (Duplicate)",
+    "A missing or invalid contact rejects that row with a per-row error",
+    "A supervisor calling import-rosters receives 403 and sees no Import button or Students nav item",
+    "e2e/ui/students.spec.ts passes at 375, 768 and 1280 px (tabs above table, no horizontal scroll)",
+    "Roster shows the 40 fixture students with fixture emails and contacts"
+  ],
+  "verify": [
+    "npx vitest run src/lib/roster",
+    "npm run test:server"
+  ]
+}

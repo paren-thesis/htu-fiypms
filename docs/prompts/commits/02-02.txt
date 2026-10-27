@@ -1,0 +1,9 @@
+feat(auth): add edge middleware, route gate and not-registered page
+
+- Verify Firebase ID token at the edge with jose
+- Add pure decideRoute gate logic with tests
+- Add unclosable /not-registered page
+- Block supervisors from /students and /admin/staff-whitelist
+
+Prompt: 02-02
+Refs: FR-01.8, FR-01.9

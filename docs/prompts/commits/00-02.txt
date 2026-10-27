@@ -1,0 +1,10 @@
+feat(ui): add HTU light theme tokens and common UI kit
+
+- Light-mode only tokens in HTU blue and white
+- Add shadcn components and Inter font
+- Add StatusBadge, EmptyState, LockedCard, PageHeader, BentoCard,
+  LifecycleStepper
+- Add dev-only /dev/ui preview page
+- Single-indicator stepper node and layout checks at 3 widths
+
+Prompt: 00-02

@@ -1,0 +1,446 @@
+{
+  "students": [
+    {
+      "index_number": "0323000101",
+      "full_name": "Kwame Mensah",
+      "contact": "0244000101",
+      "email": "0323000101@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_01"
+    },
+    {
+      "index_number": "0323000102",
+      "full_name": "Ama Serwaa",
+      "contact": "0244000102",
+      "email": "0323000102@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_01"
+    },
+    {
+      "index_number": "0323000103",
+      "full_name": "Kofi Boateng",
+      "contact": "0244000103",
+      "email": "0323000103@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_01"
+    },
+    {
+      "index_number": "0323000104",
+      "full_name": "Akosua Agyeman",
+      "contact": "0244000104",
+      "email": "0323000104@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_01"
+    },
+    {
+      "index_number": "0323000105",
+      "full_name": "Yaw Osei",
+      "contact": "0244000105",
+      "email": "0323000105@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_01"
+    },
+    {
+      "index_number": "0323000106",
+      "full_name": "Efua Ansah",
+      "contact": "0244000106",
+      "email": "0323000106@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_02"
+    },
+    {
+      "index_number": "0323000107",
+      "full_name": "Nana Appiah",
+      "contact": "0244000107",
+      "email": "0323000107@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_02"
+    },
+    {
+      "index_number": "0323000108",
+      "full_name": "Adwoa Frimpong",
+      "contact": "0244000108",
+      "email": "0323000108@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_02"
+    },
+    {
+      "index_number": "0323000109",
+      "full_name": "Kojo Antwi",
+      "contact": "0244000109",
+      "email": "0323000109@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_02"
+    },
+    {
+      "index_number": "0323000110",
+      "full_name": "Abena Owusu",
+      "contact": "0244000110",
+      "email": "0323000110@htu.edu.gh",
+      "course_id": "btech-cs",
+      "group_number": "BCS26_02"
+    },
+    {
+      "index_number": "0323000201",
+      "full_name": "Kwabena Danso",
+      "contact": "0244000201",
+      "email": "0323000201@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_01"
+    },
+    {
+      "index_number": "0323000202",
+      "full_name": "Yaa Asantewaa",
+      "contact": "0244000202",
+      "email": "0323000202@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_01"
+    },
+    {
+      "index_number": "0323000203",
+      "full_name": "Fiifi Quansah",
+      "contact": "0244000203",
+      "email": "0323000203@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_01"
+    },
+    {
+      "index_number": "0323000204",
+      "full_name": "Esi Nyarko",
+      "contact": "0244000204",
+      "email": "0323000204@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_01"
+    },
+    {
+      "index_number": "0323000205",
+      "full_name": "Kobby Asare",
+      "contact": "0244000205",
+      "email": "0323000205@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_01"
+    },
+    {
+      "index_number": "0323000206",
+      "full_name": "Araba Mensimah",
+      "contact": "0244000206",
+      "email": "0323000206@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_02"
+    },
+    {
+      "index_number": "0323000207",
+      "full_name": "Paa Kwesi",
+      "contact": "0244000207",
+      "email": "0323000207@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_02"
+    },
+    {
+      "index_number": "0323000208",
+      "full_name": "Adjoa Bonsu",
+      "contact": "0244000208",
+      "email": "0323000208@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_02"
+    },
+    {
+      "index_number": "0323000209",
+      "full_name": "Kwesi Arthur",
+      "contact": "0244000209",
+      "email": "0323000209@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_02"
+    },
+    {
+      "index_number": "0323000210",
+      "full_name": "Afia Konadu",
+      "contact": "0244000210",
+      "email": "0323000210@htu.edu.gh",
+      "course_id": "btech-ict",
+      "group_number": "BICT26_02"
+    },
+    {
+      "index_number": "0323000301",
+      "full_name": "Emmanuel Tetteh",
+      "contact": "0244000301",
+      "email": "0323000301@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_01"
+    },
+    {
+      "index_number": "0323000302",
+      "full_name": "Gifty Ofori",
+      "contact": "0244000302",
+      "email": "0323000302@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_01"
+    },
+    {
+      "index_number": "0323000303",
+      "full_name": "Daniel Amoah",
+      "contact": "0244000303",
+      "email": "0323000303@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_01"
+    },
+    {
+      "index_number": "0323000304",
+      "full_name": "Priscilla Osei",
+      "contact": "0244000304",
+      "email": "0323000304@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_01"
+    },
+    {
+      "index_number": "0323000305",
+      "full_name": "Samuel Nkrumah",
+      "contact": "0244000305",
+      "email": "0323000305@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_01"
+    },
+    {
+      "index_number": "0323000306",
+      "full_name": "Joyce Addo",
+      "contact": "0244000306",
+      "email": "0323000306@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_02"
+    },
+    {
+      "index_number": "0323000307",
+      "full_name": "Michael Owusu",
+      "contact": "0244000307",
+      "email": "0323000307@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_02"
+    },
+    {
+      "index_number": "0323000308",
+      "full_name": "Grace Amankwah",
+      "contact": "0244000308",
+      "email": "0323000308@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_02"
+    },
+    {
+      "index_number": "0323000309",
+      "full_name": "Isaac Appiah",
+      "contact": "0244000309",
+      "email": "0323000309@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_02"
+    },
+    {
+      "index_number": "0323000310",
+      "full_name": "Esther Darko",
+      "contact": "0244000310",
+      "email": "0323000310@htu.edu.gh",
+      "course_id": "hnd-cs",
+      "group_number": "HCS26_02"
+    },
+    {
+      "index_number": "0323000401",
+      "full_name": "Joseph Mensah",
+      "contact": "0244000401",
+      "email": "0323000401@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_01"
+    },
+    {
+      "index_number": "0323000402",
+      "full_name": "Mary Agyei",
+      "contact": "0244000402",
+      "email": "0323000402@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_01"
+    },
+    {
+      "index_number": "0323000403",
+      "full_name": "Peter Boamah",
+      "contact": "0244000403",
+      "email": "0323000403@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_01"
+    },
+    {
+      "index_number": "0323000404",
+      "full_name": "Rebecca Ampofo",
+      "contact": "0244000404",
+      "email": "0323000404@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_01"
+    },
+    {
+      "index_number": "0323000405",
+      "full_name": "Stephen Adjei",
+      "contact": "0244000405",
+      "email": "0323000405@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_01"
+    },
+    {
+      "index_number": "0323000406",
+      "full_name": "Comfort Nyame",
+      "contact": "0244000406",
+      "email": "0323000406@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_02"
+    },
+    {
+      "index_number": "0323000407",
+      "full_name": "Elvis Tetteh",
+      "contact": "0244000407",
+      "email": "0323000407@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_02"
+    },
+    {
+      "index_number": "0323000408",
+      "full_name": "Mavis Asamoah",
+      "contact": "0244000408",
+      "email": "0323000408@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_02"
+    },
+    {
+      "index_number": "0323000409",
+      "full_name": "Prince Koomson",
+      "contact": "0244000409",
+      "email": "0323000409@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_02"
+    },
+    {
+      "index_number": "0323000410",
+      "full_name": "Linda Egyir",
+      "contact": "0244000410",
+      "email": "0323000410@htu.edu.gh",
+      "course_id": "hnd-ict",
+      "group_number": "HICT26_02"
+    }
+  ],
+  "staff": [
+    {
+      "email": "coordinator@htu.edu.gh",
+      "full_name": "Dr. Samuel K. Ampofo",
+      "roles": ["coordinator", "supervisor"],
+      "department": "Computer Science",
+      "programmes": ["btech-cs", "btech-ict", "hnd-cs", "hnd-ict"],
+      "is_active": true
+    },
+    {
+      "email": "admin@htu.edu.gh",
+      "full_name": "IT Systems Admin",
+      "roles": ["admin"],
+      "department": "IT Support",
+      "programmes": [],
+      "is_active": true
+    },
+    {
+      "email": "kappiah@htu.edu.gh",
+      "full_name": "Prof. Kwame Appiah",
+      "roles": ["supervisor", "panel_member"],
+      "department": "Computer Science",
+      "programmes": ["btech-cs", "hnd-cs"],
+      "is_active": true
+    },
+    {
+      "email": "aowusu@htu.edu.gh",
+      "full_name": "Dr. Ama Owusu",
+      "roles": ["supervisor", "panel_member"],
+      "department": "Computer Science",
+      "programmes": ["btech-ict", "hnd-ict"],
+      "is_active": true
+    },
+    {
+      "email": "yboateng@htu.edu.gh",
+      "full_name": "Dr. Yaw Boateng",
+      "roles": ["supervisor", "panel_member"],
+      "department": "Computer Science",
+      "programmes": ["btech-cs", "btech-ict"],
+      "is_active": true
+    },
+    {
+      "email": "emensah@htu.edu.gh",
+      "full_name": "Dr. Efua Mensah",
+      "roles": ["supervisor", "panel_member"],
+      "department": "Computer Science",
+      "programmes": ["hnd-cs", "hnd-ict"],
+      "is_active": true
+    }
+  ],
+  "groups": [
+    {
+      "group_number": "BCS26_01",
+      "course_id": "btech-cs",
+      "leader": "0323000101",
+      "members": ["0323000101", "0323000102", "0323000103", "0323000104", "0323000105"]
+    },
+    {
+      "group_number": "BCS26_02",
+      "course_id": "btech-cs",
+      "leader": "0323000106",
+      "members": ["0323000106", "0323000107", "0323000108", "0323000109", "0323000110"]
+    },
+    {
+      "group_number": "BICT26_01",
+      "course_id": "btech-ict",
+      "leader": "0323000201",
+      "members": ["0323000201", "0323000202", "0323000203", "0323000204", "0323000205"]
+    },
+    {
+      "group_number": "BICT26_02",
+      "course_id": "btech-ict",
+      "leader": "0323000206",
+      "members": ["0323000206", "0323000207", "0323000208", "0323000209", "0323000210"]
+    },
+    {
+      "group_number": "HCS26_01",
+      "course_id": "hnd-cs",
+      "leader": "0323000301",
+      "members": ["0323000301", "0323000302", "0323000303", "0323000304", "0323000305"]
+    },
+    {
+      "group_number": "HCS26_02",
+      "course_id": "hnd-cs",
+      "leader": "0323000306",
+      "members": ["0323000306", "0323000307", "0323000308", "0323000309", "0323000310"]
+    },
+    {
+      "group_number": "HICT26_01",
+      "course_id": "hnd-ict",
+      "leader": "0323000401",
+      "members": ["0323000401", "0323000402", "0323000403", "0323000404", "0323000405"]
+    },
+    {
+      "group_number": "HICT26_02",
+      "course_id": "hnd-ict",
+      "leader": "0323000406",
+      "members": ["0323000406", "0323000407", "0323000408", "0323000409", "0323000410"]
+    }
+  ],
+  "supervisor_assignments": [
+    {
+      "supervisor": "kappiah@htu.edu.gh",
+      "assignments": ["BCS26_01", "HCS26_02"],
+      "note": "1 BTECH-CS and 1 HND-CS (no overlap in course)"
+    },
+    {
+      "supervisor": "aowusu@htu.edu.gh",
+      "assignments": ["BICT26_01", "HICT26_02"],
+      "note": "1 BTECH-ICT and 1 HND-ICT (no overlap in course)"
+    },
+    {
+      "supervisor": "yboateng@htu.edu.gh",
+      "assignments": ["BCS26_02", "BICT26_02"],
+      "note": "1 BTECH-CS and 1 BTECH-ICT (no overlap in course)"
+    },
+    {
+      "supervisor": "emensah@htu.edu.gh",
+      "assignments": ["HCS26_01", "HICT26_01"],
+      "note": "1 HND-CS and 1 HND-ICT (no overlap in course)"
+    }
+  ]
+}

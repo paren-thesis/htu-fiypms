@@ -1,0 +1,53 @@
+{
+  "prompt_id": "06-03",
+  "phase": 6,
+  "phase_name": "supervision",
+  "title": "Supervision page for all roles",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-supervisor-matching",
+    "fypms-ui-design-system",
+    "fypms-teams-topics"
+  ],
+  "depends_on": [
+    "06-02"
+  ],
+  "spec_sections": [
+    "FR-04.2",
+    "FR-04.3",
+    "FR-04.4"
+  ],
+  "models": [
+    {
+      "name": "SupervisionDocument",
+      "collection": "supervisions",
+      "work": "read"
+    },
+    {
+      "name": "SupervisorContactDocument",
+      "collection": "supervisor_contacts",
+      "work": "read with grant"
+    }
+  ],
+  "build": [
+    "/supervision coordinator view: teams without an accepted supervisor (status chips), 'Find match' sheet showing the top 3 with score bars (overlap, capacity) and an At capacity badge when curr >= max, assign dialog; override dialog requires a written reason. Supervisor workload table (curr / max, StatusBadge).",
+    "Supervisor view: pending requests with countdown to window_expires_at, accept and decline (reason) dialogs, 'My teams' list with team status and links to /chapters and /proposals.",
+    "Student view: 'My supervisor' card with name and assignment status; contact details inside a LockedCard until the grant exists, then office, hours and phone read from supervisor_contacts/{id} (client read is allowed only with the grant).",
+    "Skeletons, empty states, and error states throughout."
+  ],
+  "files": [
+    "src/app/supervision/page.tsx",
+    "src/components/supervision/*"
+  ],
+  "out_of_scope": [
+    "Chapters (phase 7)"
+  ],
+  "acceptance": [
+    "Student sees the locked card before acceptance + approved topic and contact details after",
+    "Coordinator can assign and override from the UI"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

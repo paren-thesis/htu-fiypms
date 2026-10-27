@@ -1,0 +1,11 @@
+feat(shell): add app shell, role-filtered nav and placeholder routes
+
+- Sidebar, top bar, command palette and role switcher UI
+- Add nav config per role mapped to real routes
+- Add temporary DevSession provider (replaced in 02-01)
+- Add placeholder pages and loading skeletons for every route
+- Show /students and staff whitelist only to coordinator and admin
+- Move Next.js dev badge off the sidebar footer
+
+Prompt: 00-03
+Refs: FR-01.3

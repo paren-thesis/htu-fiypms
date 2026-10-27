@@ -1,0 +1,9 @@
+feat(grading): add real-time digital marksheet
+
+- Mobile-first marksheet with optimistic debounced saves
+- Live chair/coordinator composite via onSnapshot
+- Locked state after publication
+
+Prompt: 09-02
+Models: EvaluationDocument
+Refs: FR-06.2, FR-06.3

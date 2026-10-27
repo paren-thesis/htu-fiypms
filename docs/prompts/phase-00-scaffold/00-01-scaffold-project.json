@@ -1,0 +1,51 @@
+{
+  "prompt_id": "00-01",
+  "phase": 0,
+  "phase_name": "scaffold",
+  "title": "Scaffold project",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-scaffold-roadmap",
+    "fypms-testing"
+  ],
+  "depends_on": [],
+  "spec_sections": [
+    "section 3 (stack)",
+    "section 11 (directory tree)"
+  ],
+  "models": [],
+  "build": [
+    "Run create-next-app in the project root (TypeScript, Tailwind, ESLint, App Router, src dir, alias @/*). Do not overwrite AGENTS.md, docs/ or .agents/.",
+    "Install the dependencies listed in fypms-scaffold-roadmap (no email provider).",
+    "tsconfig: strict true and noUncheckedIndexedAccess true.",
+    "Create the empty folder skeleton from spec section 11 (src/components/{ui,auth,navbar,students,defense,common}, src/lib/{firebase,auth,models,export,matching}, src/types, src/context, src/config) with .gitkeep files.",
+    "package.json scripts: typecheck, lint, test (vitest run), test:watch, test:rules (firebase emulators:exec --only firestore,auth \"vitest run --config vitest.rules.config.ts\"), test:server (emulators:exec with vitest.server.config.ts), e2e (playwright test).",
+    "vitest.config.ts (node env, alias @ -> src, include src/**/*.test.ts), vitest.rules.config.ts (include tests/rules/**, 30s timeout), vitest.server.config.ts (include tests/server/**, 30s timeout).",
+    ".env.example with every variable from fypms-scaffold-roadmap and empty values; .gitignore covers .env*, .firebase, node_modules, playwright-report, test-results.",
+    "One placeholder unit test so `npm run test` is green."
+  ],
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "vitest.config.ts",
+    "vitest.rules.config.ts",
+    "vitest.server.config.ts",
+    ".env.example",
+    ".gitignore",
+    "src/**/.gitkeep"
+  ],
+  "out_of_scope": [
+    "Design tokens and UI (00-02)",
+    "Firebase config files (01-01)"
+  ],
+  "acceptance": [
+    "npm run typecheck, lint and test pass",
+    "npm run dev serves the default page",
+    "Folder skeleton matches spec section 11"
+  ],
+  "verify": [
+    "npm run typecheck",
+    "npm run lint",
+    "npm run test"
+  ]
+}

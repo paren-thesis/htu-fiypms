@@ -1,0 +1,62 @@
+{
+  "prompt_id": "01-04",
+  "phase": 1,
+  "phase_name": "data-foundation",
+  "title": "Course and academic year models with seed script",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-scaffold-roadmap",
+    "fypms-test-data"
+  ],
+  "depends_on": [
+    "01-03"
+  ],
+  "spec_sections": [
+    "section 8.1 (CourseDocument, AcademicYearDocument, CounterDocument)",
+    "FR-02.2",
+    "FR-02.5a"
+  ],
+  "models": [
+    {
+      "name": "CourseDocument",
+      "collection": "courses",
+      "work": "schema, repo, seed"
+    },
+    {
+      "name": "AcademicYearDocument",
+      "collection": "academic_years",
+      "work": "schema, repo, seed, counters"
+    }
+  ],
+  "build": [
+    "models/course and models/academic-year (schema, repo). Helpers: getCurrentAcademicYear(), getCourse(id), listCourses().",
+    "src/lib/teams/group-number.ts (pure): coursePrefix(courseId) -> BCS | BICT | HCS | HICT and formatGroupNumber(prefix, yearYY, seq) -> e.g. BICT26_01; unit-tested.",
+    "scripts/seed.ts --mode base|full (tsx) reading ONLY fixtures/ through fixtures/index.ts. Mode base writes: the four courses, one current academic year starting 2026, counters next_sequence 1, roster docs from fixture students (email = studentEmail(index), contact, course_id, user_uid null, signup_completed_at null), staff_whitelist docs from fixture staff. It creates NO Auth users and NO users docs. Mode full prints 'not available yet' until DEV-01",
+    "Seed is idempotent (set merge, deterministic ids), exits unless FIRESTORE_EMULATOR_HOST is set, and warns when the project id does not start with demo-. Remove the old SEED_COORDINATOR_EMAIL and SEED_YEAR logic",
+    "scripts/check-data.ts per fypms-test-data/references/fixtures-contract.md (base checks: roster and whitelist match the fixtures, no unknown records); npm scripts seed:base, seed:full, check:data and dev:fresh"
+  ],
+  "files": [
+    "src/lib/models/course/*",
+    "src/lib/models/academic-year/*",
+    "src/lib/teams/group-number.ts",
+    "scripts/seed.ts",
+    "scripts/seed.ts",
+    "scripts/check-data.ts",
+    "package.json"
+  ],
+  "assumptions": [
+    "No UI for editing academic years in v1; deadlines are edited in seed data until a later phase"
+  ],
+  "out_of_scope": [
+    "Team creation (04-01)"
+  ],
+  "acceptance": [
+    "After npm run dev:fresh the dev emulator has 4 courses, 1 academic year, 40 roster students and 6 staff entries, zero Auth users, and check:data passes",
+    "Running seed twice changes nothing"
+  ],
+  "verify": [
+    "npx vitest run src/lib/teams",
+    "npm run dev:fresh"
+  ]
+}

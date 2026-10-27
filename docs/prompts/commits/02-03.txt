@@ -1,0 +1,10 @@
+feat(auth): implement complete-signup with roster and whitelist linkage
+
+- Student path links roster entry and sets course_id from roster
+- Staff path links whitelist entry and sets claims
+- 409 plus audit on identity conflict
+- Add emulator tests for all paths
+
+Prompt: 02-03
+Models: UserDocument, RosterStudentDocument, StaffWhitelistDocument
+Refs: FR-01.5, FR-01.6, FR-01.7, FR-01.10

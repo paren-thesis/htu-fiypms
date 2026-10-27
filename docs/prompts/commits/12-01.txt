@@ -1,0 +1,8 @@
+feat(notifications): add notification centre and live toasts
+
+- Add useNotifications hook and toast diffing
+- Add bell dropdown and /notifications page
+
+Prompt: 12-01
+Models: NotificationDocument
+Refs: FR-09.1, FR-09.2

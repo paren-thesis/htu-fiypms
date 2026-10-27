@@ -1,0 +1,65 @@
+{
+  "prompt_id": "05-01",
+  "phase": 5,
+  "phase_name": "proposals",
+  "title": "Topic model, state machine and submission",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-firestore-data",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "04-02"
+  ],
+  "spec_sections": [
+    "FR-03.1",
+    "FR-03.2",
+    "FR-03.3",
+    "FR-03.5",
+    "section 8.1 (TopicDocument)"
+  ],
+  "models": [
+    {
+      "name": "TopicDocument",
+      "collection": "topics",
+      "work": "schema, repo, submit/resubmit action"
+    },
+    {
+      "name": "Topic history (subcollection)",
+      "collection": "topics/{id}/history",
+      "work": "append-only snapshots"
+    }
+  ],
+  "build": [
+    "src/lib/topics/state-machine.ts (pure): canTransition(from, to, actor) for draft->submitted (team), submitted->under_review (supervisor), under_review->approved|rejected|revision_requested (supervisor), revision_requested|rejected->submitted (team). Exhaustive unit tests including every illegal pair.",
+    "src/lib/matching/jaccard.ts: normaliseTags and tagOverlap only (capacity and match score are added in 06-01). Unit tests.",
+    "models/topic (schema, repo). Input fields: title, abstract, problem_statement, proposed_solution, tech_stack[] (lowercased, trimmed, deduplicated, max 12), preference_rank 1|2|3.",
+    "src/app/actions/submit-topic.ts: create draft, edit draft, submit, resubmit. Rules: caller is a member of the team; any member may draft, only the leader may submit; team must have >= 4 members; max 3 current topics per team with unique preference_rank among is_current; first submission sets team.status topic_pending. Resubmit runs in a transaction: copy the current doc to topics/{id}/history/{version}, version += 1, status submitted, is_current stays true.",
+    "src/lib/topics/similar.ts + findSimilarTopics(): token Jaccard on title + tech_stack against approved topics from earlier academic years (limit 300). submit-topic returns warnings [{topic_id, title, score}] when score >= 0.6 and never blocks submission.",
+    "Tests: state machine, rank uniqueness, versioning writes history, non-leader submit rejected, < 4 members rejected, similarity threshold."
+  ],
+  "files": [
+    "src/lib/topics/*",
+    "src/lib/matching/jaccard.ts",
+    "src/lib/models/topic/*",
+    "src/app/actions/submit-topic.ts",
+    "tests/server/topics.test.ts"
+  ],
+  "assumptions": [
+    "Any member can draft; only the leader submits (spec is silent)",
+    "Teams need at least 4 members to submit topics"
+  ],
+  "out_of_scope": [
+    "UI (05-02)",
+    "Review (05-03)"
+  ],
+  "acceptance": [
+    "All unit and server tests pass",
+    "History contains one snapshot per resubmission"
+  ],
+  "verify": [
+    "npx vitest run src/lib/topics src/lib/matching",
+    "npm run test:server"
+  ]
+}

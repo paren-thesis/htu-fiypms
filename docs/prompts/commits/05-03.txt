@@ -1,0 +1,10 @@
+feat(topics): add topic review and supervisor contact grants
+
+- Add open and decide review actions with authorisation rules
+- Approve sets team approved topic and status
+- Add ensureContactGrants helper (F-03)
+- Add supervisor review queue
+
+Prompt: 05-03
+Models: TopicDocument, TeamDocument, SupervisorContact grants
+Refs: FR-03.4, FR-04.4

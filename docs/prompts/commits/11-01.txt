@@ -1,0 +1,9 @@
+feat(reports): add broadsheet exports (XLSX, CSV, PDF)
+
+- CSV with index_number, full_name, contact and team scores
+- Excel with formulas and PDF with signature lines per programme
+- Add /reports page with preview and downloads
+
+Prompt: 11-01
+Models: TeamDocument, RosterStudentDocument
+Refs: FR-10.1, FR-10.1a, FR-10.1b

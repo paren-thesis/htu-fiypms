@@ -1,0 +1,40 @@
+{
+  "prompt_id": "06-01",
+  "phase": 6,
+  "phase_name": "supervision",
+  "title": "Matching engine (pure logic)",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-supervisor-matching",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "05-03"
+  ],
+  "spec_sections": [
+    "FR-04.1",
+    "FR-04.2",
+    "FR-04.2a",
+    "section 4.1"
+  ],
+  "models": [],
+  "build": [
+    "Extend src/lib/matching/jaccard.ts with capacityScore(curr, max) = max(0, 1 - curr / max(1, max)) and matchScore(teamTags, supTags, curr, max = 5) = 0.7 * overlap + 0.3 * capacity, exactly as in fypms-supervisor-matching.",
+    "src/lib/matching/rank.ts: rankSupervisors({teamTags, courseId, candidates}) filters candidates to active supervisors whose programmes include courseId, scores them, sorts descending (tie-break: lower current_assigned_count, then name) and returns the top 3 with a breakdown {overlap, capacity, score, atCapacity}.",
+    "Unit tests: the fixed vector (T={a,b}, S={b,c}, curr 2, max 5 -> about 0.4133), empty tags, disjoint, identical, max = 0 with no NaN, curr above max, programme filter, tie-breaks, case and whitespace normalisation."
+  ],
+  "files": [
+    "src/lib/matching/jaccard.ts",
+    "src/lib/matching/rank.ts",
+    "src/lib/matching/*.test.ts"
+  ],
+  "out_of_scope": [
+    "Database access (06-02)"
+  ],
+  "acceptance": [
+    "All unit tests pass; no I/O in src/lib/matching"
+  ],
+  "verify": [
+    "npx vitest run src/lib/matching"
+  ]
+}

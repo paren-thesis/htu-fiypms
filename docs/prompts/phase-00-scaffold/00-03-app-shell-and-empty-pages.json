@@ -1,0 +1,59 @@
+{
+  "prompt_id": "00-03",
+  "phase": 0,
+  "phase_name": "scaffold",
+  "title": "App shell and empty pages",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-ui-design-system",
+    "fypms-scaffold-roadmap",
+    "fypms-ui-qa"
+  ],
+  "depends_on": [
+    "00-02"
+  ],
+  "spec_sections": [
+    "section 11 (directory tree)",
+    "FR-01.3 (role switcher UI only)"
+  ],
+  "models": [],
+  "build": [
+    "Authenticated layout: left sidebar (icon-only collapse at <=1024px, drawer on mobile) + slim top bar with breadcrumb, command palette (Cmd/Ctrl+K listing nav items), notifications bell (static badge 0), RoleSwitcher dropdown (UI only), avatar menu.",
+    "src/config/nav.ts: role-filtered nav definitions for student, supervisor, coordinator, panel_member, admin exactly as in fypms-ui-design-system, mapped to the real routes (spec D-05: /students and /admin/staff-whitelist are visible to coordinator and admin only; supervisors must NOT see Roster Import, Students or Staff Whitelist; admin sees both): /, /my-team, /proposals, /supervision, /chapters, /defense, /rubrics, /reports, /students, /peer-evaluation, /deliverables, /grades, /archive, /notifications, /audit-logs, /admin/staff-whitelist, /admin/users.",
+    "Temporary src/context/DevSession.tsx providing a fake user {name, email, roles, activeRole} switchable by a NEXT_PUBLIC_DEV_ROLE env var. Mark with a TODO(02-01) comment; it is replaced by AuthContext in 02-01.",
+    "Create placeholder page.tsx + loading.tsx for every route above plus /login, /not-registered, /complete-profile, /defense/[panelId], using PageHeader + EmptyState. Dashboard (/) shows the bento layout with static placeholder cards and the LifecycleStepper.",
+    "/login: centered card with 'Sign in with Google' button (disabled, wired in 02-01) and HTU wordmark. /not-registered: static layout only.",
+    "Next.js dev indicator (the round N badge) must not cover the sidebar footer: set the devIndicators position option supported by the installed Next version (or disable it in dev). Do not change the layout for a dev-only widget"
+  ],
+  "files": [
+    "src/app/layout.tsx",
+    "src/app/(shell)/... or equivalent layout wrapper",
+    "src/components/navbar/*",
+    "src/config/nav.ts",
+    "src/context/DevSession.tsx",
+    "src/app/**/page.tsx",
+    "src/app/**/loading.tsx"
+  ],
+  "assumptions": [
+    "Public pages (/login, /not-registered) sit outside the shell layout (use a route group such as (shell) only if the route URLs stay as listed)"
+  ],
+  "out_of_scope": [
+    "Real auth, claims and middleware (phase 2)",
+    "Data fetching"
+  ],
+  "acceptance": [
+    "Switching NEXT_PUBLIC_DEV_ROLE changes the sidebar items",
+    "Every route in the nav renders without error at 375px and 1280px widths",
+    "Mobile drawer and command palette work",
+    "Supervisor nav contains no Roster Import, Students or Staff Whitelist item; coordinator and admin both have Students and Staff Whitelist",
+    "In dev the sidebar footer text is fully visible at 1280 px and the layout is checked at 375, 768 and 1280 px"
+  ],
+  "verify": [
+    "npm run typecheck",
+    "npm run lint",
+    "npm run build"
+  ],
+  "rules": [
+    "Roster import and staff whitelist are coordinator/admin only (D-05)"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "prompt_id": "01-02",
+  "phase": 1,
+  "phase_name": "data-foundation",
+  "title": "Rules test harness and baseline tests",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-testing",
+    "fypms-test-data"
+  ],
+  "depends_on": [
+    "01-01"
+  ],
+  "spec_sections": [
+    "section 9",
+    "section 12.2",
+    "section 13 (F-01 to F-14)"
+  ],
+  "models": [
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "rules tests"
+    },
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "rules tests"
+    },
+    {
+      "name": "SupervisorContactDocument",
+      "collection": "supervisor_contacts",
+      "work": "rules tests"
+    },
+    {
+      "name": "EvaluationDocument",
+      "collection": "evaluations",
+      "work": "rules tests"
+    },
+    {
+      "name": "PeerEvaluationDocument",
+      "collection": "peer_evaluations",
+      "work": "rules tests"
+    }
+  ],
+  "build": [
+    "tests/rules/helpers.ts: initializeTestEnvironment (projectId demo-fypms-test, Firestore host 127.0.0.1 port 8180, rules from firestore.rules), a ctx({uid,email,registered,roles,activeRole,email_verified}) factory returning an authenticated context with those token claims, and a seed() helper using withSecurityRulesDisabled.",
+    "Baseline tests (one file per area, tests/rules/*.rules.test.ts): a Google account with registered:false or a non-htu email reads nothing (users, teams, topics); users client writes denied; teams client create denied and leader may only change name; invite_codes unreadable; teams/{id}/private/invite readable by members only; supervisor_contacts denied until a grant doc exists; evaluations unreadable by students before is_published; evaluation create requires id {teamId}__{uid}__team and is_published false; evaluator cannot set is_published; peer evaluation rejects self-rating, non-teammate, duplicate id and scores outside 1-10; rosters and staff_whitelist client writes denied; academic_years.grades_published cannot be flipped by a client; audit_logs client writes denied.",
+    "Wire tests/setup/emulator-guard.ts (shipped with the pack) as a setupFile in vitest.rules.config.ts and vitest.server.config.ts; change test:rules and test:server to run through `firebase emulators:exec --config firebase.test.json --project demo-fypms-test` as in fypms-test-data; use only fixture users (fx.*) in tests, never invented emails or uids",
+    "Add tests/helpers/reset.ts that clears the TEST emulators through the same REST endpoints as scripts/emulator-reset.mjs and call it in afterAll"
+  ],
+  "files": [
+    "tests/rules/helpers.ts",
+    "tests/rules/*.rules.test.ts"
+  ],
+  "rules": [
+    "Do not modify firestore.rules to make a test pass; if a test exposes a real rule bug, report it in blockers"
+  ],
+  "out_of_scope": [
+    "Tests for collections not yet built"
+  ],
+  "acceptance": [
+    "npm run test:rules passes and covers every bullet in build",
+    "Running test:rules while the dev emulator is up leaves the dev emulator untouched; the guard aborts a run that targets 8080 or 9099"
+  ],
+  "verify": [
+    "npm run test:rules"
+  ]
+}

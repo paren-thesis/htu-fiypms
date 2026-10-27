@@ -1,0 +1,11 @@
+{
+  "_note": "Used only by seed:full to create supervisor_contacts and complete profiles. Edit freely; keep emails identical to testusers.json staff.",
+  "profiles": [
+    { "email": "coordinator@htu.edu.gh", "office_location": "CS Block, Room 12", "consultation_hours": "Mon and Wed 10:00-12:00", "phone": "0200000001", "research_interests": ["software engineering", "project management", "databases"], "max_team_capacity": 5 },
+    { "email": "admin@htu.edu.gh", "office_location": "IT Support Office", "consultation_hours": "Weekdays 08:00-16:00", "phone": "0200000002", "research_interests": ["systems administration"], "max_team_capacity": 1 },
+    { "email": "kappiah@htu.edu.gh", "office_location": "CS Block, Room 21", "consultation_hours": "Tue and Thu 09:00-11:00", "phone": "0200000003", "research_interests": ["machine learning", "python", "data analysis", "computer vision"], "max_team_capacity": 5 },
+    { "email": "aowusu@htu.edu.gh", "office_location": "ICT Block, Room 4", "consultation_hours": "Mon and Fri 13:00-15:00", "phone": "0200000004", "research_interests": ["web development", "cloud computing", "databases", "javascript"], "max_team_capacity": 5 },
+    { "email": "yboateng@htu.edu.gh", "office_location": "CS Block, Room 30", "consultation_hours": "Wed 14:00-17:00", "phone": "0200000005", "research_interests": ["cybersecurity", "networks", "python", "mobile development"], "max_team_capacity": 5 },
+    { "email": "emensah@htu.edu.gh", "office_location": "ICT Block, Room 9", "consultation_hours": "Tue 10:00-13:00", "phone": "0200000006", "research_interests": ["iot", "embedded systems", "data analysis", "web development"], "max_team_capacity": 5 }
+  ]
+}

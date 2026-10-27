@@ -1,0 +1,59 @@
+{
+  "prompt_id": "10-02",
+  "phase": 10,
+  "phase_name": "peer-eval-and-deliverables",
+  "title": "Software deliverables and supervisor sign-off",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "07-01",
+    "08-02"
+  ],
+  "spec_sections": [
+    "FR-08.1",
+    "FR-08.2",
+    "FR-08.3",
+    "section 8.1 (SoftwareDeliverableDocument)",
+    "section 13 (F-12)"
+  ],
+  "models": [
+    {
+      "name": "SoftwareDeliverableDocument",
+      "collection": "software_deliverables",
+      "work": "schema, repo, submit + signoff actions, UI"
+    }
+  ],
+  "build": [
+    "models/software-deliverable (schema, repo); doc id = teamId.",
+    "src/lib/deliverables/validate.ts (pure): GitHub or GitLab repository URL, optional https demo URL, optional https cloud-storage link, environment_setup_notes up to 20000 characters. Unit-tested.",
+    "src/app/actions/submit-deliverable.ts: team member; allowed when team.status is defense_ready or completed; blocked after supervisor sign-off.",
+    "src/app/actions/signoff-deliverable.ts: the team's assigned supervisor only; sets approved_by_supervisor_at and supervisor_signoff_notes; writeAudit deliverable.signed_off; notify the team.",
+    "/deliverables: student form with a safe markdown preview for setup notes (you may add react-markdown and rehype-sanitize); supervisor list of their teams with open-link buttons and a sign-off dialog; coordinator overview with a sign-off status column; examiners can view submitted links."
+  ],
+  "files": [
+    "src/lib/models/software-deliverable/*",
+    "src/lib/deliverables/*",
+    "src/app/actions/{submit-deliverable,signoff-deliverable}.ts",
+    "src/app/deliverables/page.tsx",
+    "tests/server/deliverables.test.ts"
+  ],
+  "assumptions": [
+    "Submission opens when the team becomes defense_ready so examiners can see links before the defense (FR-07.4)"
+  ],
+  "out_of_scope": [
+    "Using sign-off as a publish precondition (11-02)"
+  ],
+  "acceptance": [
+    "Team cannot write sign-off fields; non-assigned supervisor cannot sign off",
+    "Invalid repository URLs are rejected"
+  ],
+  "verify": [
+    "npx vitest run src/lib/deliverables",
+    "npm run test:server"
+  ]
+}

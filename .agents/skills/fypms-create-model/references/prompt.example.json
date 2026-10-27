@@ -1,0 +1,33 @@
+{
+  "task": "create_model",
+  "model": "Announcement",
+  "collection": "announcements",
+  "description": "Course-wide notice posted by a coordinator and shown on every member's dashboard.",
+  "doc_id": "auto",
+  "course_scoped": true,
+  "timestamps": true,
+  "audit": true,
+  "owner_field": "created_by",
+  "fields": [
+    { "name": "title", "type": "string", "required": true, "max": 120 },
+    { "name": "body", "type": "string", "required": true, "max": 4000 },
+    { "name": "audience", "type": "enum", "values": ["all", "students", "staff"], "default": "all" },
+    { "name": "pinned", "type": "boolean", "default": false },
+    { "name": "expires_at", "type": "timestamp", "required": false },
+    { "name": "created_by", "type": "ref", "ref": "users", "required": true }
+  ],
+  "access": {
+    "read": ["any_member"],
+    "create": "server",
+    "update": "server",
+    "delete": "none"
+  },
+  "actions": [
+    { "name": "create", "roles": ["coordinator", "admin"] },
+    { "name": "update", "roles": ["coordinator", "admin"] }
+  ],
+  "queries": [
+    { "where": [["course_id", "=="], ["pinned", "=="]], "orderBy": "created_at desc", "limit": 20 }
+  ],
+  "generate": ["types", "zod", "repo", "rules", "indexes", "actions", "tests", "registry"]
+}

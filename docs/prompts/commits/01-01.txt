@@ -1,0 +1,9 @@
+feat(data): add Firestore types, rules, indexes and emulator config
+
+- Add src/types/firestore.ts with all document interfaces
+- Add firestore.rules (v5.2 review fixes) and firestore.indexes.json
+- Add firebase.json and .firebaserc for local emulators
+- Add firebase.test.json so tests use separate emulator ports
+- Add emu scripts and fixtures folder
+
+Prompt: 01-01

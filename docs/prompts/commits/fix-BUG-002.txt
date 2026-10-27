@@ -1,13 +1,13 @@
-fix(routes): resolve parallel route collision between (shell) and root app pages
+fix(test-data): isolate tests from dev emulator, seed only fixtures
 
-Symptom: Build Error: You cannot have two parallel pages that resolve to the same path. Please check /(shell)/admin/staff-whitelist and /admin
-Cause: Class A code defect: staff-whitelist and students pages were placed in src/app/ instead of replacing the scaffolded placeholder pages in src/app/(shell)/.
-- Replaced placeholder pages at src/app/(shell)/admin/staff-whitelist/page.tsx and src/app/(shell)/students/page.tsx with full RSC implementations
-- Deleted duplicate src/app/admin and src/app/students directories
-- Added connection() from next/server for request-time rendering compatible with nextConfig.cacheComponents
-- Cleaned unused setCsvContent and restored useRouter in StudentsRosterTable
-Tests: npm run build (26/26 routes), npx vitest run src/lib/roster (8/8), vitest server tests (45/45)
+Symptom: dev Auth and Firestore emulators held users and roster rows
+that are not in fixtures/testusers.json
+Cause: tests and seed code wrote invented data to the dev emulator (E)
+- Add fixtures/ loader as the single source of test data
+- Rewrite seed.ts (base mode), add check-data and emu:reset scripts
+- Add firebase.test.json, emulator guard and test-only npm scripts
+- Move tests to fixture users on the test emulator with cleanup
+Tests: npm run test:rules, test:server, check:data
 
 Fixes: BUG-002
-Prompt: 03-02
-Refs: FR-01.4, FR-01.7
+Prompt: 01-04

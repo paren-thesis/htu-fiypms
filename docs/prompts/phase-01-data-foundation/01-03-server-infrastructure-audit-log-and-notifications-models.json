@@ -1,0 +1,66 @@
+{
+  "prompt_id": "01-03",
+  "phase": 1,
+  "phase_name": "data-foundation",
+  "title": "Server infrastructure, audit log and notifications models",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-notifications"
+  ],
+  "depends_on": [
+    "01-01"
+  ],
+  "spec_sections": [
+    "section 8.1 (AuditLogDocument, NotificationDocument)",
+    "FR-09.1",
+    "FR-09.2"
+  ],
+  "models": [
+    {
+      "name": "AuditLogDocument",
+      "collection": "audit_logs",
+      "work": "append-only repo (create + paginated list)"
+    },
+    {
+      "name": "NotificationDocument",
+      "collection": "notifications",
+      "work": "repo + notify helper"
+    }
+  ],
+  "build": [
+    "src/lib/firebase/admin.ts: Admin SDK singleton (guard against duplicate-app on hot reload; private key newline fix). Export adminAuth, adminDb.",
+    "src/lib/errors.ts: HttpError(status, code, message) and toActionError().",
+    "src/lib/auth/require-user.ts: requireUser(idToken, roles?) verifies the token, requires registered claim and @htu.edu.gh verified email, checks roles when given, returns {uid,email,roles,activeRole,claims}; throws HttpError 401/403.",
+    "src/lib/audit.ts: writeAudit({actor, action, target_type, target_id, details}) using AuditLogDocument; also writeAuditInTx(tx, ...). Extend the action union in AuditLogDocument only when later prompts need a new action.",
+    "src/lib/notify.ts: notify(userIds, {title, body, type, target_url}) writing notifications in one batch (<=400 per batch), plus notifyInTx. Extend NotificationDocument.type with 'supervision_assignment' | 'team_update' | 'team_invite' | 'system' (spec amendment A1).",
+    "src/lib/serialize.ts: Timestamp -> millis/ISO mappers for passing data from server to client components.",
+    "src/lib/models/common.ts (WithId<T>); models/audit-log and models/notification with schema.ts and repo.ts per _standards.",
+    "tests/server/notify-audit.test.ts running against the emulator."
+  ],
+  "files": [
+    "src/lib/firebase/admin.ts",
+    "src/lib/errors.ts",
+    "src/lib/auth/require-user.ts",
+    "src/lib/audit.ts",
+    "src/lib/notify.ts",
+    "src/lib/serialize.ts",
+    "src/lib/models/common.ts",
+    "src/lib/models/audit-log/*",
+    "src/lib/models/notification/*",
+    "src/types/firestore.ts (type enum)",
+    "docs/models.md (add amendment note A1)"
+  ],
+  "out_of_scope": [
+    "Notifications UI (12-01)",
+    "Audit viewer (12-03)"
+  ],
+  "acceptance": [
+    "requireUser rejects missing registered claim, wrong domain and wrong role",
+    "notify and writeAudit tests pass on the emulator"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run test:server"
+  ]
+}

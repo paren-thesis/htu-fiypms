@@ -1,0 +1,9 @@
+feat(grading): add publish, lock and amend grades with grades page
+
+- Pre-flight checks, publish, lock and 7-day appeal window
+- Audited amend-grade action
+- Student grades page and coordinator publish panel
+
+Prompt: 11-02
+Models: EvaluationDocument, TeamDocument, AcademicYearDocument
+Refs: FR-10.2, FR-10.3, FR-10.4

@@ -1,0 +1,9 @@
+feat(peer): add peer evaluation model and pages
+
+- Submit-once teammate ratings validated server-side
+- Anonymous aggregated summary with free-rider flag
+- Add /peer-evaluation page
+
+Prompt: 10-01
+Models: PeerEvaluationDocument
+Refs: FR-06.4, FR-06.5, FR-06.6

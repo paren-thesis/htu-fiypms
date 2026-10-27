@@ -1,0 +1,9 @@
+feat(chapters): add chapter model, submission and review actions
+
+- Sequential submission with link allowlist and version history
+- Supervisor review with line-item feedback
+- Auto defense_ready after chapter 5 (amendment A3)
+
+Prompt: 07-01
+Models: ChapterDocument
+Refs: FR-05.1, FR-05.2, FR-05.3

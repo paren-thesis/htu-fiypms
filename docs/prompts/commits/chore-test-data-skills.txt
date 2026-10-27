@@ -1,0 +1,9 @@
+chore(skills): add test-data and ui-qa skills, fixtures and reset tool
+
+- fypms-test-data: single fixture source, dev/test emulator split,
+  seed modes, check:data and reset guide
+- fypms-ui-qa: screenshot checks at 375/768/1280, pitfalls catalog and
+  Playwright layout helpers
+- Add fixtures/, scripts/emulator-reset.mjs, tests/setup guard and
+  docs/test-data.md; update fix-bug, testing skill, AGENTS.md
+- Add BUG-002 to BUG-004 prompts and update affected prompts

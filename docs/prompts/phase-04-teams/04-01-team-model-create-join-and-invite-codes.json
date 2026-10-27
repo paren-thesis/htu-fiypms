@@ -1,0 +1,89 @@
+{
+  "prompt_id": "04-01",
+  "phase": 4,
+  "phase_name": "teams",
+  "title": "Team model: create, join and invite codes",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-firestore-data",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "03-02"
+  ],
+  "spec_sections": [
+    "FR-02.1",
+    "FR-02.2",
+    "FR-02.3",
+    "FR-02.4a",
+    "FR-02.5",
+    "FR-02.5a",
+    "section 8.1 (TeamDocument, InviteCodeDocument, TeamInviteDocument, CounterDocument)",
+    "section 13 (F-06, F-14)"
+  ],
+  "models": [
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "schema, repo, create/join actions"
+    },
+    {
+      "name": "TeamMember (subcollection)",
+      "collection": "teams/{id}/members",
+      "work": "written with the team"
+    },
+    {
+      "name": "InviteCodeDocument",
+      "collection": "invite_codes",
+      "work": "server-only lookup, tx.create for uniqueness"
+    },
+    {
+      "name": "TeamInviteDocument",
+      "collection": "teams/{id}/private/invite",
+      "work": "display copy of the code"
+    },
+    {
+      "name": "CounterDocument",
+      "collection": "academic_years/{year}/counters/{course}",
+      "work": "group-number sequence"
+    }
+  ],
+  "build": [
+    "models/team (schema, repo) and src/lib/teams/create-team-tx.ts: createTeamInTx(tx, {leaderUid, memberUids, courseId, yearId, name}) reusable by auto-group (04-03). It increments counters/{courseId}.next_sequence, builds group_number with formatGroupNumber, creates the team (status formation, max_members 5), members docs, invite_codes/{code} via tx.create and teams/{id}/private/invite.",
+    "src/lib/teams/invite-code.ts (pure + injectable RNG): 6 uppercase alphanumerics excluding 0, O, 1, I; collision retry up to 5 times.",
+    "src/app/actions/create-team.ts: student only; transaction checks (a) caller not on an active team in the current year, (b) course_id comes from the caller's users.profile.course_id (never from input). Input: team name.",
+    "src/app/actions/join-team.ts: input invite code; resolve invite_codes/{code}; transaction checks course match (409 with the exact spec message), not already on a team this year, member_count < max_members, team status formation or topic_pending. Update member_ids, member_count, members doc; writeAudit; notify the leader (team_update).",
+    "src/app/actions/rename-team.ts (leader only, name field only).",
+    "Server tests: course mismatch 409, full team, double membership, five parallel creates in one course produce five unique sequential group numbers, invite-code collision retry, prefix derivation."
+  ],
+  "files": [
+    "src/lib/models/team/*",
+    "src/lib/teams/create-team-tx.ts",
+    "src/lib/teams/invite-code.ts",
+    "src/app/actions/{create-team,join-team,rename-team}.ts",
+    "tests/server/teams.test.ts",
+    "docs/models.md"
+  ],
+  "rules": [
+    "Invite code is never stored on the team document",
+    "group_number prefix is derived from team.course_id, never from input"
+  ],
+  "stretch_optional": [
+    "invite-member action: leader invites a classmate by index number or email (same course, not on a team) and the invitee gets a team_invite notification with the code"
+  ],
+  "out_of_scope": [
+    "UI (04-02)",
+    "Auto-group (04-03)"
+  ],
+  "acceptance": [
+    "All server tests pass",
+    "A mismatched-programme join returns 409 with the spec message",
+    "Concurrent creation never duplicates a group number"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx vitest run src/lib/teams",
+    "npx tsc --noEmit"
+  ]
+}

@@ -1,0 +1,11 @@
+docs(spec): restrict roster import and whitelist to coordinator/admin
+
+- FR-01.4: only coordinators and admins import student roster CSVs
+- Remove roster import from the supervisor persona, add it to the
+  coordinator and admin personas
+- FR-01.7: supervisors cannot manage the staff whitelist
+- Add decision D-05, a 403 test case and bump the spec to 5.2.1
+- Update skills (ui nav, roster-import, testing), AGENTS.md and
+  prompts 00-03, 02-02, 03-01 and 03-02 to match
+
+Refs: FR-01.4, FR-01.7

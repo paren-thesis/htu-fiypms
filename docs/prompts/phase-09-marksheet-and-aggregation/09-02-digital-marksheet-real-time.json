@@ -1,0 +1,58 @@
+{
+  "prompt_id": "09-02",
+  "phase": 9,
+  "phase_name": "marksheet-and-aggregation",
+  "title": "Digital marksheet (real-time)",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "09-01"
+  ],
+  "spec_sections": [
+    "FR-06.2",
+    "FR-06.3",
+    "section 8.1 (EvaluationDocument)"
+  ],
+  "models": [
+    {
+      "name": "EvaluationDocument",
+      "collection": "evaluations",
+      "work": "client onSnapshot + client writes allowed by rules"
+    }
+  ],
+  "build": [
+    "/defense/[panelId]: header (panel, venue or virtual link, slot list with StatusBadge), team selector, then the marksheet for the signed-in evaluator.",
+    "src/components/defense/DigitalMarksheet.tsx (mobile-first per fypms-ui-design-system): one card per rubric criterion with title, collapsible description, score control (slider + minus/plus stepper, 44px targets, inputMode decimal), clamp to max_points via clampScores, comments textarea, sticky bottom bar with running total and Saved / Syncing state.",
+    "Writes go straight from the client with setDoc merge to evaluations/{teamId}__{uid}__team with fields team_id, evaluator_id, evaluator_role (panel_chair for the chair, panel_member otherwise, supervisor for the assigned supervisor), rubric_id, scores, total_score (computed), comments, is_published false, created_at/updated_at. Optimistic local state first, debounced write (about 400 ms), retry with backoff and an error toast.",
+    "Chair and coordinator live panel: onSnapshot on evaluations where team_id equals the selected team shows per-examiner subtotals and a live composite computed with compositeScore; chair gets a Conclude button calling conclude-defense-slot. Always return the unsubscribe from useEffect.",
+    "Locked: when an evaluation has is_published true all inputs are disabled and a banner explains why.",
+    "Supervisor continuous assessment uses the same component for their own team via /defense/[panelId]?team=<id> and a link from /supervision (visible once the team has a slot).",
+    "Tests: unit test for the debounce/save hook with fake timers; component test for clamping and the locked state."
+  ],
+  "files": [
+    "src/app/defense/[panelId]/page.tsx",
+    "src/components/defense/{DigitalMarksheet,ScoreControl,LiveComposite}.tsx",
+    "src/hooks/useDebouncedSave.ts",
+    "src/hooks/useDebouncedSave.test.ts"
+  ],
+  "assumptions": [
+    "Supervisors score continuous assessment through the same marksheet component (spec does not define a separate screen)"
+  ],
+  "out_of_scope": [
+    "Publishing grades (11-02)"
+  ],
+  "acceptance": [
+    "Two browser sessions scoring the same team show each other's subtotals in the chair view within about a second",
+    "Scores never exceed max_points",
+    "Listeners are cleaned up on navigation"
+  ],
+  "verify": [
+    "npx vitest run src/hooks",
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

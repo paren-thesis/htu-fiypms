@@ -1,0 +1,47 @@
+{
+  "prompt_id": "08-03",
+  "phase": 8,
+  "phase_name": "rubrics-and-defense-scheduling",
+  "title": "Defense scheduling UI",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "08-02"
+  ],
+  "spec_sections": [
+    "FR-07.1",
+    "FR-07.2",
+    "FR-07.3",
+    "FR-07.4"
+  ],
+  "models": [
+    {
+      "name": "DefensePanelDocument",
+      "collection": "defense_panels",
+      "work": "read + forms"
+    }
+  ],
+  "build": [
+    "/defense coordinator view: panel cards grouped by day with slots timeline, ConflictAlertBadge on any conflicting panel or slot (computed with detectConflicts on the client from the same data), create/edit panel sheet (course, venue or virtual link, chair, examiner multi-select filtered to the course's programme with a 'include other programmes' toggle that demands a justification, slot editor with eligible team picker and start/end times), Publish schedule button disabled while conflicts exist.",
+    "Panel member and supervisor view: 'My panels' list with next slot and links to team deliverables. Student view: own defense slot card (date, time, venue or link) once published.",
+    "/defense/[panelId] keeps its placeholder; it is built in 09-02."
+  ],
+  "files": [
+    "src/app/defense/page.tsx",
+    "src/components/defense/*"
+  ],
+  "out_of_scope": [
+    "Marksheet (09-02)"
+  ],
+  "acceptance": [
+    "Overlapping slots show the conflict badge immediately while editing",
+    "Published schedule is visible to students and examiners"
+  ],
+  "verify": [
+    "npx tsc --noEmit",
+    "npm run lint"
+  ]
+}

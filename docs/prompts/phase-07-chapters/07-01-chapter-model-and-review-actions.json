@@ -1,0 +1,59 @@
+{
+  "prompt_id": "07-01",
+  "phase": 7,
+  "phase_name": "chapters",
+  "title": "Chapter model and review actions",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-firestore-data",
+    "fypms-notifications",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "06-02"
+  ],
+  "spec_sections": [
+    "FR-05.1",
+    "FR-05.2",
+    "FR-05.3",
+    "section 8.1 (ChapterDocument, ChapterFeedback)"
+  ],
+  "models": [
+    {
+      "name": "ChapterDocument",
+      "collection": "chapters",
+      "work": "schema, repo, submit/review actions; add history[] (spec amendment A3)"
+    }
+  ],
+  "build": [
+    "Spec amendment A3: add `history: { version: number; document_url: string; submitted_at: Timestamp; reviewed_at?: Timestamp; status: string }[]` to ChapterDocument; update types, registry and note it in docs/fypms-docs.md section 13.",
+    "models/chapter (schema, repo): deterministic id `${teamId}__ch${n}`, chapter_number 1..5, title.",
+    "src/lib/chapters/url.ts (pure): accept only https links on drive.google.com, docs.google.com, 1drv.ms, onedrive.live.com or *.sharepoint.com. Unit-tested.",
+    "src/app/actions/submit-chapter.ts: team member; team needs an accepted supervisor and an approved topic; chapter n requires chapter n-1 approved (chapter 1 is free); resubmission allowed when status is revision_needed (push the previous link into history, version += 1, status pending); notify the supervisor (chapter_review).",
+    "src/app/actions/review-chapter.ts: only the team's assigned supervisor; approve or revision_needed with line-item feedback entries (ChapterFeedback); sets reviewed_at; notify the team; when chapter 5 is approved set team.status defense_ready.",
+    "Server tests: sequence enforcement, URL allowlist, history growth, only assigned supervisor can review, defense_ready transition."
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "src/lib/models/chapter/*",
+    "src/lib/chapters/*",
+    "src/app/actions/{submit-chapter,review-chapter}.ts",
+    "tests/server/chapters.test.ts",
+    "docs/models.md"
+  ],
+  "assumptions": [
+    "Any team member may submit; defense_ready is set automatically when chapter 5 is approved"
+  ],
+  "out_of_scope": [
+    "UI (07-02)"
+  ],
+  "acceptance": [
+    "Submitting chapter 3 before chapter 2 is approved returns an error",
+    "A Dropbox or http link is rejected"
+  ],
+  "verify": [
+    "npx vitest run src/lib/chapters",
+    "npm run test:server"
+  ]
+}

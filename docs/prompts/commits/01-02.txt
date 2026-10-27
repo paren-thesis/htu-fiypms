@@ -1,0 +1,11 @@
+test(rules): add rules test harness and baseline security tests
+
+- Add emulator-backed rules test helpers with claim factory
+- Cover unregistered access, user/team write denial, invite codes,
+  contact grants
+- Cover evaluation, peer evaluation, roster and audit log rules
+- Run on the test emulator with an emulator guard and fixture users
+
+Prompt: 01-02
+Models: UserDocument, TeamDocument, SupervisorContactDocument,
+  EvaluationDocument, PeerEvaluationDocument

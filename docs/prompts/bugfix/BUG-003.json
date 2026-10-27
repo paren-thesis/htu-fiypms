@@ -1,0 +1,42 @@
+{
+  "task": "fix_bug",
+  "bug_id": "BUG-003",
+  "skills": [
+    "fypms-fix-bug",
+    "fypms-ui-qa"
+  ],
+  "symptom": "The current step circle in the lifecycle stepper (1 Formation) shows a doubled blue ring near the card's left edge.",
+  "expected": "The current step shows a single clean indicator and is not clipped at any width.",
+  "error": {
+    "type": "behaviour",
+    "message": "Visual defect"
+  },
+  "where": {
+    "screenshot": "docs/screenshots/ui_overlap.png",
+    "route": "/ and /dev/ui",
+    "file": "src/components/common/LifecycleStepper.tsx"
+  },
+  "repro": [
+    "Open the dashboard or /dev/ui",
+    "Look at the first step"
+  ],
+  "prompt_id": "00-02",
+  "classify_hint": "V",
+  "fix_plan": [
+    "Inspect the current-step classes and computed styles; expect border plus ring (or outline) stacked on one element and/or an overflow-hidden parent clipping the ring.",
+    "Fix in LifecycleStepper with one indicator and enough parent padding; keep tokens only.",
+    "Add e2e/ui/lifecycle-stepper.spec.ts (helpers from fypms-ui-qa) checking 375, 768 and 1280 px with expectSingleIndicator and expectWithinViewportX; add or confirm the pitfall row."
+  ],
+  "constraints": {
+    "max_files": 4,
+    "no_new_deps": true,
+    "update_docs": true
+  },
+  "acceptance": [
+    "Playwright spec passes at the three widths",
+    "Screenshot at 1280 px shows one ring, not clipped"
+  ],
+  "verify": [
+    "npx playwright test e2e/ui/lifecycle-stepper.spec.ts"
+  ]
+}

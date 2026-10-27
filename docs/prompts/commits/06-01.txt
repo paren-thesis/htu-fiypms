@@ -1,0 +1,8 @@
+feat(matching): add Jaccard matching engine
+
+- Add capacityScore, matchScore and rankSupervisors
+- Programme-scoped candidates, top 3 with breakdown
+- Unit tests including fixed score vector
+
+Prompt: 06-01
+Refs: FR-04.1, FR-04.2, FR-04.2a

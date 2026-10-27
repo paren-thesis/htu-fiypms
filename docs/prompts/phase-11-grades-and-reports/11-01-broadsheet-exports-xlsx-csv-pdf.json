@@ -1,0 +1,64 @@
+{
+  "prompt_id": "11-01",
+  "phase": 11,
+  "phase_name": "grades-and-reports",
+  "title": "Broadsheet exports (XLSX, CSV, PDF)",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-reports-export",
+    "fypms-testing",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "09-01",
+    "10-02"
+  ],
+  "spec_sections": [
+    "FR-10.1",
+    "FR-10.1a",
+    "FR-10.1b"
+  ],
+  "models": [
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "read scores_summary"
+    },
+    {
+      "name": "RosterStudentDocument",
+      "collection": "rosters",
+      "work": "read contact and index_number"
+    }
+  ],
+  "build": [
+    "src/lib/export/broadsheet-data.ts: for a year and course (or all) assemble one row per student carrying the team's scores: index_number, full_name, contact (from the roster), group_number, course_id, supervisor_score, panel_average_score, composite_final_score, is_locked. Sorted by course, group number, index number. Teams without scores are flagged incomplete.",
+    "src/lib/export/csv.ts: columns exactly index_number, full_name, contact, group_number, supervisor_score, panel_average_score, composite_final_score, is_locked; UTF-8 with BOM; prefix a single quote on cells starting with = + - or @.",
+    "src/lib/export/excel.ts (exceljs): one worksheet per programme, HTU-blue header, frozen header, weights in B1 and B2, composite as a live formula (ROUND(C*B1/100 + D*B2/100, 2)) with the cached result, landscape print setup. No contact column.",
+    "src/lib/export/pdf.tsx (@react-pdf/renderer): A4 landscape, repeating header, page numbers, a section per programme each ending with Head of Department and Dean signature lines; 'DRAFT - not published' banner when any team is unlocked. No contact column.",
+    "src/app/actions/generate-broadsheet.ts: coordinator or admin; input {academic_year_id, course_id | 'all', format}; runtime nodejs, maxDuration 60; returns {filename, mime, base64}.",
+    "/reports page: filters, preview table (first 50 rows with incomplete flags), three download buttons with loading states; client builds a Blob from base64.",
+    "Tests: CSV (header order, BOM, injection guard), XLSX read back with exceljs (sheet per programme, formula present), data assembly fixtures (no cross-programme rows), PDF buffer starts with %PDF."
+  ],
+  "files": [
+    "src/lib/export/*",
+    "src/app/actions/generate-broadsheet.ts",
+    "src/app/reports/page.tsx",
+    "tests/server/broadsheet.test.ts"
+  ],
+  "rules": [
+    "Grade classification column is not produced until thresholds are defined",
+    "lib/export/* is server-only"
+  ],
+  "out_of_scope": [
+    "Publishing (11-02)"
+  ],
+  "acceptance": [
+    "CSV header exactly matches FR-10.1b",
+    "Excel/PDF never contain contact",
+    "A programme's sheet contains only that programme's students"
+  ],
+  "verify": [
+    "npx vitest run src/lib/export",
+    "npm run test:server"
+  ]
+}

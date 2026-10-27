@@ -1,0 +1,8 @@
+feat(topics): add proposals page for teams
+
+- Three ranked proposal slots with status badges
+- Create/edit form, submit and resubmit, history drawer
+
+Prompt: 05-02
+Models: TopicDocument
+Refs: FR-03.1, FR-03.2, FR-03.5

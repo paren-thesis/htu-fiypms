@@ -1,0 +1,9 @@
+feat(auth): add faculty profile completion and supervisor contacts
+
+- Add supervisor_contacts model layer
+- Add update-profile action with field allow-list
+- Add /complete-profile form and profileComplete claim update
+
+Prompt: 02-05
+Models: SupervisorContactDocument, UserDocument
+Refs: FR-01.9, FR-04.4

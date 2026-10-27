@@ -1,0 +1,50 @@
+{
+  "prompt_id": "08-01",
+  "phase": 8,
+  "phase_name": "rubrics-and-defense-scheduling",
+  "title": "Rubric model and builder",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "06-02"
+  ],
+  "spec_sections": [
+    "FR-06.1",
+    "section 8.1 (RubricDocument, RubricCriterion)"
+  ],
+  "models": [
+    {
+      "name": "RubricDocument",
+      "collection": "rubrics",
+      "work": "schema, repo, actions, builder UI"
+    }
+  ],
+  "build": [
+    "models/rubric (schema, repo) and src/lib/rubrics/validate.ts (pure): criteria ids unique, sum of max_points equals max_score, supervisor_weight_pct + panel_weight_pct equals 100, at least one criterion, category one of the three allowed values. Unit-tested.",
+    "src/app/actions/manage-rubric.ts: create, update, duplicate, activate, archive. Activation sets exactly one is_active rubric in a transaction. Update or delete is blocked when any evaluation references the rubric (return 409).",
+    "/rubrics page (coordinator/admin): list with Active badge, builder sheet (add/remove criteria rows, category select, live totals and validation indicators), 'Start from template' (Oral Defense 30, System Demo 40, Technical Architecture 30 out of 100, weights 40/60), Activate button."
+  ],
+  "files": [
+    "src/lib/models/rubric/*",
+    "src/lib/rubrics/*",
+    "src/app/actions/manage-rubric.ts",
+    "src/app/rubrics/page.tsx",
+    "tests/server/rubrics.test.ts"
+  ],
+  "out_of_scope": [
+    "Using rubrics in marksheets (09-02)"
+  ],
+  "acceptance": [
+    "Invalid weights or point totals cannot be saved",
+    "Only one rubric is active at any time"
+  ],
+  "verify": [
+    "npx vitest run src/lib/rubrics",
+    "npm run test:server"
+  ]
+}

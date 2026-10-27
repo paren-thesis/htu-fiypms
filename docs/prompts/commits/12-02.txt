@@ -1,0 +1,9 @@
+feat(archive): add archived projects model and search
+
+- Add archived_projects model, rules and index (amendment A5)
+- Idempotent archive on publish plus backfill action
+- Add token-based /archive search
+
+Prompt: 12-02
+Models: ArchivedProjectDocument (NEW)
+Refs: FR-11.1, FR-11.2, FR-11.3

@@ -1,0 +1,67 @@
+{
+  "prompt_id": "11-02",
+  "phase": 11,
+  "phase_name": "grades-and-reports",
+  "title": "Publish, lock and amend grades; student grades page",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-reports-export",
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "11-01"
+  ],
+  "spec_sections": [
+    "FR-10.2",
+    "FR-10.3",
+    "FR-10.4",
+    "section 13 (F-13)"
+  ],
+  "models": [
+    {
+      "name": "EvaluationDocument",
+      "collection": "evaluations",
+      "work": "bulk is_published"
+    },
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "scores_summary.is_locked, status completed"
+    },
+    {
+      "name": "AcademicYearDocument",
+      "collection": "academic_years",
+      "work": "grades_published, grade_appeal_deadline"
+    }
+  ],
+  "build": [
+    "src/app/actions/publish-grades.ts (coordinator/admin): pre-flight check per team (scores_summary complete; deliverable signed off). Failures are returned as a list; the coordinator may pass override {justification} for missing sign-offs (audited grades.publish_override). Effects in chunked batches: evaluations.is_published true, team.scores_summary.is_locked true, team.status completed, academic_years.grades_published true with grade_published_at and grade_appeal_deadline = now + 7 days; notify every team member (grade_published); writeAudit grades.published. Idempotent.",
+    "src/app/actions/amend-grade.ts (coordinator only): input teamId, new supervisor_score / panel_average_score / composite_final_score, written justification (min 20 chars); writes the new values with Admin SDK, audits grades.amended {old, new, justification, timestamp}, notifies the team (system).",
+    "/grades student view: before publication a LockedCard; after publication the team's final mark prominently, supervisor and panel components, per-criterion breakdown from the now-readable evaluations, and the appeal window countdown (appeal form arrives in 11-03).",
+    "/grades coordinator view: publish panel with the pre-flight checklist, type-to-confirm 'PUBLISH', and an amend dialog.",
+    "Tests: pre-flight lists failing teams, publish is idempotent, amend audits old/new, rules test confirms evaluators and students cannot write evaluations after publication."
+  ],
+  "files": [
+    "src/app/actions/{publish-grades,amend-grade}.ts",
+    "src/app/grades/page.tsx",
+    "src/components/grades/*",
+    "tests/server/publish-grades.test.ts",
+    "tests/rules/*.rules.test.ts"
+  ],
+  "out_of_scope": [
+    "Appeals (11-03)",
+    "Archive hook (12-02)"
+  ],
+  "acceptance": [
+    "After publish no client can modify an evaluation",
+    "Students cannot see marks before publish",
+    "Amendment writes a complete audit entry"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npm run test:rules"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "prompt_id": "12-02",
+  "phase": 12,
+  "phase_name": "notifications-archive-admin-hardening",
+  "title": "Project archive (new model) and search",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-firestore-data",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "11-02"
+  ],
+  "spec_sections": [
+    "FR-11.1",
+    "FR-11.2",
+    "FR-11.3",
+    "section 8 (new collection archived_projects, spec amendment A5)"
+  ],
+  "models": [
+    {
+      "name": "ArchivedProjectDocument (NEW)",
+      "collection": "archived_projects",
+      "work": "new model: types, rules, indexes, schema, repo, archive action, search UI"
+    }
+  ],
+  "build": [
+    "Spec amendment A5: add `ArchivedProjectDocument { id: teamId; title; abstract; keywords: string[]; search_tokens: string[]; academic_year_id; course_id; group_number; github_repository_url?; manuscript_url?; created_at }` to src/types/firestore.ts, docs/models.md and a note in docs/fypms-docs.md section 13.",
+    "firestore.rules: match archived_projects with read for isMember() and no client writes; add a composite index (course_id, academic_year_id, created_at desc); add rules tests.",
+    "src/lib/archive/tokens.ts (pure): buildSearchTokens(title, abstract, tech_stack) lowercases, strips stopwords and returns up to 40 unique tokens; keywords = tech_stack plus top terms. Unit-tested.",
+    "src/lib/archive/archive-teams.ts: archiveCompletedTeams(yearId) builds a record from each completed team, its approved topic and deliverable (github_repository_url, google_drive_url as manuscript link); idempotent (doc id = teamId). Call it at the end of publish-grades (minimal edit) and expose a coordinator/admin backfill action src/app/actions/archive-projects.ts.",
+    "/archive page: search box (tokens -> array-contains-any on search_tokens, max 10 tokens), filters for programme and academic year, result cards (title, abstract excerpt, keyword chips, links), cursor pagination, empty and error states.",
+    "Extend findSimilarTopics (05-01) to also compare against archived_projects."
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "firestore.rules",
+    "firestore.indexes.json",
+    "src/lib/models/archived-project/*",
+    "src/lib/archive/*",
+    "src/app/actions/{archive-projects,publish-grades}.ts",
+    "src/app/archive/page.tsx",
+    "tests/server/archive.test.ts",
+    "docs/models.md"
+  ],
+  "assumptions": [
+    "Firestore cannot do substring search, so search is token-based (array-contains-any); no new search service is added"
+  ],
+  "out_of_scope": [
+    "Full-text search service"
+  ],
+  "acceptance": [
+    "Publishing grades creates one archive record per completed team and re-running creates no duplicates",
+    "A past project is findable by a keyword from its tech stack"
+  ],
+  "verify": [
+    "npx vitest run src/lib/archive",
+    "npm run test:server",
+    "npm run test:rules"
+  ]
+}

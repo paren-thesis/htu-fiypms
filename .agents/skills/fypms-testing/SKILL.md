@@ -3,6 +3,9 @@ name: fypms-testing
 description: FYPMS testing strategy with Vitest and Zod unit tests, Firebase emulator rules tests, and Playwright end-to-end flows. Use when writing or running tests, or verifying a finished feature.
 ---
 
+# Isolation (see fypms-test-data)
+Automated tests run only on the test emulator (`firebase.test.json`, project `demo-fypms-test`, ports 9199/8180) and use only users from `fixtures/testusers.json`. Never point tests at the dev emulator.
+
 # Run only what you changed
 `vitest run path/to/file`, `firebase emulators:exec --only firestore,auth "vitest run rules"`, `playwright test e2e/<spec>`. Don't run the whole suite after small edits.
 

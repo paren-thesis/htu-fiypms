@@ -1,0 +1,49 @@
+{
+  "prompt_id": "12-01",
+  "phase": 12,
+  "phase_name": "notifications-archive-admin-hardening",
+  "title": "Notification centre and live toasts",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-notifications",
+    "fypms-ui-design-system",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "01-03"
+  ],
+  "spec_sections": [
+    "FR-09.1",
+    "FR-09.2"
+  ],
+  "models": [
+    {
+      "name": "NotificationDocument",
+      "collection": "notifications",
+      "work": "client onSnapshot, mark read/delete"
+    }
+  ],
+  "build": [
+    "src/hooks/useNotifications.ts: onSnapshot on notifications where user_id equals the uid ordered by created_at desc (limit 50); exposes items, unreadCount, markRead, markAllRead (chunked batch, only is_read changes), remove. Ensure the needed composite index exists in firestore.indexes.json.",
+    "src/lib/notifications/diff.ts (pure): newUnread(prev, next) used to fire a sonner toast only for items that arrive after the first snapshot. Unit-tested.",
+    "Top-bar bell with unread badge and a dropdown of the latest 5; /notifications page with unread filter, mark all read, delete, type icons and date grouping; clicking an item marks it read and navigates to target_url.",
+    "Unsubscribe on unmount and on sign-out; skeleton and empty states."
+  ],
+  "files": [
+    "src/hooks/useNotifications.ts",
+    "src/lib/notifications/*",
+    "src/components/navbar/NotificationBell.tsx",
+    "src/app/notifications/page.tsx"
+  ],
+  "out_of_scope": [
+    "Email delivery (deferred, FR-09.3)"
+  ],
+  "acceptance": [
+    "A server-side notify() call shows a toast within a second for the signed-in recipient",
+    "Clients can only change is_read (rules test already covers it)"
+  ],
+  "verify": [
+    "npx vitest run src/lib/notifications",
+    "npx tsc --noEmit"
+  ]
+}

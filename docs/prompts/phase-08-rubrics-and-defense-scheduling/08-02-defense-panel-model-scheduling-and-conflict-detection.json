@@ -1,0 +1,58 @@
+{
+  "prompt_id": "08-02",
+  "phase": 8,
+  "phase_name": "rubrics-and-defense-scheduling",
+  "title": "Defense panel model, scheduling and conflict detection",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-defense-grading",
+    "fypms-firestore-data",
+    "fypms-notifications",
+    "fypms-testing"
+  ],
+  "depends_on": [
+    "08-01",
+    "07-01"
+  ],
+  "spec_sections": [
+    "FR-07.1",
+    "FR-07.2",
+    "FR-07.2a",
+    "FR-07.3",
+    "FR-07.4",
+    "section 8.1 (DefensePanelDocument, DefenseTimeSlot)"
+  ],
+  "models": [
+    {
+      "name": "DefensePanelDocument",
+      "collection": "defense_panels",
+      "work": "schema, repo, scheduling actions"
+    }
+  ],
+  "build": [
+    "src/lib/defense/conflicts.ts (pure): overlaps(a, b) = a.start < b.end && b.start < a.end; detectConflicts(panels) returns typed conflicts for (1) a chair or examiner in overlapping non-cancelled slots across different panels and (2) the same physical venue (case-insensitive, non-virtual) in overlapping slots. Unit tests including back-to-back slots (no conflict), cancelled slots and virtual venues.",
+    "models/defense-panel (schema, repo). If DefensePanelDocument has no publish flag add `is_published` and `published_at` (spec amendment A4a) and record it in the registry.",
+    "src/app/actions/manage-defense-panel.ts (coordinator/admin): create/update panel and slots. Examiners and chair must list the panel's course_id in programmes, otherwise cross_programme_justification is required and audited (defense.cross_programme). Only teams of the same course_id and status defense_ready can be slotted; one active slot per team.",
+    "src/app/actions/publish-defense-schedule.ts: refuses while detectConflicts finds any; sets is_published; notifies chair, examiners and team members (defense_schedule) with target_url /defense/{panelId} and the team's /deliverables link.",
+    "Server tests: cross-programme rule, wrong-course team rejected, conflict blocks publish, publish sends notifications."
+  ],
+  "files": [
+    "src/lib/defense/conflicts.ts",
+    "src/lib/defense/conflicts.test.ts",
+    "src/lib/models/defense-panel/*",
+    "src/app/actions/{manage-defense-panel,publish-defense-schedule}.ts",
+    "tests/server/defense-panels.test.ts",
+    "docs/models.md"
+  ],
+  "out_of_scope": [
+    "Scheduling UI (08-03)"
+  ],
+  "acceptance": [
+    "Conflict unit tests pass",
+    "Publishing with a conflict returns an error listing the conflicts"
+  ],
+  "verify": [
+    "npx vitest run src/lib/defense",
+    "npm run test:server"
+  ]
+}

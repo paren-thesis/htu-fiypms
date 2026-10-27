@@ -1,0 +1,9 @@
+feat(supervision): add supervision page for all roles
+
+- Coordinator matching and override UI
+- Supervisor request accept/decline with countdown
+- Student supervisor card with gated contact details
+
+Prompt: 06-03
+Models: SupervisionDocument, SupervisorContactDocument
+Refs: FR-04.2, FR-04.3, FR-04.4

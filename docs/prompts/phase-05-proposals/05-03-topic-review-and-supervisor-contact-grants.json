@@ -1,0 +1,67 @@
+{
+  "prompt_id": "05-03",
+  "phase": 5,
+  "phase_name": "proposals",
+  "title": "Topic review and supervisor contact grants",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-teams-topics",
+    "fypms-firestore-data",
+    "fypms-auth-gating",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "05-02",
+    "02-05"
+  ],
+  "spec_sections": [
+    "FR-03.4",
+    "FR-04.4",
+    "section 13 (F-03)"
+  ],
+  "models": [
+    {
+      "name": "TopicDocument",
+      "collection": "topics",
+      "work": "review transitions"
+    },
+    {
+      "name": "TeamDocument",
+      "collection": "teams",
+      "work": "approved_topic_id, status"
+    },
+    {
+      "name": "SupervisorContact grants",
+      "collection": "supervisor_contacts/{id}/grants",
+      "work": "helper only"
+    }
+  ],
+  "build": [
+    "src/app/actions/review-topic.ts: openTopic (submitted->under_review) and decideTopic (approve | reject | request_revision). review notes required for reject and revision. Approve runs in a transaction: team must have no approved_topic_id; set topic approved, team.approved_topic_id and team.status topic_approved; notify the team (topic_status); writeAudit topic.approved or topic.revision_requested.",
+    "Authorisation: the team's assigned supervisor if one exists, otherwise any supervisor whose staff_whitelist.programmes include the team's course_id; coordinators and admins may review.",
+    "src/lib/contacts/grants.ts: ensureContactGrants(txOrDb, teamId) creates supervisor_contacts/{supervisorId}/grants/{memberUid} for every member ONLY when assigned_supervisor_id is set, supervisor_assignment.status is 'accepted' and approved_topic_id is set (tolerate the assignment field not existing yet); revokeContactGrants(teamId). Called after approval here and after acceptance in 06-02. Unit/server tests.",
+    "/proposals supervisor view: queue table (team, group number, programme, rank, status, submitted date) with status and course filters, detail sheet (all fields, version history, duplicate scores), decision form."
+  ],
+  "files": [
+    "src/app/actions/review-topic.ts",
+    "src/lib/contacts/grants.ts",
+    "src/app/proposals/page.tsx",
+    "src/components/proposals/ReviewQueue.tsx",
+    "tests/server/review-topic.test.ts"
+  ],
+  "assumptions": [
+    "Other topics of the team are left unchanged when one is approved; a second approval is rejected"
+  ],
+  "out_of_scope": [
+    "Supervisor assignment (phase 6)"
+  ],
+  "acceptance": [
+    "A student cannot approve; a supervisor of another programme cannot review",
+    "Approving twice returns 409",
+    "Grants helper does nothing until the assignment is accepted"
+  ],
+  "verify": [
+    "npm run test:server",
+    "npx tsc --noEmit"
+  ]
+}

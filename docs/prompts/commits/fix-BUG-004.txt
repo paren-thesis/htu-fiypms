@@ -1,0 +1,13 @@
+fix(students): use fixture data, place tabs above table, move dev badge
+
+Symptom: /students showed invented rows, tabs beside the table and a
+dev badge over the sidebar footer
+Cause: invented seed data (E); tabs inside a flex row and dev badge
+position (V)
+- Build roster email only with studentEmail() and check it in check:data
+- Put tabs above the table; table scrolls inside its own container
+- Move the Next.js dev indicator away from the sidebar
+Tests: e2e/ui/students.spec.ts, roster email server test
+
+Fixes: BUG-004
+Prompt: 03-02

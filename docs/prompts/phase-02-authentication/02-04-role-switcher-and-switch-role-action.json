@@ -1,0 +1,45 @@
+{
+  "prompt_id": "02-04",
+  "phase": 2,
+  "phase_name": "authentication",
+  "title": "Role switcher and switch-role action",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-auth-gating",
+    "fypms-ui-design-system"
+  ],
+  "depends_on": [
+    "02-03"
+  ],
+  "spec_sections": [
+    "FR-01.3"
+  ],
+  "models": [
+    {
+      "name": "UserDocument",
+      "collection": "users",
+      "work": "read roles; audit only"
+    }
+  ],
+  "build": [
+    "src/app/actions/switch-role.ts: requireUser; requested role must be in the token roles; setCustomUserClaims with the new activeRole; writeAudit user.role_switched; return success.",
+    "src/components/navbar/RoleSwitcherDropdown.tsx wired to AuthContext: after the action, getIdToken(true), refresh the session cookie, router.refresh(), navigate to /. Hide the dropdown when the user has one role.",
+    "Nav, dashboard and route access re-evaluate from the new activeRole.",
+    "Tests: server test for switch-role (allowed, forbidden role, audit written)."
+  ],
+  "files": [
+    "src/app/actions/switch-role.ts",
+    "src/components/navbar/RoleSwitcherDropdown.tsx",
+    "tests/server/switch-role.test.ts"
+  ],
+  "out_of_scope": [
+    "Admin role editing (12-03)"
+  ],
+  "acceptance": [
+    "Switching from supervisor to coordinator changes nav items without a full sign-out",
+    "Requesting a role the user does not hold returns 403"
+  ],
+  "verify": [
+    "npm run test:server"
+  ]
+}

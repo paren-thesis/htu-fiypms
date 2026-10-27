@@ -1,0 +1,9 @@
+feat(deliverables): add software deliverables and supervisor sign-off
+
+- Validate repo, demo and cloud links
+- Submit and sign-off actions with audit
+- Add /deliverables page for students, supervisors and coordinators
+
+Prompt: 10-02
+Models: SoftwareDeliverableDocument
+Refs: FR-08.1, FR-08.2, FR-08.3

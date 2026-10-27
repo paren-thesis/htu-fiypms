@@ -1,0 +1,10 @@
+feat(infra): add admin SDK, requireUser, audit and notification helpers
+
+- Add Admin SDK singleton, HttpError and requireUser
+- Add writeAudit, notify and Timestamp serializers
+- Add audit-log and notification model layers
+- Extend notification types (spec amendment A1)
+
+Prompt: 01-03
+Models: AuditLogDocument, NotificationDocument
+Refs: FR-09.1, FR-09.2
