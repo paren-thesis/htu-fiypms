@@ -3,14 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Users, ArrowRight, ShieldAlert, AlertCircle } from "lucide-react";
+import { Users, ArrowRight, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase/client";
 import type { TeamDocument } from "@/types/firestore";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { TeamProposalsView } from "@/components/proposals/TeamProposalsView";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReviewQueue } from "@/components/proposals/ReviewQueue";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -75,43 +75,16 @@ export default function ProposalsPage() {
     );
   }
 
-  // 2. Non-Student Role View
+  // 2. Faculty & Staff Supervisor View
   if (activeRole !== "student") {
-    const isSupervisor = activeRole === "supervisor";
-    const redirectLink = isSupervisor ? "/supervision" : "/students";
-    const redirectLabel = isSupervisor ? "Go to Supervision" : "Go to Students & Pool";
-
     return (
       <div className="space-y-6">
         <PageHeader
-          title="Topic Proposals"
-          description="Student capstone project topic proposal drafting and submission workspace."
+          title="Topic Proposals Review Queue"
+          description="Faculty workspace to review submitted capstone proposals, inspect topic novelty, and record approval decisions."
         />
 
-        <Card className="rounded-xl border bg-card shadow-sm max-w-2xl mx-auto">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/20 text-accent-foreground mb-2">
-              <ShieldAlert className="h-6 w-6 text-primary" aria-hidden="true" />
-            </div>
-            <CardTitle className="text-lg font-semibold">Faculty & Admin Notice</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground max-w-md mx-auto">
-              This proposals workspace is designated for student project groups to draft and submit their ranked project proposals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-center pb-8">
-            <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              As an active <strong className="text-foreground capitalize">{activeRole}</strong>, you can oversee cohort progress, review assigned project proposals, and manage student allocations from your dedicated workspace.
-            </p>
-            <div className="pt-2">
-              <Button asChild className="gap-2">
-                <Link href={redirectLink}>
-                  <span>{redirectLabel}</span>
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <ReviewQueue />
       </div>
     );
   }
