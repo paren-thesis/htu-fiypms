@@ -247,7 +247,7 @@ export interface DefensePanelDocument {
 export interface RubricCriterion {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   max_points: number;
   category: "oral_defense" | "system_demo" | "technical_architecture";
 }
@@ -261,6 +261,8 @@ export interface RubricDocument {
   is_active: boolean;
   criteria: RubricCriterion[];
   created_at: FirebaseFirestore.Timestamp;
+  updated_at?: FirebaseFirestore.Timestamp;
+  is_archived?: boolean;
 }
 
 export interface EvaluationDocument {
@@ -363,7 +365,12 @@ export interface AuditLogDocument {
     | "supervision.declined"
     | "chapter.submitted"
     | "chapter.resubmitted"
-    | "chapter.reviewed";
+    | "chapter.reviewed"
+    | "rubric.created"
+    | "rubric.updated"
+    | "rubric.duplicated"
+    | "rubric.activated"
+    | "rubric.archived";
   target_type: string;
   target_id: string;
   description: string;
