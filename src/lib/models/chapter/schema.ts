@@ -11,6 +11,14 @@ export const chapterNumberSchema = z.union([
 
 export type ChapterNumber = z.infer<typeof chapterNumberSchema>;
 
+export const DEFAULT_CHAPTER_TITLES: Record<number, string> = {
+  1: "Chapter 1: Introduction",
+  2: "Chapter 2: Literature Review",
+  3: "Chapter 3: Methodology",
+  4: "Chapter 4: Implementation and Testing",
+  5: "Chapter 5: Conclusion and Recommendations",
+};
+
 export const chapterStatusSchema = z.enum(["pending", "approved", "revision_needed"]);
 export type ChapterStatus = z.infer<typeof chapterStatusSchema>;
 

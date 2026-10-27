@@ -9,9 +9,9 @@ import { writeAuditInTx } from '@/lib/audit';
 import { createNotification } from '@/lib/models/notification/repo';
 import type { TeamDocument, UserDocument, StaffWhitelistDocument } from '@/types/firestore';
 
-export const SUPERVISOR_RESPONSE_WINDOW_HOURS = 72;
+const SUPERVISOR_RESPONSE_WINDOW_HOURS = 72;
 
-export const proposeSupervisorInputSchema = z
+const proposeSupervisorInputSchema = z
   .object({
     team_id: z.string().min(1, 'Team ID is required'),
     supervisor_id: z.string().min(1, 'Supervisor ID is required'),

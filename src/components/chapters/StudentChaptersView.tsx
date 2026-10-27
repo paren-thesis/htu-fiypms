@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase/client";
-import { DEFAULT_CHAPTER_TITLES } from "@/lib/models/chapter";
+import { DEFAULT_CHAPTER_TITLES } from "@/lib/models/chapter/schema";
 import { ChapterTimelineCard } from "./ChapterTimelineCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LockedCard } from "@/components/common/LockedCard";

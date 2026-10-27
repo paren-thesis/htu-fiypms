@@ -19,7 +19,7 @@ import {
 } from '@/lib/teams/auto-group';
 import { Timestamp } from 'firebase-admin/firestore';
 
-export const autoGroupInputSchema = z
+const autoGroupInputSchema = z
   .object({
     mode: z.enum(['preview', 'commit']),
     yearId: z.string().optional(),

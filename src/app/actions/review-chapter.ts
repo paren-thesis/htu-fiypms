@@ -10,14 +10,12 @@ import { createNotification } from '@/lib/models/notification/repo';
 import { chapterDocId, CHAPTERS_COLLECTION } from '@/lib/models/chapter';
 import type { TeamDocument, ChapterDocument, ChapterFeedback } from '@/types/firestore';
 
-export const runtime = 'nodejs';
-
-export const feedbackItemInputSchema = z.object({
+const feedbackItemInputSchema = z.object({
   id: z.string().optional(),
   content: z.string().trim().min(1, 'Feedback text cannot be empty'),
 });
 
-export const reviewChapterInputSchema = z
+const reviewChapterInputSchema = z
   .object({
     team_id: z.string().min(1, 'Team ID is required'),
     chapter_number: z.union([

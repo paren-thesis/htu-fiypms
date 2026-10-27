@@ -4,16 +4,9 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import type { ChapterDocument, ChapterFeedback, ChapterHistoryEntry } from "@/types/firestore";
 import type { ChapterNumber, CreateChapterIn } from "./schema";
+import { DEFAULT_CHAPTER_TITLES } from "./schema";
 
 export const CHAPTERS_COLLECTION = "chapters";
-
-export const DEFAULT_CHAPTER_TITLES: Record<number, string> = {
-  1: "Chapter 1: Introduction",
-  2: "Chapter 2: Literature Review",
-  3: "Chapter 3: Methodology",
-  4: "Chapter 4: Implementation and Testing",
-  5: "Chapter 5: Conclusion and Recommendations",
-};
 
 /**
  * Returns deterministic document ID for a team's chapter: `${teamId}__ch${n}`.

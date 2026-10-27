@@ -13,7 +13,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { db } from "@/lib/firebase/client";
-import { DEFAULT_CHAPTER_TITLES } from "@/lib/models/chapter";
+import { DEFAULT_CHAPTER_TITLES } from "@/lib/models/chapter/schema";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Input } from "@/components/ui/input";

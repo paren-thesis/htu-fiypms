@@ -16,9 +16,7 @@ import {
 } from '@/lib/models/chapter';
 import type { TeamDocument, ChapterDocument, ChapterHistoryEntry } from '@/types/firestore';
 
-export const runtime = 'nodejs';
-
-export const submitChapterInputSchema = z
+const submitChapterInputSchema = z
   .object({
     team_id: z.string().min(1, 'Team ID is required'),
     chapter_number: z.union([

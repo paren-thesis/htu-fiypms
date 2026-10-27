@@ -28,7 +28,7 @@ const openTopicSchema = z.object({
   topicId: z.string().min(1, 'Topic ID is required'),
 });
 
-export const decideTopicSchema = z
+const decideTopicSchema = z
   .object({
     topicId: z.string().min(1, 'Topic ID is required'),
     decision: z.enum(['approve', 'reject', 'request_revision']),

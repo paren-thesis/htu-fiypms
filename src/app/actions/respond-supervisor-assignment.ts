@@ -11,7 +11,7 @@ import { ensureContactGrants } from '@/lib/contacts/grants';
 import { ensureSupervisionDocInTx, supervisionDocId } from '@/lib/models/supervision';
 import type { TeamDocument } from '@/types/firestore';
 
-export const respondSupervisorAssignmentInputSchema = z
+const respondSupervisorAssignmentInputSchema = z
   .object({
     team_id: z.string().min(1, 'Team ID is required'),
     decision: z.enum(['accept', 'decline']),
