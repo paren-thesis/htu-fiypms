@@ -29,18 +29,23 @@ export function coursePrefix(courseId: string): CoursePrefix {
  * @param seq Sequence counter number (1-based)
  */
 export function formatGroupNumber(
-  prefix: string,
+  prefixOrCourseId: string,
   yearYY: string | number,
   seq: number
 ): string {
+  const normalized = prefixOrCourseId.trim().toLowerCase();
+  const prefix = COURSE_PREFIX_MAP[normalized] ?? prefixOrCourseId.trim().toUpperCase();
+
   let yyStr = String(yearYY).trim();
   // If yearYY is e.g. "2026-2027", extract first 4-digit year "2026"
   if (yyStr.includes('-')) {
     yyStr = yyStr.split('-')[0] ?? yyStr;
+  } else if (yyStr.includes('/')) {
+    yyStr = yyStr.split('/')[0] ?? yyStr;
   }
   // Take the last 2 digits
   const yy = yyStr.length >= 2 ? yyStr.slice(-2) : yyStr.padStart(2, '0');
   const seqPadded = String(seq).padStart(2, '0');
 
-  return `${prefix.toUpperCase()}${yy}_${seqPadded}`;
+  return `${prefix}${yy}_${seqPadded}`;
 }

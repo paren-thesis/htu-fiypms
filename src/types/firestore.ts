@@ -139,6 +139,13 @@ export interface TeamDocument {
   updated_at: FirebaseFirestore.Timestamp;
 }
 
+// teams/{teamId}/members/{uid}: Member record in the team's subcollection
+export interface TeamMemberDocument {
+  uid: string;
+  role: "leader" | "member";
+  joined_at: FirebaseFirestore.Timestamp;
+}
+
 export interface TopicDocument {
   id: string;
   team_id: string;
@@ -318,6 +325,8 @@ export interface AuditLogDocument {
     | "grade.submitted"
     | "grade.amended"
     | "team.created"
+    | "team.joined"
+    | "team.renamed"
     | "defense.scheduled";
   target_type: string;
   target_id: string;
