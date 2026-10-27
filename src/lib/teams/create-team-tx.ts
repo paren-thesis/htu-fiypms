@@ -2,7 +2,6 @@ import 'server-only';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase/admin';
 import type { TeamDocument } from '@/types/firestore';
-import { incrementCounterInTx } from '@/lib/models/academic-year/repo';
 import { formatGroupNumber, generateInviteCode } from './invite-code';
 
 export interface CreateTeamInTxParams {

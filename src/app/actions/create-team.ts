@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+//export const runtime = 'nodejs';
 
 import { adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';
@@ -11,7 +11,6 @@ import { getCurrentAcademicYear } from '@/lib/models/academic-year/repo';
 import { createTeamInputSchema, type CreateTeamInput } from '@/lib/models/team/schema';
 import { findUserActiveTeam } from '@/lib/models/team/repo';
 import { createTeamInTx } from '@/lib/teams/create-team-tx';
-import type { TeamDocument } from '@/types/firestore';
 
 export interface CreateTeamResult {
   ok: boolean;

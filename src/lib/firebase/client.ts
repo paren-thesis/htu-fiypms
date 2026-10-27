@@ -6,6 +6,12 @@ import {
   type Auth,
 } from 'firebase/auth';
 
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  type Firestore,
+} from 'firebase/firestore';
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -24,8 +30,9 @@ function initClientApp(): FirebaseApp {
 
 const app = initClientApp();
 export const auth: Auth = getAuth(app);
+export const db: Firestore = getFirestore(app);
 
-// Connect Auth Emulator in development if specified
+// Connect Auth & Firestore Emulators in development if specified
 if (
   process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true' &&
   typeof window !== 'undefined'
@@ -35,6 +42,21 @@ if (
   try {
     if (!(auth as unknown as { _emulatorHost?: string })._emulatorHost) {
       connectAuthEmulator(auth, authEmulatorHost, { disableWarnings: true });
+    }
+  } catch {
+    // Ignore already connected errors
+  }
+
+  const hostPort =
+    process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST ||
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    '127.0.0.1:8080';
+  const parts = hostPort.split(':');
+  const firestoreHost = parts[0] || '127.0.0.1';
+  const firestorePort = parseInt(parts[1] || '8080', 10);
+  try {
+    if (!(db as unknown as { _settingsFrozen?: boolean })._settingsFrozen) {
+      connectFirestoreEmulator(db, firestoreHost, firestorePort);
     }
   } catch {
     // Ignore already connected errors
