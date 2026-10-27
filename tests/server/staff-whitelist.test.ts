@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import {
   addStaffWhitelistEntry,
@@ -11,8 +11,10 @@ import { completeSignup } from '@/app/actions/complete-signup';
 import { getStaffWhitelist } from '@/lib/models/staff-whitelist/repo';
 import { HttpError } from '@/lib/errors';
 import { ZodError } from 'zod';
+import { fx, staffUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
 async function getEmulatorIdToken(
   uid: string,
@@ -64,40 +66,57 @@ async function getEmulatorIdToken(
 }
 
 describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)', () => {
-  const coordinatorUid = 'coord-user-whitelist-test';
-  const coordinatorEmail = 'coord.whitelist@htu.edu.gh';
+  const coordinatorEmail = 'coordinator@htu.edu.gh';
+  const coordinatorUid = staffUid(coordinatorEmail);
 
-  const supervisorUid = 'sup-user-whitelist-test';
-  const supervisorEmail = 'sup.whitelist@htu.edu.gh';
+  const supervisorEmail = 'kappiah@htu.edu.gh';
+  const supervisorUid = staffUid(supervisorEmail);
 
   let coordinatorToken: string;
   let supervisorToken: string;
 
   beforeAll(async () => {
-    // Seed coordinator whitelist doc so requireUser succeeds
+    const coordStaff = fx.staffByEmail(coordinatorEmail);
     await adminDb.collection('staff_whitelist').doc(coordinatorEmail).set({
       email: coordinatorEmail,
-      full_name: 'Lead Coordinator',
-      roles: ['coordinator', 'supervisor'],
-      department: 'Computer Science',
-      programmes: ['btech-cs', 'btech-ict'],
+      full_name: coordStaff.full_name,
+      roles: coordStaff.roles,
+      department: coordStaff.department,
+      programmes: coordStaff.programmes,
       is_active: true,
-      added_by_uid: 'system',
+      added_by_uid: 'fixture',
       added_at: new Date(),
       user_uid: coordinatorUid,
     });
 
+    const supStaff = fx.staffByEmail(supervisorEmail);
+    await adminDb.collection('staff_whitelist').doc(supervisorEmail).set({
+      email: supervisorEmail,
+      full_name: supStaff.full_name,
+      roles: supStaff.roles,
+      department: supStaff.department,
+      programmes: supStaff.programmes,
+      is_active: true,
+      added_by_uid: 'fixture',
+      added_at: new Date(),
+      user_uid: supervisorUid,
+    });
+
     coordinatorToken = await getEmulatorIdToken(coordinatorUid, coordinatorEmail, {
-      roles: ['coordinator', 'supervisor'],
+      roles: coordStaff.roles,
       activeRole: 'coordinator',
       registered: true,
     });
 
     supervisorToken = await getEmulatorIdToken(supervisorUid, supervisorEmail, {
-      roles: ['supervisor'],
+      roles: supStaff.roles,
       activeRole: 'supervisor',
       registered: true,
     });
+  });
+
+  afterAll(async () => {
+    await resetTestEmulator();
   });
 
   it('1. Email validation: rejects non-HTU domains and student index numbers', async () => {
@@ -117,7 +136,7 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
     await expect(
       addStaffWhitelistEntry({
         idToken: coordinatorToken,
-        email: '0323080281@htu.edu.gh',
+        email: '0323000101@htu.edu.gh',
         full_name: 'Student Index',
         roles: ['supervisor'],
         department: 'Computer Science',
@@ -132,8 +151,8 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
     try {
       await addStaffWhitelistEntry({
         idToken: supervisorToken,
-        email: 'newsupervisor@htu.edu.gh',
-        full_name: 'New Colleague',
+        email: 'aowusu@htu.edu.gh',
+        full_name: 'Dr. Ama Owusu',
         roles: ['supervisor'],
         department: 'Computer Science',
         programmes: ['btech-cs'],
@@ -161,16 +180,20 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
   });
 
   it('3. Duplicate add returns 409 conflict', async () => {
-    const targetEmail = `duplicate.${Date.now()}@htu.edu.gh`;
+    const targetStaff = fx.staffByEmail('yboateng@htu.edu.gh');
+    const targetEmail = targetStaff.email;
+
+    // Clean up first if existing
+    await adminDb.collection('staff_whitelist').doc(targetEmail).delete();
 
     // First add succeeds
     const res1 = await addStaffWhitelistEntry({
       idToken: coordinatorToken,
       email: targetEmail,
-      full_name: 'Prof. Unique',
-      roles: ['supervisor'],
-      department: 'Computer Science',
-      programmes: ['btech-cs'],
+      full_name: targetStaff.full_name,
+      roles: targetStaff.roles as ('coordinator' | 'supervisor' | 'admin' | 'panel_member')[],
+      department: targetStaff.department,
+      programmes: targetStaff.programmes,
     });
     expect(res1.ok).toBe(true);
 
@@ -180,10 +203,10 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
       await addStaffWhitelistEntry({
         idToken: coordinatorToken,
         email: targetEmail,
-        full_name: 'Prof. Duplicate',
-        roles: ['supervisor'],
-        department: 'Computer Science',
-        programmes: ['btech-cs'],
+        full_name: targetStaff.full_name,
+        roles: targetStaff.roles as ('coordinator' | 'supervisor' | 'admin' | 'panel_member')[],
+        department: targetStaff.department,
+        programmes: targetStaff.programmes,
       });
     } catch (err) {
       thrownError = err;
@@ -228,19 +251,27 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
     expect((thrownError as HttpError).code).toBe('SELF_DEMOTION_FORBIDDEN');
   });
 
-  it('5. Full Lifecycle: add -> first sign-in (02-03) -> deactivate (revokes session) -> reactivate', async () => {
-    const facultyEmail = `lifecycle.${Date.now()}@htu.edu.gh`;
-    const facultyUid = `faculty-lifecycle-${Date.now()}`;
+  it('5. Full Lifecycle: add -> first sign-in -> deactivate -> reactivate', async () => {
+    const faculty = fx.staffByEmail('emensah@htu.edu.gh');
+    const facultyEmail = faculty.email;
+    const facultyUid = staffUid(facultyEmail);
+
+    // Clean up if existing
+    await adminDb.collection('staff_whitelist').doc(facultyEmail).delete();
+    try {
+      await adminAuth.deleteUser(facultyUid);
+    } catch {
+      // Ignore
+    }
 
     // 1. Coordinator adds faculty to whitelist
     const addRes = await addStaffWhitelistEntry({
       idToken: coordinatorToken,
       email: facultyEmail,
-      full_name: 'Dr. Lifecycle Faculty',
-      roles: ['supervisor', 'panel_member'],
-      department: 'Computer Science',
-      programmes: ['btech-cs', 'hnd-cs'],
-      phone: '+233241234567',
+      full_name: faculty.full_name,
+      roles: faculty.roles as ('coordinator' | 'supervisor' | 'admin' | 'panel_member')[],
+      department: faculty.department,
+      programmes: faculty.programmes,
     });
     expect(addRes.ok).toBe(true);
 
@@ -253,7 +284,7 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
     const facultyToken = await getEmulatorIdToken(facultyUid, facultyEmail);
     const signupRes = await completeSignup(facultyToken);
     expect(signupRes.ok).toBe(true);
-    expect(signupRes.activeRole).toBe('supervisor');
+    expect(signupRes.activeRole).toBe(faculty.roles[0]);
     expect(signupRes.profileComplete).toBe(false);
 
     // Whitelist doc now linked with user_uid
@@ -265,14 +296,14 @@ describe('Server Action: manage-staff-whitelist (Spec FR-01.7, FR-01.11, D-05)',
       idToken: coordinatorToken,
       email: facultyEmail,
       patch: {
-        full_name: 'Prof. Lifecycle Faculty Updated',
-        programmes: ['btech-cs', 'btech-ict', 'hnd-cs'],
+        full_name: 'Dr. Efua Mensah Updated',
+        programmes: ['btech-cs', 'btech-ict', 'hnd-cs', 'hnd-ict'],
       },
     });
     expect(updateRes.ok).toBe(true);
 
     const docAfterUpdate = await getStaffWhitelist(facultyEmail);
-    expect(docAfterUpdate?.full_name).toBe('Prof. Lifecycle Faculty Updated');
+    expect(docAfterUpdate?.full_name).toBe('Dr. Efua Mensah Updated');
     expect(docAfterUpdate?.programmes).toContain('btech-ict');
 
     // 4. Coordinator deactivates faculty -> sets is_active false and revokes tokens

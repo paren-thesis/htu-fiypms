@@ -10,10 +10,17 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:rules": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.rules.config.ts\"",
-    "test:server": "firebase emulators:exec --only firestore,auth \"vitest run --config vitest.server.config.ts\"",
+    "emu": "firebase emulators:start --only auth,firestore --project demo-fypms",
+    "emu:reset": "node scripts/emulator-reset.mjs",
+    "emu:reset:test": "node scripts/emulator-reset.mjs --test",
+    "seed:base": "tsx scripts/seed.ts --mode base",
+    "seed:full": "tsx scripts/seed.ts --mode full",
+    "check:data": "tsx scripts/check-data.ts",
+    "dev:fresh": "npm run emu:reset && npm run seed:base && npm run check:data",
+    "test:rules": "firebase emulators:exec --config firebase.test.json --project demo-fypms-test --only firestore \"vitest run --config vitest.rules.config.ts\"",
+    "test:server": "firebase emulators:exec --config firebase.test.json --project demo-fypms-test --only auth,firestore \"vitest run --config vitest.server.config.ts\"",
     "e2e": "playwright test",
-    "seed": "tsx --env-file=.env.local scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts --mode base"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",

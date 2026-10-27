@@ -25,7 +25,12 @@ if (only && !['auth', 'firestore'].includes(only)) fail(`--only must be "auth" o
 function projectFromRc() {
   try { return JSON.parse(readFileSync('.firebaserc', 'utf8')).projects?.default; } catch { return undefined; }
 }
-const project = opt('--project') || process.env.EMU_PROJECT || (isTest ? 'demo-fypms-test' : (process.env.GCLOUD_PROJECT || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || projectFromRc()));
+const project =
+  opt('--project') ||
+  process.env.EMU_PROJECT ||
+  (isTest
+    ? 'demo-fypms-test'
+    : (process.env.GCLOUD_PROJECT?.startsWith('demo-') ? process.env.GCLOUD_PROJECT : 'demo-fypms'));
 if (!project) fail('No project id. Pass --project <id> or set EMU_PROJECT.');
 
 const authHost = opt('--auth-host') || (isTest ? '127.0.0.1:9199' : '127.0.0.1:9099');

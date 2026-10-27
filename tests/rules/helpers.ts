@@ -5,7 +5,10 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 
-export const PROJECT_ID = "demo-fypms";
+export const PROJECT_ID =
+  process.env.GCLOUD_PROJECT ||
+  process.env.FIREBASE_PROJECT_ID ||
+  "demo-fypms-test";
 
 let testEnvPromise: Promise<RulesTestEnvironment> | null = null;
 
@@ -15,7 +18,7 @@ export function getTestEnv(): Promise<RulesTestEnvironment> {
     const rules = fs.readFileSync(rulesPath, "utf8");
 
     let host = "127.0.0.1";
-    let port = 8080;
+    let port = 8180;
     if (process.env.FIRESTORE_EMULATOR_HOST) {
       const [h, p] = process.env.FIRESTORE_EMULATOR_HOST.split(":");
       if (h) host = h;

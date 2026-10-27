@@ -7,6 +7,7 @@ export default defineConfig({
     include: ['tests/rules/**/*.rules.test.ts'],
     fileParallelism: false,
     testTimeout: 30000,
+    setupFiles: ['tests/setup/emulator-guard.ts'],
   },
   resolve: {
     alias: {

@@ -1,12 +1,14 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { autoGroupStudents } from '@/app/actions/auto-group-students';
 import { upsertAcademicYear } from '@/lib/models/academic-year/repo';
 import { listTeams } from '@/lib/models/team/repo';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { UserDocument, RosterStudentDocument } from '@/types/firestore';
+import { fx, staffUid, studentEmail, studentUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
 async function createAuthToken(
   uid: string,
@@ -58,20 +60,21 @@ async function createAuthToken(
 async function seedStudent(
   yearId: string,
   indexNumber: string,
-  courseId: string,
   isLinked: boolean = true
 ): Promise<string | null> {
-  const uid = isLinked ? `std-${indexNumber}` : null;
+  const fxStudent = fx.student(indexNumber);
+  const uid = isLinked ? studentUid(indexNumber) : null;
+  const email = studentEmail(indexNumber);
 
   const rosterDoc: RosterStudentDocument = {
     index_number: indexNumber,
-    full_name: `Student ${indexNumber}`,
-    contact: '0240000000',
-    email: `std${indexNumber}@htu.edu.gh`,
-    course_id: courseId,
+    full_name: fxStudent.full_name,
+    contact: fxStudent.contact,
+    email,
+    course_id: fxStudent.course_id,
     import_batch_id: 'batch-test-01',
     imported_at: Timestamp.now(),
-    imported_by_uid: 'coord-test-uid',
+    imported_by_uid: staffUid('coordinator@htu.edu.gh'),
     user_uid: uid,
     signup_completed_at: isLinked ? Timestamp.now() : null,
   };
@@ -84,10 +87,9 @@ async function seedStudent(
     .set(rosterDoc);
 
   if (isLinked && uid) {
-    const email = `std${indexNumber}@htu.edu.gh`;
     const userDoc: UserDocument = {
       uid,
-      name: `Student ${indexNumber}`,
+      name: fxStudent.full_name,
       email,
       role: 'student',
       roles: ['student'],
@@ -95,7 +97,7 @@ async function seedStudent(
       profile: {
         registered: true,
         profile_complete: true,
-        course_id: courseId,
+        course_id: fxStudent.course_id,
         index_number: indexNumber,
       },
       created_at: Timestamp.now(),
@@ -112,6 +114,10 @@ describe('Server Action: autoGroupStudents (FR-02.6, FR-01.10)', () => {
   let coordinatorToken: string;
   let adminToken: string;
   let studentToken: string;
+
+  const coordStaff = fx.staff[0]!;
+  const adminStaff = fx.staffByEmail('admin@htu.edu.gh');
+  const studentUser = fx.students[0]!;
 
   beforeAll(async () => {
     // 1. Seed active academic year with past formation deadline
@@ -151,23 +157,43 @@ describe('Server Action: autoGroupStudents (FR-02.6, FR-01.10)', () => {
     }
 
     // 3. Create test tokens
-    coordinatorToken = await createAuthToken('coord-ag-1', 'coord_ag@htu.edu.gh', 'coordinator', ['coordinator']);
-    adminToken = await createAuthToken('admin-ag-1', 'admin_ag@htu.edu.gh', 'admin', ['admin']);
-    studentToken = await createAuthToken('std-ag-user', 'std_ag_user@htu.edu.gh', 'student', ['student']);
+    coordinatorToken = await createAuthToken(
+      staffUid(coordStaff.email),
+      coordStaff.email,
+      'coordinator',
+      coordStaff.roles
+    );
+    adminToken = await createAuthToken(
+      staffUid(adminStaff.email),
+      adminStaff.email,
+      'admin',
+      adminStaff.roles
+    );
+    studentToken = await createAuthToken(
+      studentUid(studentUser.index_number),
+      studentEmail(studentUser.index_number),
+      'student',
+      ['student']
+    );
 
     // 4. Seed cohort students:
     // - 9 linked students in btech-cs
-    for (let i = 1; i <= 9; i++) {
-      await seedStudent(yearId, `032308${String(100 + i).padStart(4, '0')}`, 'btech-cs', true);
+    const btechCs = fx.students.filter((s) => s.course_id === 'btech-cs');
+    for (let i = 0; i < 9; i++) {
+      await seedStudent(yearId, btechCs[i]!.index_number, true);
     }
-    // - 2 not yet signed in students in btech-cs
-    await seedStudent(yearId, '0323080198', 'btech-cs', false);
-    await seedStudent(yearId, '0323080199', 'btech-cs', false);
+    // - 1 not yet signed in student in btech-cs
+    await seedStudent(yearId, btechCs[9]!.index_number, false);
 
     // - 3 linked students in btech-ict (insufficient for group, will be leftovers)
-    for (let i = 1; i <= 3; i++) {
-      await seedStudent(yearId, `032308${String(200 + i).padStart(4, '0')}`, 'btech-ict', true);
+    const btechIct = fx.students.filter((s) => s.course_id === 'btech-ict');
+    for (let i = 0; i < 3; i++) {
+      await seedStudent(yearId, btechIct[i]!.index_number, true);
     }
+  });
+
+  afterAll(async () => {
+    await resetTestEmulator();
   });
 
   it('1. Student role is rejected with 403 Forbidden', async () => {
@@ -186,7 +212,7 @@ describe('Server Action: autoGroupStudents (FR-02.6, FR-01.10)', () => {
     // 3 btech-ict students -> 0 groups, 3 leftovers
     expect(res.groups).toHaveLength(2);
     expect(res.leftovers).toHaveLength(3);
-    expect(res.notYetSignedInCount).toBe(2);
+    expect(res.notYetSignedInCount).toBe(1);
 
     expect(res.summary.totalStudents).toBe(12);
     expect(res.summary.totalAssigned).toBe(9);
@@ -264,8 +290,9 @@ describe('Server Action: autoGroupStudents (FR-02.6, FR-01.10)', () => {
     });
 
     // Seed 4 new linked students in hnd-cs
-    for (let i = 1; i <= 4; i++) {
-      await seedStudent(yearId, `032308${String(300 + i).padStart(4, '0')}`, 'hnd-cs', true);
+    const hndCs = fx.students.filter((s) => s.course_id === 'hnd-cs');
+    for (let i = 0; i < 4; i++) {
+      await seedStudent(yearId, hndCs[i]!.index_number, true);
     }
 
     // Coordinator attempt before deadline fails with 403

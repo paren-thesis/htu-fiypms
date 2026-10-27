@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { completeSignup } from '@/app/actions/complete-signup';
 import { HttpError } from '@/lib/errors';
@@ -9,8 +9,10 @@ import type {
   StaffWhitelistDocument,
   UserDocument,
 } from '@/types/firestore';
+import { fx, studentEmail, studentUid, staffUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
 async function getEmulatorIdToken(
   uid: string,
@@ -27,7 +29,7 @@ async function getEmulatorIdToken(
   try {
     await adminAuth.deleteUser(uid);
   } catch {
-    // User doesn't exist yet, ignore
+    // Ignore
   }
 
   await adminAuth.createUser({
@@ -56,7 +58,6 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
   const currentYearId = '2026-2027';
 
   beforeAll(async () => {
-    // Ensure course and active academic year exist
     await upsertCourse({
       id: 'btech-cs',
       code: 'BTECH-CS',
@@ -80,10 +81,15 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     });
   });
 
+  afterAll(async () => {
+    await resetTestEmulator();
+  });
+
   it('1. student happy path: links user_uid, creates user doc, and sets custom claims', async () => {
-    const indexNumber = '0323809901';
-    const email = `${indexNumber}@htu.edu.gh`;
-    const uid = 'student-uid-happy';
+    const s = fx.students[0]!;
+    const indexNumber = s.index_number;
+    const email = studentEmail(indexNumber);
+    const uid = studentUid(indexNumber);
 
     // Seed student roster record
     const rosterRef = adminDb
@@ -94,20 +100,20 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
 
     await rosterRef.set({
       index_number: indexNumber,
-      full_name: 'Akwasi Mensah',
-      course_id: 'btech-cs',
-      contact: '0241000001',
+      full_name: s.full_name,
+      course_id: s.course_id,
+      contact: s.contact,
       user_uid: null,
     });
 
-    const idToken = await getEmulatorIdToken(uid, email, 'Akwasi Mensah');
+    const idToken = await getEmulatorIdToken(uid, email, s.full_name);
     const res = await completeSignup(idToken);
 
     expect(res.ok).toBe(true);
     expect(res.registered).toBe(true);
     expect(res.profileComplete).toBe(true);
     expect(res.activeRole).toBe('student');
-    expect(res.course_id).toBe('btech-cs');
+    expect(res.course_id).toBe(s.course_id);
 
     // Verify Firestore user document
     const userDocSnap = await adminDb.collection('users').doc(uid).get();
@@ -117,7 +123,7 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     expect(userDoc.roles).toEqual(['student']);
     expect(userDoc.active_role).toBe('student');
     expect(userDoc.profile.index_number).toBe(indexNumber);
-    expect(userDoc.profile.course_id).toBe('btech-cs');
+    expect(userDoc.profile.course_id).toBe(s.course_id);
     expect(userDoc.profile.registered).toBe(true);
     expect(userDoc.profile.profile_complete).toBe(true);
 
@@ -132,44 +138,44 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     expect(userRecord.customClaims?.registered).toBe(true);
     expect(userRecord.customClaims?.profileComplete).toBe(true);
     expect(userRecord.customClaims?.activeRole).toBe('student');
-    expect(userRecord.customClaims?.course_id).toBe('btech-cs');
+    expect(userRecord.customClaims?.course_id).toBe(s.course_id);
   });
 
   it('2. staff happy path: links user_uid, creates user doc, and sets profileComplete:false', async () => {
-    const email = 'kklu@htu.edu.gh';
-    const uid = 'staff-uid-happy';
+    const stf = fx.staffByEmail('aowusu@htu.edu.gh');
+    const email = stf.email;
+    const uid = staffUid(email);
 
     // Seed staff whitelist
     const staffRef = adminDb.collection('staff_whitelist').doc(email);
     await staffRef.set({
       email,
-      full_name: 'Dr. Kafui Klu',
-      staff_id: 'STF-001',
-      department: 'Computer Science',
-      roles: ['supervisor', 'coordinator'],
-      programmes: ['btech-cs'],
+      full_name: stf.full_name,
+      department: stf.department,
+      roles: stf.roles,
+      programmes: stf.programmes,
       is_active: true,
       user_uid: null,
     });
 
-    const idToken = await getEmulatorIdToken(uid, email, 'Dr. Kafui Klu');
+    const idToken = await getEmulatorIdToken(uid, email, stf.full_name);
     const res = await completeSignup(idToken);
 
     expect(res.ok).toBe(true);
     expect(res.registered).toBe(true);
     expect(res.profileComplete).toBe(false);
-    expect(res.activeRole).toBe('supervisor');
+    expect(res.activeRole).toBe(stf.roles[0]);
 
     // Verify Firestore user document
     const userDocSnap = await adminDb.collection('users').doc(uid).get();
     expect(userDocSnap.exists).toBe(true);
     const userDoc = userDocSnap.data() as UserDocument;
-    expect(userDoc.role).toBe('supervisor');
-    expect(userDoc.roles).toEqual(['supervisor', 'coordinator']);
-    expect(userDoc.active_role).toBe('supervisor');
+    expect(userDoc.role).toBe(stf.roles[0]);
+    expect(userDoc.roles).toEqual(stf.roles);
+    expect(userDoc.active_role).toBe(stf.roles[0]);
     expect(userDoc.profile.registered).toBe(true);
     expect(userDoc.profile.profile_complete).toBe(false);
-    expect(userDoc.profile.programmes).toEqual(['btech-cs']);
+    expect(userDoc.profile.programmes).toEqual(stf.programmes);
 
     // Verify staff whitelist linkage
     const updatedStaffSnap = await staffRef.get();
@@ -180,13 +186,22 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     const userRecord = await adminAuth.getUser(uid);
     expect(userRecord.customClaims?.registered).toBe(true);
     expect(userRecord.customClaims?.profileComplete).toBe(false);
-    expect(userRecord.customClaims?.activeRole).toBe('supervisor');
-    expect(userRecord.customClaims?.roles).toEqual(['supervisor', 'coordinator']);
+    expect(userRecord.customClaims?.activeRole).toBe(stf.roles[0]);
+    expect(userRecord.customClaims?.roles).toEqual(stf.roles);
   });
 
   it('3. unknown email: sets registered:false claims and never deletes the Auth user', async () => {
-    const email = '0323999999@htu.edu.gh';
-    const uid = 'unknown-student-uid';
+    const s = fx.students[9]!;
+    const email = studentEmail(s.index_number);
+    const uid = studentUid(s.index_number);
+
+    // Make sure no roster record exists for student 9
+    await adminDb
+      .collection('rosters')
+      .doc(currentYearId)
+      .collection('students')
+      .doc(s.index_number)
+      .delete();
 
     const idToken = await getEmulatorIdToken(uid, email);
     const res = await completeSignup(idToken);
@@ -202,14 +217,16 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
   });
 
   it('4. inactive staff: returns NOT_REGISTERED and sets registered:false claims', async () => {
-    const email = 'inactive.lecturer@htu.edu.gh';
-    const uid = 'inactive-staff-uid';
+    const stf = fx.staffByEmail('emensah@htu.edu.gh');
+    const email = stf.email;
+    const uid = staffUid(email);
 
     await adminDb.collection('staff_whitelist').doc(email).set({
       email,
-      full_name: 'Inactive Lecturer',
-      roles: ['supervisor'],
-      programmes: ['btech-cs'],
+      full_name: stf.full_name,
+      roles: stf.roles,
+      programmes: stf.programmes,
+      department: stf.department,
       is_active: false,
       user_uid: null,
     });
@@ -225,10 +242,11 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
   });
 
   it('5. identity conflict: rejects with 409 and logs identity_conflict to audit_logs', async () => {
-    const indexNumber = '0323807777';
-    const email = `${indexNumber}@htu.edu.gh`;
-    const originalUid = 'original-owner-uid';
-    const imposterUid = 'imposter-uid';
+    const s = fx.students[1]!;
+    const indexNumber = s.index_number;
+    const email = studentEmail(indexNumber);
+    const originalUid = studentUid(indexNumber);
+    const imposterUid = studentUid(fx.students[8]!.index_number);
 
     // Roster is already claimed by originalUid
     await adminDb
@@ -238,9 +256,9 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
       .doc(indexNumber)
       .set({
         index_number: indexNumber,
-        full_name: 'Original Student',
-        course_id: 'btech-cs',
-        contact: '0241000007',
+        full_name: s.full_name,
+        course_id: s.course_id,
+        contact: s.contact,
         user_uid: originalUid,
       });
 
@@ -273,9 +291,10 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
   });
 
   it('6. second sign-in is idempotent: succeeds without duplicate writes or errors', async () => {
-    const indexNumber = '0323805555';
-    const email = `${indexNumber}@htu.edu.gh`;
-    const uid = 'idempotent-student-uid';
+    const s = fx.students[2]!;
+    const indexNumber = s.index_number;
+    const email = studentEmail(indexNumber);
+    const uid = studentUid(indexNumber);
 
     const rosterRef = adminDb
       .collection('rosters')
@@ -285,13 +304,13 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
 
     await rosterRef.set({
       index_number: indexNumber,
-      full_name: 'Second Signin Student',
-      course_id: 'btech-cs',
-      contact: '0241000055',
+      full_name: s.full_name,
+      course_id: s.course_id,
+      contact: s.contact,
       user_uid: null,
     });
 
-    const idToken = await getEmulatorIdToken(uid, email, 'Second Signin Student');
+    const idToken = await getEmulatorIdToken(uid, email, s.full_name);
 
     // First sign-in
     const firstRes = await completeSignup(idToken);

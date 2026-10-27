@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { createTeam } from '@/app/actions/create-team';
 import { joinTeam } from '@/app/actions/join-team';
@@ -9,14 +9,16 @@ import { upsertAcademicYear } from '@/lib/models/academic-year/repo';
 import { getCoursePrefix, formatGroupNumber } from '@/lib/teams/invite-code';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import type { UserDocument } from '@/types/firestore';
+import { fx, studentEmail, studentUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
-async function createStudentToken(
-  uid: string,
-  email: string,
-  courseId: string
-): Promise<string> {
+async function createStudentToken(indexNumber: string): Promise<string> {
+  const s = fx.student(indexNumber);
+  const uid = studentUid(s.index_number);
+  const email = studentEmail(s.index_number);
+
   try {
     const existing = await adminAuth.getUserByEmail(email);
     await adminAuth.deleteUser(existing.uid);
@@ -33,7 +35,7 @@ async function createStudentToken(
   await adminAuth.createUser({
     uid,
     email,
-    displayName: email.split('@')[0],
+    displayName: s.full_name,
     emailVerified: true,
   });
 
@@ -47,7 +49,7 @@ async function createStudentToken(
   // Write user document
   const userDoc: UserDocument = {
     uid,
-    name: `Student ${uid}`,
+    name: s.full_name,
     email,
     role: 'student',
     roles: ['student'],
@@ -55,8 +57,8 @@ async function createStudentToken(
     profile: {
       registered: true,
       profile_complete: true,
-      course_id: courseId,
-      index_number: `032308${uid.slice(-4).padStart(4, '0')}`,
+      course_id: s.course_id,
+      index_number: s.index_number,
     },
     created_at: Timestamp.now(),
     updated_at: Timestamp.now(),
@@ -119,6 +121,10 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     }
   });
 
+  afterAll(async () => {
+    await resetTestEmulator();
+  });
+
   it('1. Derives group number prefix strictly from course_id (FR-02.5a)', () => {
     expect(getCoursePrefix('btech-cs')).toBe('BCS');
     expect(getCoursePrefix('btech-ict')).toBe('BICT');
@@ -132,7 +138,9 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
   });
 
   it('2. Student creates a team with derived course_id, group_number, and hidden invite code (F-06)', async () => {
-    const student1Token = await createStudentToken('std-lead-1', 'lead1@htu.edu.gh', 'btech-cs');
+    const s = fx.students[0]!;
+    const uid = studentUid(s.index_number);
+    const student1Token = await createStudentToken(s.index_number);
 
     const res = await createTeam(student1Token, { name: 'Alpha Tech Innovators' });
     expect(res.ok).toBe(true);
@@ -145,8 +153,8 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     expect(team!.name).toBe('Alpha Tech Innovators');
     expect(team!.course_id).toBe('btech-cs');
     expect(team!.academic_year_id).toBe(yearId);
-    expect(team!.leader_id).toBe('std-lead-1');
-    expect(team!.member_ids).toEqual(['std-lead-1']);
+    expect(team!.leader_id).toBe(uid);
+    expect(team!.member_ids).toEqual([uid]);
     expect(team!.member_count).toBe(1);
     expect(team!.status).toBe('formation');
 
@@ -160,18 +168,20 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     // Verify member subcollection
     const members = await getTeamMembers(res.teamId!);
     expect(members).toHaveLength(1);
-    expect(members[0]!.uid).toBe('std-lead-1');
+    expect(members[0]!.uid).toBe(uid);
     expect(members[0]!.role).toBe('leader');
   });
 
   it('3. Course mismatch rejects join with 409 and exact spec message (FR-02.4a)', async () => {
     // Team leader is in btech-cs
-    const leadToken = await createStudentToken('std-bcs-lead', 'bcslead@htu.edu.gh', 'btech-cs');
+    const leadStudent = fx.students[1]!;
+    const leadToken = await createStudentToken(leadStudent.index_number);
     const createRes = await createTeam(leadToken, { name: 'BCS Core Group' });
     expect(createRes.ok).toBe(true);
 
     // Mismatched student in btech-ict tries to join
-    const ictStudentToken = await createStudentToken('std-ict-joiner', 'ictjoin@htu.edu.gh', 'btech-ict');
+    const ictStudent = fx.students[10]!; // first btech-ict student
+    const ictStudentToken = await createStudentToken(ictStudent.index_number);
     const joinRes = await joinTeam(ictStudentToken, { inviteCode: createRes.inviteCode! });
 
     expect(joinRes.ok).toBe(false);
@@ -183,11 +193,15 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
   });
 
   it('4. Same-course student joins team successfully', async () => {
-    const leadToken = await createStudentToken('std-bcs-lead-2', 'bcslead2@htu.edu.gh', 'btech-cs');
+    const sLead = fx.students[2]!;
+    const sMember = fx.students[3]!;
+    const memberUid = studentUid(sMember.index_number);
+
+    const leadToken = await createStudentToken(sLead.index_number);
     const createRes = await createTeam(leadToken, { name: 'BCS Project Two' });
     expect(createRes.ok).toBe(true);
 
-    const peerToken = await createStudentToken('std-bcs-member-1', 'bcsmem1@htu.edu.gh', 'btech-cs');
+    const peerToken = await createStudentToken(sMember.index_number);
     const joinRes = await joinTeam(peerToken, { inviteCode: createRes.inviteCode! });
 
     expect(joinRes.ok).toBe(true);
@@ -195,22 +209,25 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
 
     const team = await getTeam(createRes.teamId!);
     expect(team!.member_count).toBe(2);
-    expect(team!.member_ids).toContain('std-bcs-member-1');
+    expect(team!.member_ids).toContain(memberUid);
 
     const members = await getTeamMembers(createRes.teamId!);
     expect(members).toHaveLength(2);
-    const peerMember = members.find((m) => m.uid === 'std-bcs-member-1');
+    const peerMember = members.find((m) => m.uid === memberUid);
     expect(peerMember).toBeDefined();
     expect(peerMember!.role).toBe('member');
   });
 
   it('5. Full team rejects additional members with 400 (FR-02.4 cap: 5)', async () => {
-    const leadToken = await createStudentToken('std-cap-lead', 'caplead@htu.edu.gh', 'hnd-cs');
+    // HND CS students: students[20] to students[25]
+    const hndStudents = fx.students.filter((s) => s.course_id === 'hnd-cs');
+    const leadStudent = hndStudents[0]!;
+    const leadToken = await createStudentToken(leadStudent.index_number);
     const createRes = await createTeam(leadToken, { name: 'HND Max Group' });
 
     // Join 4 more students (total 5)
     for (let i = 1; i <= 4; i++) {
-      const memToken = await createStudentToken(`std-cap-mem-${i}`, `capmem${i}@htu.edu.gh`, 'hnd-cs');
+      const memToken = await createStudentToken(hndStudents[i]!.index_number);
       const jRes = await joinTeam(memToken, { inviteCode: createRes.inviteCode! });
       expect(jRes.ok).toBe(true);
     }
@@ -219,7 +236,8 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     expect(team!.member_count).toBe(5);
 
     // 6th student tries to join
-    const excessToken = await createStudentToken('std-cap-mem-6', 'capmem6@htu.edu.gh', 'hnd-cs');
+    const excessStudent = hndStudents[5]!;
+    const excessToken = await createStudentToken(excessStudent.index_number);
     const excessRes = await joinTeam(excessToken, { inviteCode: createRes.inviteCode! });
 
     expect(excessRes.ok).toBe(false);
@@ -229,7 +247,11 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
   });
 
   it('6. Double membership rejected: cannot create or join multiple active teams in the same year (FR-02.5)', async () => {
-    const token = await createStudentToken('std-double-1', 'double1@htu.edu.gh', 'btech-ict');
+    const ictStudents = fx.students.filter((s) => s.course_id === 'btech-ict');
+    const student1 = ictStudents[0]!;
+    const otherLeader = ictStudents[1]!;
+
+    const token = await createStudentToken(student1.index_number);
     const createRes1 = await createTeam(token, { name: 'First Team' });
     expect(createRes1.ok).toBe(true);
 
@@ -240,7 +262,7 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     expect(createRes2.code).toBe('ALREADY_IN_TEAM');
 
     // Another leader creates a team
-    const otherLeaderToken = await createStudentToken('std-other-lead', 'otherlead@htu.edu.gh', 'btech-ict');
+    const otherLeaderToken = await createStudentToken(otherLeader.index_number);
     const otherTeamRes = await createTeam(otherLeaderToken, { name: 'Other Team' });
     expect(otherTeamRes.ok).toBe(true);
 
@@ -257,13 +279,10 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
       next_sequence: 1,
     });
 
-    const tokens = await Promise.all([
-      createStudentToken('std-conc-1', 'conc1@htu.edu.gh', 'btech-ict'),
-      createStudentToken('std-conc-2', 'conc2@htu.edu.gh', 'btech-ict'),
-      createStudentToken('std-conc-3', 'conc3@htu.edu.gh', 'btech-ict'),
-      createStudentToken('std-conc-4', 'conc4@htu.edu.gh', 'btech-ict'),
-      createStudentToken('std-conc-5', 'conc5@htu.edu.gh', 'btech-ict'),
-    ]);
+    const ictStudents = fx.students.filter((s) => s.course_id === 'btech-ict').slice(2, 7);
+    const tokens = await Promise.all(
+      ictStudents.map((s) => createStudentToken(s.index_number))
+    );
 
     // Launch all 5 team creations in parallel
     const results = await Promise.all(
@@ -298,6 +317,9 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
       created_at: FieldValue.serverTimestamp(),
     });
 
+    const hictStudent = fx.students.find((s) => s.course_id === 'hnd-ict')!;
+    const uid = studentUid(hictStudent.index_number);
+
     // Mock RNG: 1st attempt generates '555555' (which collides), 2nd attempt generates '222222' (free)
     let callCount = 0;
     const mockRng = () => {
@@ -308,8 +330,8 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
     // Call createTeamInTx directly with collision simulation
     await adminDb.runTransaction(async (tx) => {
       const res = await createTeamInTx(tx, {
-        leaderUid: 'std-collision-lead',
-        memberUids: ['std-collision-lead'],
+        leaderUid: uid,
+        memberUids: [uid],
         courseId: 'hnd-ict',
         yearId,
         name: 'Retry Resilient Team',
@@ -322,10 +344,13 @@ describe('Server Actions & Team Model (Spec FR-02.1 - FR-02.5a, F-06, F-14)', ()
   });
 
   it('9. Leader may rename the team, non-leader is rejected with 403 (F-05)', async () => {
-    const leadToken = await createStudentToken('std-rename-lead', 'renamelead@htu.edu.gh', 'btech-cs');
+    const sLead = fx.students[4]!;
+    const sMember = fx.students[5]!;
+
+    const leadToken = await createStudentToken(sLead.index_number);
     const createRes = await createTeam(leadToken, { name: 'Initial Group Name' });
 
-    const memberToken = await createStudentToken('std-rename-mem', 'renamemem@htu.edu.gh', 'btech-cs');
+    const memberToken = await createStudentToken(sMember.index_number);
     await joinTeam(memberToken, { inviteCode: createRes.inviteCode! });
 
     // Non-leader attempts rename

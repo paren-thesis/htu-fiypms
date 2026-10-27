@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { switchRole } from '@/app/actions/switch-role';
 import { HttpError } from '@/lib/errors';
 import type { AuditLogDocument } from '@/types/firestore';
+import { fx, staffUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
 async function getEmulatorIdToken(
   uid: string,
@@ -48,11 +50,16 @@ async function getEmulatorIdToken(
 }
 
 describe('Server Action: switchRole (Spec FR-01.3)', () => {
+  afterAll(async () => {
+    await resetTestEmulator();
+  });
+
   it('1. allowed role switch: updates activeRole custom claim and logs to audit_logs', async () => {
-    const uid = 'faculty-multi-role-1';
-    const email = 'switch.multi@htu.edu.gh';
+    const staff = fx.staffByEmail('coordinator@htu.edu.gh');
+    const uid = staffUid(staff.email);
+    const email = staff.email;
     const initialClaims = {
-      roles: ['supervisor', 'coordinator'],
+      roles: staff.roles,
       activeRole: 'supervisor',
       registered: true,
       profileComplete: true,
@@ -69,7 +76,7 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
     // Verify custom user claims updated in Firebase Auth
     const userRecord = await adminAuth.getUser(uid);
     expect(userRecord.customClaims?.activeRole).toBe('coordinator');
-    expect(userRecord.customClaims?.roles).toEqual(['supervisor', 'coordinator']);
+    expect(userRecord.customClaims?.roles).toEqual(staff.roles);
     expect(userRecord.customClaims?.registered).toBe(true);
     expect(userRecord.customClaims?.profileComplete).toBe(true);
 
@@ -89,11 +96,12 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
   });
 
   it('2. forbidden role: returns 403 when requesting a role the user does not hold', async () => {
-    const uid = 'faculty-single-role-2';
-    const email = 'lecturer@htu.edu.gh';
+    const staff = fx.staffByEmail('admin@htu.edu.gh');
+    const uid = staffUid(staff.email);
+    const email = staff.email;
     const initialClaims = {
-      roles: ['supervisor'],
-      activeRole: 'supervisor',
+      roles: ['admin'],
+      activeRole: 'admin',
       registered: true,
       profileComplete: true,
     };
@@ -102,7 +110,7 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
 
     let thrownError: unknown;
     try {
-      await switchRole({ idToken, role: 'admin' });
+      await switchRole({ idToken, role: 'supervisor' });
     } catch (err) {
       thrownError = err;
     }
@@ -114,14 +122,15 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
 
     // Claims must not have changed
     const userRecord = await adminAuth.getUser(uid);
-    expect(userRecord.customClaims?.activeRole).toBe('supervisor');
+    expect(userRecord.customClaims?.activeRole).toBe('admin');
   });
 
   it('3. rejects switch request if account is not registered', async () => {
-    const uid = 'unregistered-user-3';
-    const email = 'unregistered@htu.edu.gh';
+    const staff = fx.staffByEmail('kappiah@htu.edu.gh');
+    const uid = staffUid(staff.email);
+    const email = staff.email;
     const initialClaims = {
-      roles: ['supervisor', 'coordinator'],
+      roles: staff.roles,
       activeRole: 'supervisor',
       registered: false,
       profileComplete: false,
@@ -131,7 +140,7 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
 
     let thrownError: unknown;
     try {
-      await switchRole({ idToken, role: 'coordinator' });
+      await switchRole({ idToken, role: 'panel_member' });
     } catch (err) {
       thrownError = err;
     }
@@ -143,8 +152,9 @@ describe('Server Action: switchRole (Spec FR-01.3)', () => {
   });
 
   it('4. supports string overload switchRole(idToken, role)', async () => {
-    const uid = 'faculty-overload-4';
-    const email = 'examiner@htu.edu.gh';
+    const staff = fx.staffByEmail('emensah@htu.edu.gh');
+    const uid = staffUid(staff.email);
+    const email = staff.email;
     const initialClaims = {
       roles: ['supervisor', 'panel_member'],
       activeRole: 'supervisor',

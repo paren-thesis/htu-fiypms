@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { updateProfile } from '@/app/actions/update-profile';
 import {
@@ -9,8 +9,10 @@ import {
 } from '@/lib/models/supervisor-contact/repo';
 import { HttpError } from '@/lib/errors';
 import type { UserDocument } from '@/types/firestore';
+import { fx, staffUid, studentEmail, studentUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
-const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
 
 async function getEmulatorIdToken(
   uid: string,
@@ -54,11 +56,16 @@ async function getEmulatorIdToken(
 }
 
 describe('Server Action: updateProfile & supervisor_contacts (Spec FR-01.9, F-02, F-03)', () => {
+  afterAll(async () => {
+    await resetTestEmulator();
+  });
+
   it('1. faculty profile completion: updates users.profile, writes supervisor_contacts, and mints profileComplete:true', async () => {
-    const uid = 'faculty-prof-1';
-    const email = 'profile.faculty1@htu.edu.gh';
+    const faculty = fx.staffByEmail('yboateng@htu.edu.gh');
+    const uid = staffUid(faculty.email);
+    const email = faculty.email;
     const initialClaims = {
-      roles: ['supervisor'],
+      roles: faculty.roles,
       activeRole: 'supervisor',
       registered: true,
       profileComplete: false,
@@ -70,15 +77,15 @@ describe('Server Action: updateProfile & supervisor_contacts (Spec FR-01.9, F-02
       .doc(uid)
       .set({
         uid,
-        name: 'Dr. Profile Tester',
+        name: faculty.full_name,
         email,
         role: 'supervisor',
-        roles: ['supervisor'],
+        roles: faculty.roles,
         active_role: 'supervisor',
         profile: {
           registered: true,
           profile_complete: false,
-          programmes: ['btech-cs'],
+          programmes: faculty.programmes,
         },
       });
 
@@ -143,8 +150,9 @@ describe('Server Action: updateProfile & supervisor_contacts (Spec FR-01.9, F-02
   });
 
   it('2. student attempt to update faculty fields returns 403', async () => {
-    const uid = 'student-prof-2';
-    const email = '0323888001@htu.edu.gh';
+    const s = fx.students[0]!;
+    const uid = studentUid(s.index_number);
+    const email = studentEmail(s.index_number);
     const claims = {
       roles: ['student'],
       activeRole: 'student',
@@ -171,8 +179,9 @@ describe('Server Action: updateProfile & supervisor_contacts (Spec FR-01.9, F-02
   });
 
   it('3. student attempt to change course_id returns 403', async () => {
-    const uid = 'student-prof-3';
-    const email = '0323888002@htu.edu.gh';
+    const s = fx.students[1]!;
+    const uid = studentUid(s.index_number);
+    const email = studentEmail(s.index_number);
     const claims = {
       roles: ['student'],
       activeRole: 'student',
@@ -199,9 +208,9 @@ describe('Server Action: updateProfile & supervisor_contacts (Spec FR-01.9, F-02
   });
 
   it('4. supervisor contact grants subcollection helpers work correctly', async () => {
-    const supervisorId = 'sup-grant-test-1';
-    const studentId = 'stud-grant-test-1';
-    const teamId = 'team-123';
+    const supervisorId = staffUid('yboateng@htu.edu.gh');
+    const studentId = studentUid(fx.students[0]!.index_number);
+    const teamId = 'BCS26_01';
 
     expect(await hasContactGrant(supervisorId, studentId)).toBe(false);
 

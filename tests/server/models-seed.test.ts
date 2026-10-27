@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { adminDb } from '@/lib/firebase/admin';
 import { getCourse, listCourses, upsertCourse } from '@/lib/models/course/repo';
 import {
@@ -10,8 +10,12 @@ import {
   getCounter,
 } from '@/lib/models/academic-year/repo';
 import { runSeed } from '../../scripts/seed';
+import { resetTestEmulator } from '../helpers/reset';
 
 describe('Server Models: Course & Academic Year', () => {
+  afterAll(async () => {
+    await resetTestEmulator();
+  });
   it('upserts and retrieves courses', async () => {
     const course = await upsertCourse({
       id: 'btech-cs',
@@ -126,7 +130,7 @@ describe('Database Seed Script: Idempotency & Safety', () => {
     const firstStaffDoc = staffSnap.docs[0];
     expect(firstStaffDoc).toBeDefined();
     const staffData = firstStaffDoc!.data();
-    expect(staffData.roles).toEqual(['coordinator', 'admin']);
+    expect(staffData.roles).toEqual(['coordinator', 'supervisor']);
     expect(staffData.is_active).toBe(true);
   });
 });

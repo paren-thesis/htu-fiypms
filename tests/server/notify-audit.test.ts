@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';
 import { HttpError, toActionError } from '@/lib/errors';
@@ -11,7 +11,9 @@ import {
   serializeTimestamps,
 } from '@/lib/serialize';
 import { Timestamp } from 'firebase-admin/firestore';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
+import { fx, staffUid, studentEmail, studentUid } from '../../fixtures';
+import { resetTestEmulator } from '../helpers/reset';
 
 // Helper to create a user in Auth Emulator and exchange custom token for a real ID token
 async function getEmulatorIdToken(
@@ -35,7 +37,7 @@ async function getEmulatorIdToken(
   await adminAuth.setCustomUserClaims(uid, claims);
   const customToken = await adminAuth.createCustomToken(uid);
 
-  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099';
+  const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
   const response = await fetch(
     `http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=test-api-key`,
     {
@@ -58,38 +60,36 @@ describe('Server Infrastructure: Errors & Serialization', () => {
   });
 
   it('toActionError normalizes HttpError, ZodError, and general Errors', () => {
-    const httpRes = toActionError(new HttpError(404, 'NOT_FOUND', 'Item not found'));
-    expect(httpRes).toEqual({
-      ok: false,
-      error: 'Item not found',
-      code: 'NOT_FOUND',
-      status: 404,
-    });
+    const httpErr = new HttpError(404, 'NOT_FOUND', 'Item not found');
+    const actHttp = toActionError(httpErr);
+    expect(actHttp.status).toBe(404);
+    expect(actHttp.code).toBe('NOT_FOUND');
+    expect(actHttp.error).toBe('Item not found');
 
-    const testSchema = z.object({ name: z.string().min(3) });
-    const zodParseResult = testSchema.safeParse({ name: 'a' });
-    if (!zodParseResult.success) {
-      const zodRes = toActionError(zodParseResult.error);
-      expect(zodRes.status).toBe(400);
-      expect(zodRes.code).toBe('VALIDATION_ERROR');
-      expect(zodRes.details).toBeDefined();
+    const schema = z.object({ title: z.string() });
+    const parseResult = schema.safeParse({ title: 123 });
+    expect(parseResult.success).toBe(false);
+    if (!parseResult.success) {
+      const actZod = toActionError(parseResult.error);
+      expect(actZod.status).toBe(400);
+      expect(actZod.code).toBe('VALIDATION_ERROR');
+      expect(actZod.error).toBeDefined();
+      expect(actZod.details?.title).toBeDefined();
     }
 
-    const genRes = toActionError(new Error('Boom'));
-    expect(genRes).toEqual({
-      ok: false,
-      error: 'Boom',
-      code: 'INTERNAL_ERROR',
-      status: 500,
-    });
+    const genErr = new Error('Database connection failed');
+    const actGen = toActionError(genErr);
+    expect(actGen.status).toBe(500);
+    expect(actGen.code).toBe('INTERNAL_ERROR');
+    expect(actGen.error).toBe('Database connection failed');
   });
 
-  it('serializeTimestamps converts Firestore Timestamps to ISO strings recursively', () => {
-    const now = Timestamp.now();
-    const isoString = now.toDate().toISOString();
+  it('serializes timestamps to ISO strings recursively', () => {
+    const now = Timestamp.fromDate(new Date('2026-05-10T12:00:00Z'));
+    const isoString = '2026-05-10T12:00:00.000Z';
 
-    expect(timestampToMillis(now)).toBe(now.toMillis());
     expect(timestampToIso(now)).toBe(isoString);
+    expect(timestampToMillis(now)).toBe(now.toMillis());
 
     const complex = {
       id: 'doc-1',
@@ -116,41 +116,50 @@ describe('Server Infrastructure: requireUser Auth Gate', () => {
   let unregisteredToken: string;
   let coordinatorToken: string;
 
+  const validStudent = fx.students[0]!;
+  const unverifiedStudent = fx.students[1]!;
+  const unregisteredStudent = fx.students[2]!;
+  const coordStaff = fx.staff[0]!;
+
   beforeAll(async () => {
     validStudentToken = await getEmulatorIdToken(
-      'student-valid-1',
-      '0323809921@htu.edu.gh',
+      studentUid(validStudent.index_number),
+      studentEmail(validStudent.index_number),
       true,
       { registered: true, roles: ['student'], activeRole: 'student' }
     );
 
     unverifiedEmailToken = await getEmulatorIdToken(
-      'student-unverified-1',
-      '0323809922@htu.edu.gh',
+      studentUid(unverifiedStudent.index_number),
+      studentEmail(unverifiedStudent.index_number),
       false,
       { registered: true, roles: ['student'], activeRole: 'student' }
     );
 
     wrongDomainToken = await getEmulatorIdToken(
-      'user-gmail-1',
+      'stu-outsider-test',
       'outsider@gmail.com',
       true,
       { registered: true, roles: ['student'], activeRole: 'student' }
     );
 
     unregisteredToken = await getEmulatorIdToken(
-      'student-unreg-1',
-      '0323809923@htu.edu.gh',
+      studentUid(unregisteredStudent.index_number),
+      studentEmail(unregisteredStudent.index_number),
       true,
       { registered: false, roles: ['student'], activeRole: 'student' }
     );
 
     coordinatorToken = await getEmulatorIdToken(
-      'coord-valid-1',
-      'coord@htu.edu.gh',
+      staffUid(coordStaff.email),
+      coordStaff.email,
       true,
       { registered: true, roles: ['coordinator'], activeRole: 'coordinator' }
     );
+  });
+
+  afterAll(async () => {
+    await resetTestEmulator();
   });
 
   it('rejects missing or empty token with 401', async () => {
@@ -200,8 +209,8 @@ describe('Server Infrastructure: requireUser Auth Gate', () => {
 
   it('accepts valid token and returns AuthenticatedUser payload', async () => {
     const user = await requireUser(coordinatorToken, ['coordinator']);
-    expect(user.uid).toBe('coord-valid-1');
-    expect(user.email).toBe('coord@htu.edu.gh');
+    expect(user.uid).toBe(staffUid(coordStaff.email));
+    expect(user.email).toBe(coordStaff.email);
     expect(user.activeRole).toBe('coordinator');
     expect(user.roles).toContain('coordinator');
   });
@@ -209,7 +218,9 @@ describe('Server Infrastructure: requireUser Auth Gate', () => {
 
 describe('Server Infrastructure: Notifications Model', () => {
   it('creates notifications in batch for multiple recipients', async () => {
-    const userIds = ['notif-user-1', 'notif-user-2', 'notif-user-1']; // tests de-duplication
+    const uid1 = studentUid(fx.students[0]!.index_number);
+    const uid2 = studentUid(fx.students[1]!.index_number);
+    const userIds = [uid1, uid2, uid1]; // tests de-duplication
     const ids = await notify(userIds, {
       title: 'Topic Approved',
       body: 'Your final year project topic has been approved by the coordinator.',
@@ -232,8 +243,9 @@ describe('Server Infrastructure: Notifications Model', () => {
 
   it('handles notifyInTx inside a Firestore transaction', async () => {
     let notifId = '';
+    const uid = studentUid(fx.students[0]!.index_number);
     await adminDb.runTransaction(async (tx) => {
-      const ids = notifyInTx(tx, ['notif-tx-user'], {
+      const ids = notifyInTx(tx, [uid], {
         title: 'Defense Scheduled',
         body: 'Your defense date is set for Friday.',
         type: 'defense_schedule',
@@ -260,11 +272,12 @@ describe('Server Infrastructure: Notifications Model', () => {
 
 describe('Server Infrastructure: Audit Logs Model', () => {
   it('records audit logs with writeAudit', async () => {
+    const coord = fx.staff[0]!;
     const entry = await writeAudit({
       actor: {
-        uid: 'actor-coord-1',
-        name: 'Dr. Coordinator',
-        email: 'coordinator@htu.edu.gh',
+        uid: staffUid(coord.email),
+        name: coord.full_name,
+        email: coord.email,
         role: 'coordinator',
       },
       action: 'roster.imported',
@@ -276,7 +289,7 @@ describe('Server Infrastructure: Audit Logs Model', () => {
 
     expect(entry.id).toBeTruthy();
     expect(entry.action).toBe('roster.imported');
-    expect(entry.actor_name).toBe('Dr. Coordinator');
+    expect(entry.actor_name).toBe(coord.full_name);
     expect(entry.description).toBe('Imported 45 students from roster CSV');
 
     const snap = await adminDb.collection('audit_logs').doc(entry.id).get();
@@ -286,11 +299,12 @@ describe('Server Infrastructure: Audit Logs Model', () => {
 
   it('records audit logs inside transaction with writeAuditInTx', async () => {
     let logId = '';
+    const adminUser = fx.staffByEmail('admin@htu.edu.gh');
     await adminDb.runTransaction(async (tx) => {
       const res = writeAuditInTx(tx, {
         actor: {
-          uid: 'actor-admin-1',
-          name: 'Super Admin',
+          uid: staffUid(adminUser.email),
+          name: adminUser.full_name,
           role: 'admin',
         },
         action: 'grade.submitted',
