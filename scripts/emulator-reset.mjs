@@ -30,7 +30,7 @@ const project =
   process.env.EMU_PROJECT ||
   (isTest
     ? 'demo-fypms-test'
-    : (process.env.GCLOUD_PROJECT?.startsWith('demo-') ? process.env.GCLOUD_PROJECT : 'demo-fypms'));
+    : (process.env.GCLOUD_PROJECT?.startsWith('demo-') ? process.env.GCLOUD_PROJECT : (projectFromRc() || 'demo-fypms')));
 if (!project) fail('No project id. Pass --project <id> or set EMU_PROJECT.');
 
 const authHost = opt('--auth-host') || (isTest ? '127.0.0.1:9199' : '127.0.0.1:9099');
