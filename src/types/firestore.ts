@@ -199,8 +199,17 @@ export interface ChapterFeedback {
   created_at: FirebaseFirestore.Timestamp;
 }
 
+// Spec amendment A3: prior submission snapshots preserved on resubmission
+export interface ChapterHistoryEntry {
+  version: number;
+  document_url: string;
+  submitted_at: FirebaseFirestore.Timestamp;
+  reviewed_at?: FirebaseFirestore.Timestamp;
+  status: string;
+}
+
 export interface ChapterDocument {
-  id: string;
+  id: string; // Deterministic: `${teamId}__ch${chapter_number}`
   team_id: string;
   chapter_number: 1 | 2 | 3 | 4 | 5;
   title: string; // e.g. "Chapter 1: Introduction"
@@ -208,6 +217,7 @@ export interface ChapterDocument {
   version: number;
   status: "pending" | "approved" | "revision_needed";
   feedback: ChapterFeedback[];
+  history: ChapterHistoryEntry[]; // A3 spec amendment
   submitted_at: FirebaseFirestore.Timestamp;
   reviewed_at?: FirebaseFirestore.Timestamp;
 }
@@ -350,7 +360,10 @@ export interface AuditLogDocument {
     | "supervision.override"
     | "supervision.proposed"
     | "supervision.accepted"
-    | "supervision.declined";
+    | "supervision.declined"
+    | "chapter.submitted"
+    | "chapter.resubmitted"
+    | "chapter.reviewed";
   target_type: string;
   target_id: string;
   description: string;

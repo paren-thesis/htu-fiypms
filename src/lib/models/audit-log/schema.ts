@@ -29,6 +29,9 @@ export const auditLogActionSchema = z.enum([
   'supervision.proposed',
   'supervision.accepted',
   'supervision.declined',
+  'chapter.submitted',
+  'chapter.resubmitted',
+  'chapter.reviewed',
 ]);
 
 export type AuditLogAction = z.infer<typeof auditLogActionSchema>;
