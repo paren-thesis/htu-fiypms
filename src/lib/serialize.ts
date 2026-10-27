@@ -66,3 +66,11 @@ export function serializeTimestamps<T>(data: T): unknown {
 
   return data;
 }
+
+/**
+ * Safely converts Firestore document objects across the Server Component
+ * to Client Component boundary by stripping class instances and non-plain prototypes.
+ */
+export function serializeForClient<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data));
+}

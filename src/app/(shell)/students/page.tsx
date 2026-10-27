@@ -1,32 +1,57 @@
 import * as React from "react";
-import { GraduationCap, Upload } from "lucide-react";
+import type { Metadata } from "next";
+import { connection } from "next/server";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
-import { Button } from "@/components/ui/button";
+import { StudentsRosterTable } from "@/components/students/StudentsRosterTable";
+import { getCurrentAcademicYear } from "@/lib/models/academic-year/repo";
+import { listRosterStudents } from "@/lib/models/roster/repo";
+import { serializeForClient } from "@/lib/serialize";
+import { CalendarX } from "lucide-react";
 
-export default function StudentsPage() {
+export const metadata: Metadata = {
+  title: "Student Roster · FYPMS",
+  description:
+    "Manage cohort student rosters, track course assignments, and verify institutional account linkages.",
+};
+
+export default async function StudentsPage() {
+  await connection();
+  const currentYear = await getCurrentAcademicYear();
+
+  if (!currentYear) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Student Roster"
+          description="Final year cohort roster and course track enrollments."
+        />
+        <EmptyState
+          title="No Active Academic Year"
+          description="An active academic year must be configured or seeded before student rosters can be managed."
+          icon={<CalendarX className="h-6 w-6 text-slate-400" />}
+        />
+      </div>
+    );
+  }
+
+  const rawStudents = await listRosterStudents(currentYear.id);
+  const students = serializeForClient(rawStudents);
+  const rosterKey = `${currentYear.id}:${students.length}:${students
+    .map((s) => s.index_number + (s.user_uid ? "1" : "0"))
+    .join(",")}`;
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Students & Roster Pool"
-        description="Cohort roster management, student index validation, and unassigned student pooling (Coordinator & Admin only)."
-        action={
-          <Button size="sm" className="gap-1.5" disabled>
-            <Upload className="h-4 w-4" aria-hidden="true" />
-            <span>Import CSV Roster</span>
-          </Button>
-        }
+        title="Student Roster"
+        description={`Manage ${currentYear.code} cohort student onboarding, track course track allocations, and monitor institutional account activation.`}
       />
 
-      <EmptyState
-        icon={<GraduationCap className="h-6 w-6 text-primary" aria-hidden="true" />}
-        title="No Student Rosters Uploaded"
-        description="Upload a CSV file containing index_number, full_name, and contact to seed the current cohort roster."
-        action={
-          <Button size="sm" disabled>
-            Import Roster CSV
-          </Button>
-        }
+      <StudentsRosterTable
+        key={rosterKey}
+        initialStudents={students}
+        academicYearId={currentYear.id}
       />
     </div>
   );

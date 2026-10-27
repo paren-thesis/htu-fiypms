@@ -1,0 +1,12 @@
+fix(rsc): serialize Firestore documents across Server-to-Client component boundary
+
+Symptom: Runtime Error: Only plain objects, and a few built-ins, can be passed to Client Components from Server Components. Classes or null prototypes are not supported.
+Cause: Class A code defect: Firestore Timestamp class instances (imported_at, created_at, etc.) were passed directly from RSC to Client Components without serialization.
+- Added serializeForClient helper in src/lib/serialize.ts to strip custom class prototypes and produce plain objects
+- Serialized roster students before passing to StudentsRosterTable in src/app/(shell)/students/page.tsx
+- Serialized staff whitelist members before passing to StaffWhitelistTable in src/app/(shell)/admin/staff-whitelist/page.tsx
+Tests: npm run build, npx vitest run src/lib/roster, vitest server tests (45/45 passed)
+
+Fixes: BUG-003
+Prompt: 03-02
+Refs: FR-01.4, FR-01.7

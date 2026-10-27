@@ -1,33 +1,34 @@
 import * as React from "react";
-import { ShieldCheck, UserPlus } from "lucide-react";
+import type { Metadata } from "next";
+import { connection } from "next/server";
 import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
-import { Button } from "@/components/ui/button";
+import { StaffWhitelistTable } from "@/components/auth/StaffWhitelistTable";
+import { listStaffWhitelist } from "@/lib/models/staff-whitelist/repo";
+import { serializeForClient } from "@/lib/serialize";
 
-export default function StaffWhitelistPage() {
+export const metadata: Metadata = {
+  title: "Staff Whitelist · FYPMS",
+  description:
+    "Manage authorized faculty whitelist, supervision tracks, and institutional access roles.",
+};
+
+export default async function StaffWhitelistPage() {
+  await connection();
+  const rawStaff = await listStaffWhitelist();
+  const staffMembers = serializeForClient(rawStaff);
+
+  const staffKey = staffMembers
+    .map((s) => `${s.email}:${s.is_active ? "1" : "0"}:${s.roles.join(",")}`)
+    .join("|");
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Staff Whitelist"
-        description="Faculty onboarding authorization, departmental role assignments, and programme scope (Coordinator & Admin only)."
-        action={
-          <Button size="sm" className="gap-1.5" disabled>
-            <UserPlus className="h-4 w-4" aria-hidden="true" />
-            <span>Add Staff Member</span>
-          </Button>
-        }
+        title="Staff Whitelist Management"
+        description="Maintain departmental faculty members, configure superviseable programme tracks, and assign institutional roles."
       />
 
-      <EmptyState
-        icon={<ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />}
-        title="No Whitelisted Staff Added"
-        description="Authorize faculty members with their @htu.edu.gh email to grant supervisor, coordinator, or panel member access."
-        action={
-          <Button size="sm" disabled>
-            Authorize Faculty
-          </Button>
-        }
-      />
+      <StaffWhitelistTable key={staffKey} initialStaff={staffMembers} />
     </div>
   );
 }

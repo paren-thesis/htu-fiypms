@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Upload,
@@ -49,6 +50,7 @@ export function StudentsRosterTable({
   initialStudents,
   academicYearId,
 }: StudentsRosterTableProps) {
+  const router = useRouter();
   const students = initialStudents;
   const [searchQuery, setSearchQuery] = React.useState("");
   const [courseFilter, setCourseFilter] = React.useState("all");

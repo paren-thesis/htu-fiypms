@@ -141,7 +141,6 @@ export function RosterImportModal({
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      setCsvContent(text);
 
       const parsed = parseRosterCsv(text);
       if (!parsed.ok) {
