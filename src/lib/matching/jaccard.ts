@@ -53,3 +53,31 @@ export function tagOverlap(tagsA: string[], tagsB: string[]): number {
 
   return intersectionCount / unionSize;
 }
+
+/**
+ * Computes workload capacity metric (Spec FR-04.1, §4.1).
+ * CapacityScore(C_curr, C_max) = max(0.0, 1.0 - C_curr / max(1, C_max))
+ * Evaluates cleanly in [0.0, 1.0]; returns 0.0 when curr >= max.
+ */
+export function capacityScore(curr: number, max: number): number {
+  const safeCurr = Number.isFinite(curr) ? Math.max(0, curr) : 0;
+  const safeMax = Number.isFinite(max) ? Math.max(0, max) : 0;
+  return Math.max(0, 1 - safeCurr / Math.max(1, safeMax));
+}
+
+/**
+ * Computes composite supervisor match score combining tag overlap and capacity (Spec FR-04.1, §4.1).
+ * MatchScore = (TagOverlap * 0.7) + (CapacityScore * 0.3)
+ * Strictly bounded in [0.0, 1.0]. Default max capacity is 5.
+ */
+export function matchScore(
+  teamTags: string[],
+  supervisorTags: string[],
+  curr: number,
+  max = 5
+): number {
+  const overlap = tagOverlap(teamTags, supervisorTags);
+  const capacity = capacityScore(curr, max);
+  return overlap * 0.7 + capacity * 0.3;
+}
+
