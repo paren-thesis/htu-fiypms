@@ -4,15 +4,18 @@ import { connection } from "next/server";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StudentsRosterTable } from "@/components/students/StudentsRosterTable";
+import { UnassignedPool } from "@/components/students/UnassignedPool";
 import { getCurrentAcademicYear } from "@/lib/models/academic-year/repo";
 import { listRosterStudents } from "@/lib/models/roster/repo";
 import { serializeForClient } from "@/lib/serialize";
-import { CalendarX } from "lucide-react";
+import { CalendarX, Users, Sparkles } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Timestamp } from "firebase-admin/firestore";
 
 export const metadata: Metadata = {
-  title: "Student Roster · FYPMS",
+  title: "Students & Pool · FYPMS",
   description:
-    "Manage cohort student rosters, track course assignments, and verify institutional account linkages.",
+    "Manage cohort student rosters, track course assignments, monitor account linkages, and execute auto-grouping.",
 };
 
 export default async function StudentsPage() {
@@ -41,18 +44,49 @@ export default async function StudentsPage() {
     .map((s) => s.index_number + (s.user_uid ? "1" : "0"))
     .join(",")}`;
 
+  const deadline = currentYear.deadlines?.team_formation_deadline;
+  let formationDeadlineStr: string | null = null;
+  if (deadline) {
+    formationDeadlineStr =
+      deadline instanceof Timestamp
+        ? deadline.toDate().toISOString()
+        : new Date(deadline as unknown as string).toISOString();
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Student Roster"
-        description={`Manage ${currentYear.code} cohort student onboarding, track course track allocations, and monitor institutional account activation.`}
+        title="Students & Pool"
+        description={`Manage ${currentYear.code} cohort student onboarding, track course track allocations, and oversee unassigned group formation.`}
       />
 
-      <StudentsRosterTable
-        key={rosterKey}
-        initialStudents={students}
-        academicYearId={currentYear.id}
-      />
+      <Tabs defaultValue="roster" className="space-y-6">
+        <TabsList className="bg-muted p-1 rounded-lg">
+          <TabsTrigger value="roster" className="gap-2 text-xs font-medium">
+            <Users className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Cohort Roster ({students.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="pool" className="gap-2 text-xs font-medium">
+            <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <span>Unassigned Pool</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="roster" className="space-y-6">
+          <StudentsRosterTable
+            key={rosterKey}
+            initialStudents={students}
+            academicYearId={currentYear.id}
+          />
+        </TabsContent>
+
+        <TabsContent value="pool" className="space-y-6">
+          <UnassignedPool
+            academicYearId={currentYear.id}
+            formationDeadline={formationDeadlineStr}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

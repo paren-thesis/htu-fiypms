@@ -18,6 +18,7 @@ export const auditLogActionSchema = z.enum([
   'team.created',
   'team.joined',
   'team.renamed',
+  'team.auto_grouped',
   'defense.scheduled',
 ]);
 

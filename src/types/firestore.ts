@@ -327,6 +327,7 @@ export interface AuditLogDocument {
     | "team.created"
     | "team.joined"
     | "team.renamed"
+    | "team.auto_grouped"
     | "defense.scheduled";
   target_type: string;
   target_id: string;
