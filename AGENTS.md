@@ -23,10 +23,12 @@ Spec: v5.2 (`docs/fypms-docs.md`). §13 lists review findings already folded int
 - Prefer React Server Components; add `'use client'` only for listeners, forms, interactivity. Always unsubscribe `onSnapshot`.
 - Reuse `components/ui` (shadcn) and the tokens in the design-system skill; no hard-coded hex in components.
 
-## JSON prompts
+## JSON prompts and bug handling
 If the user's message is a JSON object with a `task` field, treat it as a structured prompt and route it:
-`create_model` → `fypms-create-model` · `fix_error` → `fypms-fix-error`. Validate required keys first; reply in compact JSON (no prose, no restating the prompt). Templates live in each skill's `references/`.
+`fix_bug` → `fypms-fix-bug` · `spec_change` → `fypms-spec-change` · `create_model` → `fypms-create-model` (only if that optional skill is installed). Validate required keys first; reply in compact JSON (no prose, no restating the prompt). Templates live in each skill's `references/`.
+Plain-language bug reports and git questions work too: bugs → `fypms-fix-bug`, requirement or permission changes → `fypms-spec-change`, undo/rollback/redo → `fypms-git-recovery`.
+Before diagnosing a bug, grep `docs/bugs.md`; log every fixed bug there. If the code matched the spec but the behaviour is wrong, the documents are wrong: fix them first (`fypms-spec-change`).
 Registry of existing models: `docs/models.md` (read it instead of the spec).
 
 ## Skills (auto-loaded by description; name one explicitly to force it)
-fypms-scaffold-roadmap · fypms-ui-design-system · fypms-auth-gating · fypms-firestore-data · fypms-roster-import · fypms-teams-topics · fypms-supervisor-matching · fypms-defense-grading · fypms-reports-export · fypms-notifications · fypms-testing · fypms-create-model · fypms-fix-error
+fypms-scaffold-roadmap · fypms-ui-design-system · fypms-auth-gating · fypms-firestore-data · fypms-roster-import · fypms-teams-topics · fypms-supervisor-matching · fypms-defense-grading · fypms-reports-export · fypms-notifications · fypms-testing · fypms-fix-bug · fypms-spec-change · fypms-git-recovery (optional: fypms-create-model)

@@ -1,0 +1,11 @@
+{
+  "task": "fix_bug",
+  "symptom": "A supervisor sees Roster Import in the sidebar and can import student CSVs",
+  "expected": "Only coordinators and admins can import rosters or manage the staff whitelist",
+  "error": { "type": "permission", "message": "" },
+  "where": { "route": "/students", "role": "supervisor", "file": "src/config/nav.ts" },
+  "repro": ["Set NEXT_PUBLIC_DEV_ROLE=supervisor", "Open the sidebar"],
+  "prompt_id": "00-03",
+  "recent_changes": "",
+  "constraints": { "max_files": 6, "no_new_deps": true, "update_docs": true }
+}

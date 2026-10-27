@@ -1,0 +1,19 @@
+{
+  "task": "spec_change",
+  "id": null,
+  "title": "Short name of the change",
+  "decision": "The new rule in one or two sentences",
+  "reason": "Why (optional)",
+  "supersedes": ["FR-xx.x wording that is no longer true"],
+  "affects": {
+    "roles": ["supervisor"],
+    "routes": ["/students"],
+    "actions": ["import-rosters"],
+    "collections": [],
+    "fr_ids": ["FR-01.4"],
+    "terms": ["Roster Import"]
+  },
+  "prompts_done": ["00-03"],
+  "code_built": true,
+  "version_bump": "patch"
+}

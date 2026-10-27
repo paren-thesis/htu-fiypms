@@ -1,0 +1,11 @@
+fix(<scope>): <imperative summary, max 72 chars>
+
+Symptom: <what the user saw>
+Cause: <one-sentence root cause and class A/B/C/D>
+- <change 1>
+- <change 2>
+Tests: <tests added or updated>
+
+Fixes: BUG-NNN
+Prompt: <prompt id, if the bug came from a phase prompt>
+Refs: <FR ids, D-xx>

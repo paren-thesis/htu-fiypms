@@ -1,0 +1,16 @@
+{
+  "task": "fix_bug",
+  "symptom": "What you saw, in one sentence",
+  "expected": "What should happen instead",
+  "error": {
+    "type": "typescript | build | runtime | nextjs | firestore_rules | firebase_auth | hydration | test | lint | behaviour | permission | other",
+    "message": "Exact error text, if any",
+    "code": "",
+    "stack": "First 10-15 lines only"
+  },
+  "where": { "route": "/students", "role": "supervisor", "file": "", "line": 0, "command": "" },
+  "repro": ["Step 1", "Step 2"],
+  "prompt_id": "00-03",
+  "recent_changes": "What changed just before it broke",
+  "constraints": { "max_files": 3, "no_new_deps": true, "update_docs": true }
+}

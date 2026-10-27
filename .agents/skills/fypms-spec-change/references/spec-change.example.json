@@ -1,0 +1,19 @@
+{
+  "task": "spec_change",
+  "id": "D-05",
+  "title": "Roster import and staff whitelist are coordinator/admin only",
+  "decision": "Only coordinators and admins may import student roster CSVs and manage the staff whitelist. Supervisors have neither permission.",
+  "reason": "Found after prompt 00-03: the supervisor nav showed Roster Import because FR-01.4 and the UI skill allowed it.",
+  "supersedes": ["FR-01.4: Supervisors and Coordinators can bulk-import student rosters"],
+  "affects": {
+    "roles": ["supervisor", "coordinator", "admin"],
+    "routes": ["/students", "/admin/staff-whitelist"],
+    "actions": ["import-rosters", "manage-staff-whitelist"],
+    "collections": ["rosters", "staff_whitelist"],
+    "fr_ids": ["FR-01.4", "FR-01.7"],
+    "terms": ["Roster Import", "import student rosters", "supervisor, coordinator, admin"]
+  },
+  "prompts_done": ["00-03"],
+  "code_built": true,
+  "version_bump": "patch"
+}
