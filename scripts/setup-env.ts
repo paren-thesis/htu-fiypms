@@ -1,5 +1,18 @@
 import { existsSync, readFileSync } from 'node:fs';
 
+// Stub 'server-only' for Node CLI scripts run via tsx
+try {
+  const serverOnlyPath = require.resolve('server-only');
+  require.cache[serverOnlyPath] = {
+    id: serverOnlyPath,
+    filename: serverOnlyPath,
+    loaded: true,
+    exports: {},
+  } as any;
+} catch {
+  // Ignore if server-only is not present
+}
+
 if (existsSync('.env.local')) {
   const envContent = readFileSync('.env.local', 'utf8');
   for (const line of envContent.split('\n')) {

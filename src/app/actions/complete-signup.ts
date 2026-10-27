@@ -7,6 +7,7 @@ import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { HttpError } from '@/lib/errors';
 import { writeAudit, writeAuditInTx } from '@/lib/audit';
 import { getCurrentAcademicYear } from '@/lib/models/academic-year/repo';
+import { buildStudentUserData, buildStaffUserData } from '@/lib/models/user/repo';
 import type {
   RosterStudentDocument,
   StaffWhitelistDocument,
@@ -105,22 +106,13 @@ export async function completeSignup(
           signup_completed_at: FieldValue.serverTimestamp(),
         });
 
-        const userData: Record<string, unknown> = {
+        const userData = buildStudentUserData({
           uid,
           name: (decoded.name as string) || rosterData.full_name || indexNumber,
           email,
-          role: 'student',
-          roles: ['student'],
-          active_role: 'student',
-          profile: {
-            index_number: indexNumber,
-            course_id: rosterData.course_id,
-            registered: true,
-            profile_complete: true,
-          },
-          created_at: FieldValue.serverTimestamp(),
-          updated_at: FieldValue.serverTimestamp(),
-        };
+          indexNumber,
+          courseId: rosterData.course_id,
+        });
 
         tx.set(userRef, userData, { merge: true });
 
@@ -135,22 +127,14 @@ export async function completeSignup(
       } else if (rosterData.user_uid === uid) {
         // Idempotent re-sign in
         if (!userSnap.exists) {
-          tx.set(userRef, {
+          const userData = buildStudentUserData({
             uid,
             name: (decoded.name as string) || rosterData.full_name || indexNumber,
             email,
-            role: 'student',
-            roles: ['student'],
-            active_role: 'student',
-            profile: {
-              index_number: indexNumber,
-              course_id: rosterData.course_id,
-              registered: true,
-              profile_complete: true,
-            },
-            created_at: FieldValue.serverTimestamp(),
-            updated_at: FieldValue.serverTimestamp(),
+            indexNumber,
+            courseId: rosterData.course_id,
           });
+          tx.set(userRef, userData);
         }
       } else {
         // Identity conflict: Different UID attempting to link to already claimed index
@@ -256,23 +240,17 @@ export async function completeSignup(
 
       const primaryRole = (staffData.roles?.[0] as UserDocument['role']) || 'supervisor';
 
-      const staffUserData: Record<string, unknown> = {
+      const staffUserData = buildStaffUserData({
         uid,
         name: (decoded.name as string) || staffData.full_name || 'Faculty Member',
         email,
-        role: primaryRole,
         roles: staffData.roles || ['supervisor'],
-        active_role: primaryRole,
-        profile: {
-          programmes: staffData.programmes || [],
-          registered: true,
-          profile_complete: isProfileComplete,
-        },
-        updated_at: FieldValue.serverTimestamp(),
-      };
+        programmes: staffData.programmes || [],
+        isProfileComplete,
+      });
 
-      if (!userSnap.exists) {
-        staffUserData.created_at = FieldValue.serverTimestamp();
+      if (userSnap.exists) {
+        delete (staffUserData as Record<string, unknown>).created_at;
       }
 
       tx.set(userRef, staffUserData, { merge: true });

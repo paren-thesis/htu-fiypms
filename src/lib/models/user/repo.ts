@@ -72,3 +72,58 @@ export async function updateUser(
   if (!snap.exists) return null;
   return snap.data() as UserDocument;
 }
+
+export function buildStudentUserData(params: {
+  uid: string;
+  name: string;
+  email: string;
+  indexNumber: string;
+  courseId: string;
+}): Record<string, unknown> {
+  return {
+    uid: params.uid,
+    name: params.name,
+    email: params.email,
+    role: 'student',
+    roles: ['student'],
+    active_role: 'student',
+    profile: {
+      index_number: params.indexNumber,
+      course_id: params.courseId,
+      registered: true,
+      profile_complete: true,
+    },
+    created_at: FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
+  };
+}
+
+export function buildStaffUserData(params: {
+  uid: string;
+  name: string;
+  email: string;
+  roles: string[];
+  programmes?: string[];
+  isProfileComplete?: boolean;
+  researchInterests?: string[];
+  maxTeamCapacity?: number;
+}): Record<string, unknown> {
+  const primaryRole = (params.roles?.[0] as UserDocument['role']) || 'supervisor';
+  return {
+    uid: params.uid,
+    name: params.name,
+    email: params.email,
+    role: primaryRole,
+    roles: params.roles || ['supervisor'],
+    active_role: primaryRole,
+    profile: {
+      programmes: params.programmes || [],
+      registered: true,
+      profile_complete: Boolean(params.isProfileComplete),
+      ...(params.researchInterests ? { research_interests: params.researchInterests } : {}),
+      ...(params.maxTeamCapacity !== undefined ? { max_team_capacity: params.maxTeamCapacity } : {}),
+    },
+    created_at: FieldValue.serverTimestamp(),
+    updated_at: FieldValue.serverTimestamp(),
+  };
+}

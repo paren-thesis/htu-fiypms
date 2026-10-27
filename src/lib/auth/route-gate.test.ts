@@ -67,6 +67,35 @@ describe('Route Gate Logic (decideRoute)', () => {
     it('allows /login when unauthenticated', () => {
       expect(decideRoute(null, '/login')).toBe('allow');
     });
+
+    it('handles /dev/login conditional access based on environment', () => {
+      const env = process.env as Record<string, string | undefined>;
+      const origEnv = env.NODE_ENV;
+      const origEmulator = env.FIREBASE_AUTH_EMULATOR_HOST;
+
+      try {
+        // Condition: emulator host set + not production -> allowed
+        env.NODE_ENV = 'development';
+        env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+        expect(decideRoute(null, '/dev/login')).toBe('allow');
+
+        // Condition: production build -> redirected to /login
+        env.NODE_ENV = 'production';
+        expect(decideRoute(null, '/dev/login')).toEqual({ redirect: '/login' });
+
+        // Condition: not production but missing emulator host -> redirected to /login
+        env.NODE_ENV = 'development';
+        delete env.FIREBASE_AUTH_EMULATOR_HOST;
+        expect(decideRoute(null, '/dev/login')).toEqual({ redirect: '/login' });
+      } finally {
+        env.NODE_ENV = origEnv;
+        if (origEmulator !== undefined) {
+          env.FIREBASE_AUTH_EMULATOR_HOST = origEmulator;
+        } else {
+          delete env.FIREBASE_AUTH_EMULATOR_HOST;
+        }
+      }
+    });
   });
 
   describe('Unauthenticated redirects', () => {

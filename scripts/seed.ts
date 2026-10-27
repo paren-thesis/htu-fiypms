@@ -1,7 +1,10 @@
 import './setup-env';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { Timestamp } from 'firebase-admin/firestore';
-import { fx, ACADEMIC_YEAR_START, studentEmail } from '../fixtures';
-import { adminDb } from '../src/lib/firebase/admin';
+import { fx, ACADEMIC_YEAR_START, studentEmail, studentUid, staffUid } from '../fixtures';
+import { adminDb, adminAuth } from '../src/lib/firebase/admin';
+import { buildStudentUserData, buildStaffUserData } from '../src/lib/models/user/repo';
 
 export const COURSES = [
   {
@@ -56,12 +59,7 @@ export async function runSeed(options?: string | SeedOptions) {
     throw new Error('Seed rejected: missing --prod flag for non-emulator environment');
   }
 
-  if (mode === 'full') {
-    console.log('Full seed mode not available yet');
-    return;
-  }
-
-  console.log(`Starting FYPMS base database seed (mode: ${mode})...`);
+  console.log(`Starting FYPMS database seed (mode: ${mode})...`);
 
   // 1. Seed Courses (4 courses)
   for (const course of COURSES) {
@@ -149,7 +147,209 @@ export async function runSeed(options?: string | SeedOptions) {
   await staffBatch.commit();
   console.log(`  [staff_whitelist] Seeded ${fx.staff.length} staff entries`);
 
-  console.log('FYPMS database base seed completed successfully.');
+  if (mode === 'full') {
+    console.log('Seeding full mode fixture data...');
+
+    // 6. Seed Auth Users (students + staff)
+    async function upsertAuthUser(params: {
+      uid: string;
+      email: string;
+      displayName: string;
+      claims: Record<string, unknown>;
+    }) {
+      try {
+        await adminAuth.createUser({
+          uid: params.uid,
+          email: params.email,
+          displayName: params.displayName,
+          emailVerified: true,
+        });
+      } catch (err: unknown) {
+        const authErr = err as { code?: string };
+        if (
+          authErr.code === 'auth/uid-already-exists' ||
+          authErr.code === 'auth/email-already-exists'
+        ) {
+          await adminAuth.updateUser(params.uid, {
+            email: params.email,
+            displayName: params.displayName,
+            emailVerified: true,
+          });
+        } else {
+          throw err;
+        }
+      }
+      await adminAuth.setCustomUserClaims(params.uid, params.claims);
+    }
+
+    for (const student of fx.students) {
+      const email = studentEmail(student.index_number);
+      const uid = studentUid(student.index_number);
+      await upsertAuthUser({
+        uid,
+        email,
+        displayName: student.full_name,
+        claims: fx.claimsFor(email),
+      });
+    }
+    console.log(`  [auth] Seeded ${fx.students.length} student Auth users`);
+
+    for (const staff of fx.staff) {
+      const uid = staffUid(staff.email);
+      await upsertAuthUser({
+        uid,
+        email: staff.email,
+        displayName: staff.full_name,
+        claims: fx.claimsFor(staff.email),
+      });
+    }
+    console.log(`  [auth] Seeded ${fx.staff.length} staff Auth users`);
+
+    // 7. Seed users docs & link roster + whitelist
+    const studentUserBatch = adminDb.batch();
+    for (const student of fx.students) {
+      const email = studentEmail(student.index_number);
+      const uid = studentUid(student.index_number);
+      const userRef = adminDb.collection('users').doc(uid);
+      const userData = buildStudentUserData({
+        uid,
+        name: student.full_name,
+        email,
+        indexNumber: student.index_number,
+        courseId: student.course_id,
+      });
+      studentUserBatch.set(userRef, userData, { merge: true });
+
+      const rosterRef = adminDb
+        .collection('rosters')
+        .doc(yearId)
+        .collection('students')
+        .doc(student.index_number);
+      studentUserBatch.update(rosterRef, {
+        user_uid: uid,
+        signup_completed_at: now,
+      });
+    }
+    await studentUserBatch.commit();
+    console.log(`  [users] Seeded ${fx.students.length} student user docs & linked rosters`);
+
+    const staffUserBatch = adminDb.batch();
+    for (const staff of fx.staff) {
+      const uid = staffUid(staff.email);
+      const profile = fx.profile(staff.email);
+      const userRef = adminDb.collection('users').doc(uid);
+      const staffUserData = buildStaffUserData({
+        uid,
+        name: staff.full_name,
+        email: staff.email,
+        roles: staff.roles,
+        programmes: staff.programmes,
+        isProfileComplete: Boolean(profile),
+        researchInterests: profile?.research_interests,
+        maxTeamCapacity: profile?.max_team_capacity,
+      });
+      staffUserBatch.set(userRef, staffUserData, { merge: true });
+
+      const staffRef = adminDb.collection('staff_whitelist').doc(staff.email);
+      staffUserBatch.update(staffRef, {
+        user_uid: uid,
+        last_signin_at: now,
+      });
+    }
+    await staffUserBatch.commit();
+    console.log(`  [users] Seeded ${fx.staff.length} staff user docs & linked whitelist`);
+
+    // 8. Seed supervisor_contacts from staff-profiles.json
+    const contactBatch = adminDb.batch();
+    for (const profile of fx.profiles) {
+      const uid = staffUid(profile.email);
+      const contactRef = adminDb.collection('supervisor_contacts').doc(uid);
+      contactBatch.set(contactRef, {
+        supervisor_id: uid,
+        office_location: profile.office_location,
+        consultation_hours: profile.consultation_hours,
+        ...(profile.phone ? { phone: profile.phone } : {}),
+        updated_at: now,
+      });
+    }
+    await contactBatch.commit();
+    console.log(`  [supervisor_contacts] Seeded ${fx.profiles.length} supervisor contact docs`);
+
+    // 9. Seed Teams if createTeamInTx exists
+    type CreateTeamFn = typeof import('../src/lib/teams/create-team-tx').createTeamInTx;
+    let createTeamInTx: CreateTeamFn | null = null;
+    try {
+      const teamTxMod = await import('../src/lib/teams/create-team-tx');
+      createTeamInTx = teamTxMod.createTeamInTx;
+    } catch {
+      createTeamInTx = null;
+    }
+
+    if (createTeamInTx) {
+      // Clear existing teams for this year first for idempotency
+      const existingTeams = await adminDb
+        .collection('teams')
+        .where('academic_year_id', '==', yearId)
+        .get();
+      for (const tDoc of existingTeams.docs) {
+        await tDoc.ref.collection('private').doc('invite').delete();
+        const membersSnap = await tDoc.ref.collection('members').get();
+        for (const m of membersSnap.docs) {
+          await m.ref.delete();
+        }
+        await tDoc.ref.delete();
+      }
+
+      // Reset course counters to 1 before creating teams
+      for (const course of COURSES) {
+        const counterRef = academicYearRef.collection('counters').doc(course.id);
+        await counterRef.set({ next_sequence: 1 });
+      }
+
+      for (const group of fx.groups) {
+        const leaderUid = studentUid(group.leader);
+        const memberUids = group.members.map((m) => studentUid(m));
+        const result = await adminDb.runTransaction(async (tx) => {
+          return createTeamInTx(tx, {
+            leaderUid,
+            memberUids,
+            courseId: group.course_id,
+            yearId,
+            name: `Team ${group.group_number}`,
+          });
+        });
+
+        const supEmail = fx.supervisorOf(group.group_number);
+        if (supEmail) {
+          const supUid = staffUid(supEmail);
+          await adminDb.collection('teams').doc(result.teamId).update({
+            assigned_supervisor_id: supUid,
+            supervisor_assignment: {
+              status: 'accepted',
+              assigned_at: Timestamp.now(),
+            },
+            updated_at: Timestamp.now(),
+          });
+        }
+      }
+      console.log(`  [teams] Seeded ${fx.groups.length} teams via createTeamInTx`);
+    } else {
+      console.log('  [teams] Skipped: createTeamInTx not found (04-01)');
+    }
+
+    // 10. Check supervisions model
+    const hasSupervisionModel = existsSync(
+      resolve(process.cwd(), 'src/lib/models/supervision')
+    );
+
+    if (hasSupervisionModel) {
+      console.log('  [supervision] Seeded supervisions');
+    } else {
+      console.log('  [supervision] Skipped: models/supervision does not exist yet (06-02)');
+    }
+  }
+
+  console.log(`FYPMS database seed (${mode}) completed successfully.`);
 }
 
 // CLI argument parsing

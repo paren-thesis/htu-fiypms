@@ -1,0 +1,95 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { adminAuth } from '@/lib/firebase/admin';
+import { fx, studentEmail, studentUid, staffUid } from '../../../../../fixtures';
+
+function isDevAllowed(): boolean {
+  return (
+    process.env.NODE_ENV !== 'production' &&
+    Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST)
+  );
+}
+
+export async function POST(req: NextRequest) {
+  if (!isDevAllowed()) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  try {
+    const body = (await req.json().catch(() => ({}))) as {
+      uid?: unknown;
+      email?: unknown;
+    };
+    const uid = typeof body.uid === 'string' ? body.uid : undefined;
+    const email = typeof body.email === 'string' ? body.email.toLowerCase() : undefined;
+
+    let targetUid = uid;
+    let targetEmail = email;
+
+    if (!targetUid && !targetEmail) {
+      return NextResponse.json(
+        { error: 'Missing uid or email in request body' },
+        { status: 400 }
+      );
+    }
+
+    if (!targetUid && targetEmail) {
+      const student = fx.students.find((s) => studentEmail(s.index_number) === targetEmail);
+      if (student) {
+        targetUid = studentUid(student.index_number);
+      } else {
+        const staff = fx.staff.find((s) => s.email === targetEmail);
+        if (staff) {
+          targetUid = staffUid(staff.email);
+        }
+      }
+    }
+
+    if (!targetUid) {
+      return NextResponse.json(
+        { error: 'User could not be resolved from fixtures' },
+        { status: 404 }
+      );
+    }
+
+    // Lookup user in Auth to retrieve email or verify existence
+    let authUser;
+    try {
+      authUser = await adminAuth.getUser(targetUid);
+      if (!targetEmail && authUser.email) {
+        targetEmail = authUser.email.toLowerCase();
+      }
+    } catch {
+      return NextResponse.json(
+        {
+          error: `Auth user ${targetUid} not found. Run npm run seed:full first.`,
+        },
+        { status: 404 }
+      );
+    }
+
+    // Determine claims: prefer existing customClaims on auth user, otherwise derive from fx.claimsFor
+    const claims =
+      authUser.customClaims && Object.keys(authUser.customClaims).length > 0
+        ? authUser.customClaims
+        : targetEmail
+          ? fx.claimsFor(targetEmail)
+          : {};
+
+    const customToken = await adminAuth.createCustomToken(targetUid, claims);
+
+    return NextResponse.json({ ok: true, customToken });
+  } catch (err: unknown) {
+    console.error('Error in /api/dev/token:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Internal error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  if (!isDevAllowed()) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+}

@@ -43,9 +43,13 @@ export function decideRoute(
 ): RouteDecision {
   const normalizedPath = pathname.split('?')[0] || '/';
 
+  const isDevLoginAllowed =
+    process.env.NODE_ENV !== 'production' &&
+    Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+
   // 1. Static assets & API session endpoints are always allowed
   if (
-    normalizedPath.startsWith('/dev') ||
+    (isDevLoginAllowed && (normalizedPath === '/dev/login' || normalizedPath === '/dev/ui' || normalizedPath.startsWith('/api/dev/'))) ||
     normalizedPath.startsWith('/api/session') ||
     normalizedPath.startsWith('/_next') ||
     /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$/.test(normalizedPath)
