@@ -45,6 +45,7 @@ export function decideRoute(
 
   // 1. Static assets & API session endpoints are always allowed
   if (
+    normalizedPath.startsWith('/dev') ||
     normalizedPath.startsWith('/api/session') ||
     normalizedPath.startsWith('/_next') ||
     /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$/.test(normalizedPath)

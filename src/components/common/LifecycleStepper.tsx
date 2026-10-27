@@ -31,7 +31,7 @@ export function LifecycleStepper({
   return (
     <nav
       aria-label="Project Journey"
-      className={cn("w-full overflow-x-auto py-2", className)}
+      className={cn("w-full overflow-x-auto p-2", className)}
     >
       <ol className="flex min-w-[560px] items-center justify-between gap-2">
         {steps.map((step, index) => {
@@ -72,7 +72,7 @@ export function LifecycleStepper({
                     isCompleted &&
                       "border-primary bg-primary text-primary-foreground",
                     isCurrent &&
-                      "border-primary bg-primary/10 text-primary ring-2 ring-primary ring-offset-2",
+                      "border-2 border-primary bg-primary/10 text-primary",
                     isUpcoming &&
                       "border-muted bg-card text-muted-foreground"
                   )}
