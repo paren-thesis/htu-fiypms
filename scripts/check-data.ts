@@ -74,8 +74,11 @@ export async function checkData() {
     }
     const fxStudent = fx.student(doc.id);
     const expectedEmail = studentEmail(doc.id);
+    if (data.email !== expectedEmail) {
+      unknown.push(`roster_student_email_mismatch: ${doc.id} (got ${data.email}, expected ${expectedEmail})`);
+      rosterDataValid = false;
+    }
     if (
-      data.email !== expectedEmail ||
       data.contact !== fxStudent.contact ||
       data.course_id !== fxStudent.course_id
     ) {

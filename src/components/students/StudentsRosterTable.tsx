@@ -189,95 +189,97 @@ export function StudentsRosterTable({
 
       {/* Roster Table */}
       <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="w-[140px] text-xs font-semibold text-foreground">
-                Index Number
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">
-                Student Name
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">
-                Contact Phone
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">
-                Course Track
-              </TableHead>
-              <TableHead className="text-xs font-semibold text-foreground">
-                Onboarding Status
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredStudents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-36 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-1 text-muted-foreground">
-                    <GraduationCap className="h-8 w-8 stroke-1 text-muted-foreground/60 mb-1" />
-                    <p className="text-sm font-medium text-foreground">No students in roster</p>
-                    <p className="text-xs">
-                      {searchQuery || courseFilter !== "all" || linkFilter !== "all"
-                        ? "Try clearing your filters to see enrolled students."
-                        : "Click 'Import Roster' to upload the first cohort CSV."}
-                    </p>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead className="w-[140px] text-xs font-semibold text-foreground">
+                  Index Number
+                </TableHead>
+                <TableHead className="text-xs font-semibold text-foreground">
+                  Student Name
+                </TableHead>
+                <TableHead className="text-xs font-semibold text-foreground">
+                  Contact Phone
+                </TableHead>
+                <TableHead className="text-xs font-semibold text-foreground">
+                  Course Track
+                </TableHead>
+                <TableHead className="text-xs font-semibold text-foreground">
+                  Onboarding Status
+                </TableHead>
               </TableRow>
-            ) : (
-              filteredStudents.map((student) => {
-                const isLinked = student.user_uid !== null;
+            </TableHeader>
+            <TableBody>
+              {filteredStudents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-36 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-1 text-muted-foreground">
+                      <GraduationCap className="h-8 w-8 stroke-1 text-muted-foreground/60 mb-1" />
+                      <p className="text-sm font-medium text-foreground">No students in roster</p>
+                      <p className="text-xs">
+                        {searchQuery || courseFilter !== "all" || linkFilter !== "all"
+                          ? "Try clearing your filters to see enrolled students."
+                          : "Click 'Import Roster' to upload the first cohort CSV."}
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredStudents.map((student) => {
+                  const isLinked = student.user_uid !== null;
 
-                return (
-                  <TableRow key={student.index_number} className="hover:bg-muted/30">
-                    <TableCell className="font-mono text-xs font-medium text-foreground py-2.5">
-                      {student.index_number}
-                    </TableCell>
+                  return (
+                    <TableRow key={student.index_number} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-xs font-medium text-foreground py-2.5">
+                        {student.index_number}
+                      </TableCell>
 
-                    <TableCell className="py-2.5">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-xs sm:text-sm text-foreground">
-                          {student.full_name}
+                      <TableCell className="py-2.5">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-xs sm:text-sm text-foreground">
+                            {student.full_name}
+                          </span>
+                          <span className="font-mono text-[11px] text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-2.5 w-2.5" />
+                            {student.email}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="font-mono text-xs text-muted-foreground py-2.5">
+                        <span className="flex items-center gap-1.5">
+                          <Phone className="h-3 w-3 text-muted-foreground/70" />
+                          {student.contact}
                         </span>
-                        <span className="font-mono text-[11px] text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-2.5 w-2.5" />
-                          {student.email}
-                        </span>
-                      </div>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell className="font-mono text-xs text-muted-foreground py-2.5">
-                      <span className="flex items-center gap-1.5">
-                        <Phone className="h-3 w-3 text-muted-foreground/70" />
-                        {student.contact}
-                      </span>
-                    </TableCell>
+                      <TableCell className="py-2.5">
+                        <Badge variant="outline" className="font-mono uppercase text-[11px]">
+                          {student.course_id}
+                        </Badge>
+                      </TableCell>
 
-                    <TableCell className="py-2.5">
-                      <Badge variant="outline" className="font-mono uppercase text-[11px]">
-                        {student.course_id}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="py-2.5">
-                      {isLinked ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Linked
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          Pending Sign-In
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      <TableCell className="py-2.5">
+                        {isLinked ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Linked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            Pending Sign-In
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Import Modal */}

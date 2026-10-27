@@ -60,8 +60,8 @@ export default async function StudentsPage() {
         description={`Manage ${currentYear.code} cohort student onboarding, track course track allocations, and oversee unassigned group formation.`}
       />
 
-      <Tabs defaultValue="roster" className="space-y-6">
-        <TabsList className="bg-muted p-1 rounded-lg">
+      <Tabs defaultValue="roster" className="w-full flex flex-col">
+        <TabsList className="w-fit bg-muted p-1 rounded-lg">
           <TabsTrigger value="roster" className="gap-2 text-xs font-medium">
             <Users className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Cohort Roster ({students.length})</span>
@@ -72,7 +72,7 @@ export default async function StudentsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="roster" className="space-y-6">
+        <TabsContent value="roster" className="mt-4 space-y-6">
           <StudentsRosterTable
             key={rosterKey}
             initialStudents={students}
@@ -80,7 +80,7 @@ export default async function StudentsPage() {
           />
         </TabsContent>
 
-        <TabsContent value="pool" className="space-y-6">
+        <TabsContent value="pool" className="mt-4 space-y-6">
           <UnassignedPool
             academicYearId={currentYear.id}
             formationDeadline={formationDeadlineStr}

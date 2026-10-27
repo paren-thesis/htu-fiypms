@@ -13,6 +13,7 @@ import {
 } from '@/lib/models/roster/repo';
 import { rosterRowSchema } from '@/lib/models/roster/schema';
 import type { RosterStudentDocument } from '@/types/firestore';
+import { studentEmail } from '../../../fixtures';
 
 const ALLOWED_CALLER_ROLES = ['coordinator', 'admin'];
 
@@ -20,6 +21,7 @@ export interface ImportRosterRowInput {
   index_number: string;
   full_name: string;
   contact: string;
+  email?: string;
 }
 
 export interface ImportRostersActionInput {
@@ -111,7 +113,8 @@ export async function importRosters(
     const indexNumber = (raw.index_number || '').trim();
     const fullName = (raw.full_name || '').trim();
     const contact = (raw.contact || '').trim();
-    const email = indexNumber ? `${indexNumber}@htu.edu.gh` : '';
+    const rawEmail = (raw as { email?: string }).email?.trim();
+    const derivedEmail = indexNumber ? studentEmail(indexNumber) : '';
 
     if (!parseResult.success) {
       const issue = parseResult.error.issues[0]?.message || 'Validation error';
@@ -119,7 +122,7 @@ export async function importRosters(
         index_number: indexNumber,
         full_name: fullName,
         contact,
-        email,
+        email: rawEmail || derivedEmail,
         status: 'error',
         reason: issue,
       });
@@ -127,6 +130,20 @@ export async function importRosters(
     }
 
     const validData = parseResult.data;
+    const expectedEmail = studentEmail(validData.index_number);
+
+    // Reject CSV row carrying another email
+    if (rawEmail && rawEmail.toLowerCase() !== expectedEmail.toLowerCase()) {
+      rowReports.push({
+        index_number: validData.index_number,
+        full_name: validData.full_name,
+        contact: validData.contact,
+        email: rawEmail,
+        status: 'error',
+        reason: `Email ${rawEmail} does not match derived student email ${expectedEmail}`,
+      });
+      continue;
+    }
 
     // Check intra-file duplicate
     if (seenInFile.has(validData.index_number)) {
@@ -134,7 +151,7 @@ export async function importRosters(
         index_number: validData.index_number,
         full_name: validData.full_name,
         contact: validData.contact,
-        email: `${validData.index_number}@htu.edu.gh`,
+        email: expectedEmail,
         status: 'error',
         reason: `Duplicate index number ${validData.index_number} within file`,
       });
@@ -146,7 +163,7 @@ export async function importRosters(
       index_number: validData.index_number,
       full_name: validData.full_name,
       contact: validData.contact,
-      email: `${validData.index_number}@htu.edu.gh`,
+      email: expectedEmail,
     });
   }
 

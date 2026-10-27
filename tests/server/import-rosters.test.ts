@@ -319,4 +319,45 @@ describe('Server Action: importRosters (Spec §5.1, FR-01.4, FR-01.5, D-05)', ()
     const badDoc = await getRosterStudent(yearId, badIndex);
     expect(badDoc).toBeNull();
   });
+
+  it('6. Derives student email via studentEmail(index) and rejects mismatching email in row', async () => {
+    const s = fx.students[5]!;
+    await adminDb.collection('rosters').doc(yearId).collection('students').doc(s.index_number).delete();
+
+    // 1. Rejects row carrying another email
+    const mismatchRes = await importRosters({
+      idToken: coordinatorToken,
+      course_id: 'btech-cs',
+      academic_year_id: yearId,
+      dry_run: false,
+      rows: [
+        {
+          index_number: s.index_number,
+          full_name: s.full_name,
+          contact: s.contact,
+          email: 'wrong-email@htu.edu.gh',
+        },
+      ],
+    });
+    expect(mismatchRes.errors).toBe(1);
+    expect(mismatchRes.imported).toBe(0);
+
+    // 2. Commits valid row with derived email matching studentEmail(index)
+    const validRes = await importRosters({
+      idToken: coordinatorToken,
+      course_id: 'btech-cs',
+      academic_year_id: yearId,
+      dry_run: false,
+      rows: [
+        {
+          index_number: s.index_number,
+          full_name: s.full_name,
+          contact: s.contact,
+        },
+      ],
+    });
+    expect(validRes.imported).toBe(1);
+    const doc = await getRosterStudent(yearId, s.index_number);
+    expect(doc?.email).toBe(studentEmail(s.index_number));
+  });
 });
