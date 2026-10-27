@@ -29,6 +29,15 @@ export type ConflictStatus =
   | "warning"
   | "danger";
 
+export type SupervisionStatus =
+  | "available"
+  | "at_capacity"
+  | "proposed"
+  | "accepted"
+  | "declined"
+  | "expired"
+  | "not_assigned";
+
 export type BadgeTone = "neutral" | "info" | "success" | "warning" | "danger" | "primary";
 
 export type StatusDomainMap = {
@@ -37,6 +46,7 @@ export type StatusDomainMap = {
   team: TeamStatus;
   defense: DefenseStatus;
   conflict: ConflictStatus;
+  supervision: SupervisionStatus;
 };
 
 export type StatusDomain = keyof StatusDomainMap;
@@ -83,6 +93,16 @@ export const CONFLICT_STATUS_CONFIG: Record<ConflictStatus, StatusConfig> = {
   danger: { label: "Direct Conflict", tone: "danger", iconType: "alert" },
 };
 
+export const SUPERVISION_STATUS_CONFIG: Record<SupervisionStatus, StatusConfig> = {
+  available: { label: "Available", tone: "success", iconType: "check" },
+  at_capacity: { label: "At Capacity", tone: "danger", iconType: "alert" },
+  proposed: { label: "Proposed", tone: "info", iconType: "clock" },
+  accepted: { label: "Accepted", tone: "success", iconType: "check" },
+  declined: { label: "Declined", tone: "danger", iconType: "x" },
+  expired: { label: "Expired", tone: "warning", iconType: "clock" },
+  not_assigned: { label: "Not Assigned", tone: "neutral", iconType: "circle" },
+};
+
 export function getStatusConfig<D extends StatusDomain>(
   domain: D,
   value: StatusDomainMap[D]
@@ -98,6 +118,8 @@ export function getStatusConfig<D extends StatusDomain>(
       return DEFENSE_STATUS_CONFIG[value as DefenseStatus];
     case "conflict":
       return CONFLICT_STATUS_CONFIG[value as ConflictStatus];
+    case "supervision":
+      return SUPERVISION_STATUS_CONFIG[value as SupervisionStatus];
     default:
       return { label: String(value), tone: "neutral", iconType: "circle" };
   }
