@@ -338,7 +338,7 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-wrap items-center gap-2">
           {/* Search Input */}
-          <div className="relative min-w-[240px] flex-1 max-w-sm">
+          <div className="relative w-full sm:min-w-[240px] sm:flex-1 sm:max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
               placeholder="Search by name, email, department..."
@@ -350,7 +350,7 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
 
           {/* Role Filter */}
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
+            <SelectTrigger aria-label="Filter by role" className="flex-1 min-w-[100px] sm:w-[140px] sm:flex-initial h-9 text-xs">
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
             <SelectContent>
@@ -364,7 +364,7 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
 
           {/* Programme Filter */}
           <Select value={programmeFilter} onValueChange={setProgrammeFilter}>
-            <SelectTrigger className="w-[140px] h-9 text-xs">
+            <SelectTrigger aria-label="Filter by programme track" className="flex-1 min-w-[100px] sm:w-[140px] sm:flex-initial h-9 text-xs">
               <SelectValue placeholder="All Tracks" />
             </SelectTrigger>
             <SelectContent>
@@ -379,7 +379,7 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
 
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[120px] h-9 text-xs">
+            <SelectTrigger aria-label="Filter by status" className="flex-1 min-w-[100px] sm:w-[120px] sm:flex-initial h-9 text-xs">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -391,14 +391,14 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
         </div>
 
         {/* Add Staff Button */}
-        <Button onClick={openAddSheet} size="sm" className="h-9 gap-1.5 shrink-0">
+        <Button onClick={openAddSheet} size="sm" className="h-9 w-full sm:w-auto gap-1.5 shrink-0">
           <Plus className="h-4 w-4" aria-hidden="true" />
           <span>Add Staff Member</span>
         </Button>
       </div>
 
       {/* Staff Whitelist Table */}
-      <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-lg border border-border bg-card shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -572,8 +572,8 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
 
       {/* Add / Edit Staff Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-md overflow-y-auto">
-          <SheetHeader>
+        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-card">
+          <SheetHeader className="px-6 pt-6 pb-4 pr-12 border-b border-border text-left shrink-0">
             <SheetTitle>
               {editingStaff ? "Edit Staff Whitelist Entry" : "Add Staff Member"}
             </SheetTitle>
@@ -584,147 +584,153 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleSubmitSheet} className="space-y-4 py-4 text-xs">
-            {/* Full Name */}
-            <div className="space-y-1.5">
-              <Label htmlFor="staff-fullname" className="text-xs font-medium">
-                Full Name <span className="text-danger">*</span>
-              </Label>
-              <Input
-                id="staff-fullname"
-                placeholder="e.g. Dr. Kwami Klu"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="h-9 text-xs"
-              />
-            </div>
+          <form
+            onSubmit={handleSubmitSheet}
+            className="flex flex-1 flex-col min-h-0 text-xs"
+          >
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="staff-fullname" className="text-xs font-medium">
+                  Full Name <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="staff-fullname"
+                  placeholder="e.g. Dr. Kwami Klu"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="h-9 text-xs"
+                />
+              </div>
 
-            {/* Email Address */}
-            <div className="space-y-1.5">
-              <Label htmlFor="staff-email" className="text-xs font-medium">
-                University Email <span className="text-danger">*</span>
-              </Label>
-              <Input
-                id="staff-email"
-                type="email"
-                placeholder="e.g. kklu@htu.edu.gh"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={Boolean(editingStaff)}
-                required
-                className="h-9 text-xs font-mono disabled:opacity-60"
-              />
-              <p className="text-[11px] text-muted-foreground">
-                Must end with @htu.edu.gh. Cannot be altered once registered.
-              </p>
-            </div>
+              {/* Email Address */}
+              <div className="space-y-1.5">
+                <Label htmlFor="staff-email" className="text-xs font-medium">
+                  University Email <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="staff-email"
+                  type="email"
+                  placeholder="e.g. kklu@htu.edu.gh"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={Boolean(editingStaff)}
+                  required
+                  className="h-9 text-xs font-mono disabled:opacity-60"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Must end with @htu.edu.gh. Cannot be altered once registered.
+                </p>
+              </div>
 
-            {/* Department */}
-            <div className="space-y-1.5">
-              <Label htmlFor="staff-dept" className="text-xs font-medium">
-                Department
-              </Label>
-              <Input
-                id="staff-dept"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                className="h-9 text-xs"
-              />
-            </div>
+              {/* Department */}
+              <div className="space-y-1.5">
+                <Label htmlFor="staff-dept" className="text-xs font-medium">
+                  Department
+                </Label>
+                <Input
+                  id="staff-dept"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
 
-            {/* Phone Number (Optional) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="staff-phone" className="text-xs font-medium">
-                Contact Phone <span className="text-muted-foreground text-[10px]">(Optional)</span>
-              </Label>
-              <Input
-                id="staff-phone"
-                placeholder="e.g. +233 24 123 4567"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="h-9 text-xs"
-              />
-            </div>
+              {/* Phone Number (Optional) */}
+              <div className="space-y-1.5">
+                <Label htmlFor="staff-phone" className="text-xs font-medium">
+                  Contact Phone <span className="text-muted-foreground text-[10px]">(Optional)</span>
+                </Label>
+                <Input
+                  id="staff-phone"
+                  placeholder="e.g. +233 24 123 4567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="h-9 text-xs"
+                />
+              </div>
 
-            {/* Roles Multi-Select */}
-            <div className="space-y-2 pt-1 border-t border-border">
-              <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <Shield className="h-3.5 w-3.5 text-primary" />
-                Staff Roles <span className="text-danger">*</span>
-              </Label>
-              <p className="text-[11px] text-muted-foreground">
-                Staff can hold multiple roles and switch active contexts.
-              </p>
-              <div className="space-y-2 pt-1">
-                {AVAILABLE_ROLES.map((role) => (
-                  <div
-                    key={role.id}
-                    className="flex items-start space-x-2.5 rounded-md border border-border p-2.5 hover:bg-muted/40 transition-colors cursor-pointer"
-                    onClick={() => handleToggleRole(role.id)}
-                  >
-                    <Checkbox
-                      id={`role-${role.id}`}
-                      checked={selectedRoles.includes(role.id)}
-                      onCheckedChange={() => handleToggleRole(role.id)}
-                      className="mt-0.5"
-                    />
-                    <div className="space-y-0.5">
-                      <Label
+              {/* Roles Multi-Select */}
+              <div className="space-y-2 pt-3 border-t border-border">
+                <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-primary" />
+                  Staff Roles <span className="text-danger">*</span>
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Staff can hold multiple roles and switch active contexts.
+                </p>
+                <div className="space-y-2 pt-1">
+                  {AVAILABLE_ROLES.map((role) => {
+                    const isRoleChecked = selectedRoles.includes(role.id);
+                    return (
+                      <label
+                        key={role.id}
                         htmlFor={`role-${role.id}`}
-                        className="text-xs font-medium leading-none cursor-pointer text-foreground"
+                        className={`flex items-start space-x-2.5 rounded-lg border p-3 transition-colors cursor-pointer ${
+                          isRoleChecked
+                            ? "border-primary/40 bg-primary/5"
+                            : "border-border hover:bg-muted/40"
+                        }`}
                       >
-                        {role.label}
-                      </Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        {role.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                        <Checkbox
+                          id={`role-${role.id}`}
+                          checked={isRoleChecked}
+                          onCheckedChange={() => handleToggleRole(role.id)}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-0.5">
+                          <span className="block text-xs font-medium leading-none text-foreground">
+                            {role.label}
+                          </span>
+                          <p className="text-[11px] text-muted-foreground">
+                            {role.description}
+                          </p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            {/* Supervised Programmes Multi-Select */}
-            <div className="space-y-2 pt-1 border-t border-border">
-              <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                <BookOpen className="h-3.5 w-3.5 text-primary" />
-                Superviseable Programme Tracks <span className="text-danger">*</span>
-              </Label>
-              <p className="text-[11px] text-muted-foreground">
-                Required for supervisor matching algorithm (FR-04.2a).
-              </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                {AVAILABLE_PROGRAMMES.map((prog) => {
-                  const isChecked = selectedProgrammes.includes(prog.id);
-                  return (
-                    <div
-                      key={prog.id}
-                      onClick={() => handleToggleProgramme(prog.id)}
-                      className={`flex items-center space-x-2 rounded-md border p-2 cursor-pointer transition-colors ${
-                        isChecked
-                          ? "border-primary/50 bg-primary/5"
-                          : "border-border hover:bg-muted/40"
-                      }`}
-                    >
-                      <Checkbox
-                        id={`prog-${prog.id}`}
-                        checked={isChecked}
-                        onCheckedChange={() => handleToggleProgramme(prog.id)}
-                      />
-                      <Label
+              {/* Supervised Programmes Multi-Select */}
+              <div className="space-y-2 pt-3 border-t border-border">
+                <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-primary" />
+                  Superviseable Programme Tracks <span className="text-danger">*</span>
+                </Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Required for supervisor matching algorithm (FR-04.2a).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {AVAILABLE_PROGRAMMES.map((prog) => {
+                    const isChecked = selectedProgrammes.includes(prog.id);
+                    return (
+                      <label
+                        key={prog.id}
                         htmlFor={`prog-${prog.id}`}
-                        className="text-xs font-medium cursor-pointer"
+                        className={`flex items-center space-x-2.5 rounded-lg border p-2.5 cursor-pointer transition-colors ${
+                          isChecked
+                            ? "border-primary/50 bg-primary/5"
+                            : "border-border hover:bg-muted/40"
+                        }`}
                       >
-                        {prog.label}
-                      </Label>
-                    </div>
-                  );
-                })}
+                        <Checkbox
+                          id={`prog-${prog.id}`}
+                          checked={isChecked}
+                          onCheckedChange={() => handleToggleProgramme(prog.id)}
+                        />
+                        <span className="text-xs font-medium text-foreground">
+                          {prog.label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <SheetFooter className="pt-4 border-t border-border">
+            <SheetFooter className="px-6 py-4 border-t border-border bg-muted/20 flex-row justify-end gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"

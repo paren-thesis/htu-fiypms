@@ -8,14 +8,14 @@ import {
   expectSingleIndicator,
 } from './helpers';
 
-test.describe('TopNav and Dashboard mobile responsiveness (375, 768, 1280px)', () => {
+test.describe('TopNav, Dashboard, and Staff Whitelist Sheet responsiveness (375, 768, 1280px)', () => {
   for (const width of widths) {
-    test(`TopNav controls and LifecycleStepper all fit within ${width}px viewport for multi-role Coordinator`, async ({
+    test(`TopNav controls, LifecycleStepper, and Staff Whitelist Sheet all fit cleanly at ${width}px`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 812 });
       await page.goto('/dev/login');
-      await page.locator('[data-testid="dev-login-staff-coordinator@htu.edu.gh"]').click();
+      await page.getByRole('button', { name: 'Sign in as coordinator' }).click();
       await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
       const searchBtn = page.getByRole('button', { name: 'Open command palette' });
@@ -72,7 +72,37 @@ test.describe('TopNav and Dashboard mobile responsiveness (375, 768, 1280px)', (
         path: `docs/screenshots/dashboard-${width}.png`,
         fullPage: false,
       });
+
+      // Verify /admin/staff-whitelist Add Staff Member sheet padding & layout as admin
+      await page.goto('/dev/login');
+      await page.getByRole('button', { name: 'Sign in as admin' }).click();
+      await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
+
+      await page.goto('/admin/staff-whitelist');
+      const addBtn = page.getByRole('button', { name: /Add Staff Member/i });
+      await expect(addBtn).toBeVisible();
+      await addBtn.click();
+
+      const sheet = page.locator('[data-slot="sheet-content"]');
+      const fullNameInput = page.locator('#staff-fullname');
+      await expect(sheet).toBeVisible();
+      await expect(fullNameInput).toBeVisible();
+
+      const [sheetBox, inputBox] = await Promise.all([
+        sheet.boundingBox(),
+        fullNameInput.boundingBox(),
+      ]);
+      expect(sheetBox && inputBox).toBeTruthy();
+      // Input must have at least 16px horizontal padding inside the sheet on both left and right
+      expect(inputBox!.x - sheetBox!.x).toBeGreaterThanOrEqual(16);
+      expect(
+        sheetBox!.x + sheetBox!.width - (inputBox!.x + inputBox!.width)
+      ).toBeGreaterThanOrEqual(16);
+
+      await page.screenshot({
+        path: `docs/screenshots/staff-whitelist-sheet-${width}.png`,
+        fullPage: false,
+      });
     });
   }
 });
-

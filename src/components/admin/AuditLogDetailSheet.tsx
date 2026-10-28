@@ -39,8 +39,8 @@ export function AuditLogDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto space-y-6">
-        <SheetHeader className="space-y-1 border-b border-border pb-4 text-left">
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-6 space-y-6">
+        <SheetHeader className="space-y-1 border-b border-border p-0 pb-4 pr-10 text-left">
           <div className="flex items-center gap-2">
             <ScrollText className="h-4 w-4 text-primary" aria-hidden="true" />
             <Badge variant="secondary" className="font-mono text-xs">
