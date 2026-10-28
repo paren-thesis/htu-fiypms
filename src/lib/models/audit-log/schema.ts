@@ -49,6 +49,12 @@ export const auditLogActionSchema = z.enum([
   'grade_appeal.submitted',
   'grade_appeal.resolved',
   'projects.archived',
+  'user.roles_updated',
+  'user.session_revoked',
+  'student.course_changed',
+  'team.max_members_changed',
+  'team.member_transferred',
+  'team.disbanded',
 ]);
 
 export type AuditLogAction = z.infer<typeof auditLogActionSchema>;
