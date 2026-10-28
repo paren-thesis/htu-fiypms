@@ -43,6 +43,9 @@ export const auditLogActionSchema = z.enum([
   'rubric.archived',
   'deliverable.submitted',
   'deliverable.signed_off',
+  'grades.published',
+  'grades.publish_override',
+  'grades.amended',
 ]);
 
 export type AuditLogAction = z.infer<typeof auditLogActionSchema>;

@@ -105,6 +105,7 @@ export interface AcademicYearDocument {
     grade_appeal_deadline?: FirebaseFirestore.Timestamp;
   };
   grades_published: boolean;
+  grade_published_at?: FirebaseFirestore.Timestamp;
   created_at: FirebaseFirestore.Timestamp;
 }
 

@@ -183,4 +183,58 @@ describe("Rule: Evaluations (Digital Marksheet)", () => {
       })
     );
   });
+
+  it("students cannot write, update, or delete evaluations at any time", async () => {
+    const studentDb = await ctx({ uid: studentUid });
+
+    // Student cannot create evaluation
+    await assertFails(
+      studentDb.doc(`evaluations/${teamId}__${studentUid}__team`).set({
+        team_id: teamId,
+        evaluator_id: studentUid,
+        evaluator_role: "panel_member",
+        rubric_id: "rubric-1",
+        scores: { c1: 20 },
+        total_score: 20,
+        is_published: false,
+      })
+    );
+
+    // Student cannot update unpublished evaluation
+    await assertFails(
+      studentDb.doc(`evaluations/${validEvalId}`).update({
+        total_score: 25,
+      })
+    );
+
+    // Student cannot update published evaluation
+    await assertFails(
+      studentDb.doc(`evaluations/pub_${validEvalId}`).update({
+        total_score: 25,
+      })
+    );
+
+    // Student cannot delete published evaluation
+    await assertFails(
+      studentDb.doc(`evaluations/pub_${validEvalId}`).delete()
+    );
+  });
+
+  it("admin cannot delete an evaluation once is_published is true", async () => {
+    const adminDbClient = await ctx({
+      uid: "admin-1",
+      roles: ["admin"],
+      activeRole: "admin",
+    });
+
+    // Admin can delete unpublished evaluation
+    await assertSucceeds(
+      adminDbClient.doc(`evaluations/${validEvalId}`).delete()
+    );
+
+    // Admin cannot delete published evaluation from client (Admin SDK only)
+    await assertFails(
+      adminDbClient.doc(`evaluations/pub_${validEvalId}`).delete()
+    );
+  });
 });
