@@ -13,12 +13,13 @@ import {
   AlertTriangle,
   Loader2,
   ExternalLink,
+  Award,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase/client";
 import { respondSupervisorAssignment } from "@/app/actions/respond-supervisor-assignment";
-import type { TeamDocument, TopicDocument } from "@/types/firestore";
+import type { TeamDocument, TopicDocument, DefensePanelDocument, DefenseTimeSlot } from "@/types/firestore";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -157,6 +158,38 @@ export function SupervisorSupervisionView() {
 
     return () => unsubscribe();
   }, []);
+
+  // 3. Listen to defense_panels to know if an accepted team has a defense presentation slot
+  const [panels, setPanels] = React.useState<DefensePanelDocument[]>([]);
+  React.useEffect(() => {
+    const panelsQuery = collection(db, "defense_panels");
+    const unsubscribe = onSnapshot(
+      panelsQuery,
+      (snapshot) => {
+        const docs = snapshot.docs.map(
+          (d) => ({ id: d.id, ...(d.data() as Omit<DefensePanelDocument, "id">) } as DefensePanelDocument)
+        );
+        setPanels(docs);
+      },
+      (error) => {
+        console.error("Firestore onSnapshot error on defense_panels:", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const teamSlotMap = React.useMemo(() => {
+    const map: Record<string, { panelId: string; slot: DefenseTimeSlot }> = {};
+    for (const panel of panels) {
+      for (const slot of panel.time_slots || []) {
+        if (slot.team_id) {
+          map[slot.team_id] = { panelId: panel.id, slot };
+        }
+      }
+    }
+    return map;
+  }, [panels]);
 
   const topicsByTeamId = React.useMemo(() => {
     const map: Record<string, TopicDocument> = {};
@@ -435,6 +468,14 @@ export function SupervisorSupervisionView() {
                         Actions:
                       </span>
                       <div className="flex items-center gap-2">
+                        {teamSlotMap[team.id]?.panelId && (
+                          <Link href={`/defense/${teamSlotMap[team.id]?.panelId}?team=${team.id}`}>
+                            <Button size="sm" variant="outline" className="h-8 text-xs px-2.5 border-primary/40 text-primary hover:bg-primary/5">
+                              <Award className="h-3.5 w-3.5 mr-1" />
+                              Grade CA
+                            </Button>
+                          </Link>
+                        )}
                         <Link href="/proposals">
                           <Button size="sm" variant="outline" className="h-8 text-xs px-2.5">
                             <BookOpen className="h-3.5 w-3.5 mr-1" />
