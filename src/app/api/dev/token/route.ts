@@ -74,15 +74,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Determine claims: prefer existing customClaims on auth user, otherwise derive from fx.claimsFor
-    const claims =
-      authUser.customClaims && Object.keys(authUser.customClaims).length > 0
-        ? authUser.customClaims
-        : targetEmail
-          ? fx.claimsFor(targetEmail)
-          : {};
+    // Ensure customClaims exist on the user record so token refreshes reflect claim updates
+    if (!authUser.customClaims || Object.keys(authUser.customClaims).length === 0) {
+      const fallbackClaims = targetEmail ? fx.claimsFor(targetEmail) : {};
+      if (Object.keys(fallbackClaims).length > 0) {
+        await adminAuth.setCustomUserClaims(targetUid, fallbackClaims);
+      }
+    }
 
-    const customToken = await adminAuth.createCustomToken(targetUid, claims);
+    const customToken = await adminAuth.createCustomToken(targetUid);
 
     return NextResponse.json({ ok: true, customToken });
   } catch (err: unknown) {

@@ -1,7 +1,7 @@
 'use server';
 
 // export const runtime = 'nodejs';
-export const maxDuration = 60;
+// export const maxDuration = 60;
 
 import { z } from 'zod';
 import { requireUser } from '@/lib/auth/require-user';
@@ -14,7 +14,7 @@ import {
   type BroadsheetStudentRow,
 } from '@/lib/export';
 
-export const generateBroadsheetInSchema = z
+const generateBroadsheetInSchema = z
   .object({
     academic_year_id: z.string().trim().min(1, 'Academic year is required'),
     course_id: z.string().trim().min(1, 'Course ID is required').default('all'),

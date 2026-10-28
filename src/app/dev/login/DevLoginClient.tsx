@@ -176,13 +176,16 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
             className="flex items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (customTarget.trim()) {
-                void handleSignIn(customTarget.trim(), customTarget.trim());
+              const formData = new FormData(e.currentTarget);
+              const val = ((formData.get('customTarget') as string) || customTarget).trim();
+              if (val) {
+                void handleSignIn(val, val);
               }
             }}
           >
             <Input
               type="text"
+              name="customTarget"
               data-testid="dev-login-input"
               placeholder="Custom UID or email..."
               value={customTarget}
@@ -194,7 +197,7 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
               size="sm"
               variant="secondary"
               data-testid="dev-login-submit"
-              disabled={!customTarget.trim() || loggingInUid !== null}
+              disabled={loggingInUid !== null}
               className="h-11 px-4 text-xs font-medium"
             >
               Sign In

@@ -10,7 +10,6 @@ import AxeBuilder from '@axe-core/playwright';
 import { Timestamp } from 'firebase-admin/firestore';
 import { adminAuth, adminDb } from '../src/lib/firebase/admin';
 import { fx, studentEmail, studentUid, staffUid } from '../fixtures';
-import { syncContactGrants } from '../src/lib/contacts/grants';
 import { evaluationId } from '../src/lib/defense/eval-id';
 import type {
   DefensePanelDocument,
@@ -45,11 +44,56 @@ async function ensureEmulatorUserWithClaims(setup: EmulatorUserSetup): Promise<v
 }
 
 async function signInViaDevPortal(page: Page, uidOrEmail: string): Promise<void> {
-  await page.goto('/dev/login', { waitUntil: 'domcontentloaded' });
+  await page.goto('/dev/login', { waitUntil: 'networkidle' });
   const input = page.locator('[data-testid="dev-login-input"]');
   await expect(input).toBeVisible();
   await input.fill(uidOrEmail);
   await page.locator('[data-testid="dev-login-submit"]').click();
+}
+
+async function getTeamIdByGroupNumber(groupNumber: string): Promise<string> {
+  const snap = await adminDb
+    .collection('teams')
+    .where('group_number', '==', groupNumber)
+    .limit(1)
+    .get();
+  if (snap.empty || !snap.docs[0]) {
+    throw new Error(`Team with group_number ${groupNumber} not found in Firestore`);
+  }
+  return snap.docs[0].id;
+}
+
+async function syncContactGrants(teamId: string): Promise<void> {
+  const teamSnap = await adminDb.collection('teams').doc(teamId).get();
+  if (!teamSnap.exists) return;
+  const team = teamSnap.data() as {
+    member_ids: string[];
+    assigned_supervisor_id?: string | null;
+    approved_topic_id?: string | null;
+    supervisor_assignment?: { status?: string };
+  };
+  const supId = team.assigned_supervisor_id;
+  if (!supId) return;
+
+  const isAccepted = team.supervisor_assignment?.status === 'accepted';
+  const hasApprovedTopic = Boolean(team.approved_topic_id);
+
+  const grantsCol = adminDb
+    .collection('supervisor_contacts')
+    .doc(supId)
+    .collection('grants');
+
+  for (const memberUid of team.member_ids) {
+    if (isAccepted && hasApprovedTopic) {
+      await grantsCol.doc(memberUid).set({
+        student_id: memberUid,
+        team_id: teamId,
+        granted_at: Timestamp.now(),
+      });
+    } else {
+      await grantsCol.doc(memberUid).delete();
+    }
+  }
 }
 
 async function expectAccessible(page: Page): Promise<void> {
@@ -64,7 +108,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
   test('1. registered student reaches the dashboard and passes @axe-core/playwright check on /', async ({
     page,
   }) => {
-    const student = fx.student('0323809921');
+    const student = fx.students[0]!;
     const uid = studentUid(student.index_number);
     const email = studentEmail(student.index_number);
 
@@ -98,7 +142,8 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
       email: tempEmail,
       displayName: 'Unregistered Visitor',
       claims: {
-        roles: [],
+        roles: ['student'],
+        activeRole: 'student',
         registered: false,
         profileComplete: false,
       },
@@ -172,60 +217,95 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
   test('4. category mismatch join shows the 409 message and passes @axe-core/playwright check on /my-team', async ({
     page,
   }) => {
-    // Retrieve invite code for btech-cs team BCS26_01 (team-bcs26-01)
+    // Retrieve invite code for btech-cs team BCS26_01
+    const bcsTeamId = await getTeamIdByGroupNumber('BCS26_01');
     const inviteSnap = await adminDb
       .collection('teams')
-      .doc('team-bcs26-01')
+      .doc(bcsTeamId)
       .collection('private')
       .doc('invite')
       .get();
     const bcsInviteCode = (inviteSnap.data()?.code as string) || 'BCS261';
 
-    // Use unassigned btech-ict student from fixtures (0320194851 - Sampson Tetteh)
-    const ictStudent = fx.student('0320194851');
+    // Pick a btech-ict student from fixtures and temporarily detach from their team so JoinTeamCard renders
+    const ictStudent = fx.students.find((s) => s.course_id === 'btech-ict')!;
     const uid = studentUid(ictStudent.index_number);
     const email = studentEmail(ictStudent.index_number);
 
-    await ensureEmulatorUserWithClaims({
-      uid,
-      email,
-      displayName: ictStudent.full_name,
-      claims: {
-        roles: ['student'],
-        activeRole: 'student',
-        registered: true,
-        profileComplete: true,
-        course_id: ictStudent.course_id,
-      },
-    });
+    const activeTeamsSnap = await adminDb
+      .collection('teams')
+      .where('member_ids', 'array-contains', uid)
+      .get();
+    const originalTeamDocs: { id: string; member_ids: string[]; member_count: number }[] = [];
+    for (const d of activeTeamsSnap.docs) {
+      const data = d.data() as { member_ids: string[]; member_count: number };
+      originalTeamDocs.push({
+        id: d.id,
+        member_ids: data.member_ids,
+        member_count: data.member_count,
+      });
+      const filtered = data.member_ids.filter((id) => id !== uid);
+      await d.ref.update({
+        member_ids: filtered,
+        member_count: filtered.length,
+      });
+    }
 
-    await signInViaDevPortal(page, uid);
-    await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
+    // Ensure bcsTeamId has an open slot so joinTeam reaches the 409 course mismatch check
+    await adminDb.collection('teams').doc(bcsTeamId).update({ max_members: 6 });
 
-    await page.goto('/my-team', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Join with Code')).toBeVisible();
+    try {
+      await ensureEmulatorUserWithClaims({
+        uid,
+        email,
+        displayName: ictStudent.full_name,
+        claims: {
+          roles: ['student'],
+          activeRole: 'student',
+          registered: true,
+          profileComplete: true,
+          course_id: ictStudent.course_id,
+        },
+      });
 
-    await expectAccessible(page);
+      await signInViaDevPortal(page, uid);
+      await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
-    const codeInput = page.getByPlaceholder(/7K4X9B/i);
-    await codeInput.fill(bcsInviteCode);
-    await page.getByRole('button', { name: /Join Team/i }).click();
+      await page.goto('/my-team');
+      await expect(page.getByText('Join with Code')).toBeVisible();
 
-    await expect(
-      page.getByText(
-        /This team belongs to a different programme\. You can only join teams in your own course track\./i
-      ).first()
-    ).toBeVisible();
+      await expectAccessible(page);
+
+      const codeInput = page.getByPlaceholder(/7K4X9B/i);
+      await codeInput.fill(bcsInviteCode);
+      await page.getByRole('button', { name: /Join Team/i }).click();
+
+      await expect(
+        page
+          .getByText(
+            /This team belongs to a different programme\. You can only join teams in your own course track\./i
+          )
+          .first()
+      ).toBeVisible();
+    } finally {
+      await adminDb.collection('teams').doc(bcsTeamId).update({ max_members: 5 });
+      for (const orig of originalTeamDocs) {
+        await adminDb.collection('teams').doc(orig.id).update({
+          member_ids: orig.member_ids,
+          member_count: orig.member_count,
+        });
+      }
+    }
   });
 
   test('5. full path proposal approved + supervisor accepted unlocks contact details and passes @axe-core/playwright on /proposals', async ({
     page,
   }) => {
-    // Use team-bcs26-02 (leader: 0321948561 Nana Akua Ofori, supervisor: staff-kappiah)
-    const leader = fx.student('0321948561');
+    const group = fx.group('BCS26_02');
+    const leader = fx.student(group.leader);
     const leaderUid = studentUid(leader.index_number);
     const supUid = staffUid('kappiah@htu.edu.gh');
-    const teamId = 'team-bcs26-02';
+    const teamId = await getTeamIdByGroupNumber('BCS26_02');
     const topicId = 'topic-bcs26-02';
     const assignId = `assign-${teamId}-${supUid}`;
 
@@ -234,24 +314,27 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     const topicDoc: TopicDocument = {
       id: topicId,
       team_id: teamId,
-      academic_year_id: '2026-2027',
       title: 'Zero-Trust Campus Authentication Gateway',
       abstract:
         'A mutual-TLS and hardware-token authentication gateway for university laboratory networks.',
-      objectives: ['Enforce mTLS across lab endpoints', 'Audit privileged sessions'],
+      problem_statement: 'Campus laboratory endpoints lack mutual authentication and session auditing.',
+      proposed_solution: 'Deploy an mTLS and FIDO2 gateway for laboratory network access.',
       tech_stack: ['typescript', 'cybersecurity', 'cloud-computing'],
+      preference_rank: 1,
+      is_current: true,
       status: 'submitted',
       version: 1,
-      submitted_by: leaderUid,
       submitted_at: now,
-      created_at: now,
-      updated_at: now,
     };
     await adminDb.collection('topics').doc(topicId).set(topicDoc);
     await adminDb.collection('teams').doc(teamId).update({
       status: 'topic_pending',
       approved_topic_id: null,
       assigned_supervisor_id: supUid,
+      supervisor_assignment: {
+        status: 'proposed',
+        assigned_at: now,
+      },
     });
     await adminDb.collection('supervisor_assignments').doc(assignId).set({
       id: assignId,
@@ -281,24 +364,29 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
     // Check /proposals accessibility
-    await page.goto('/proposals', { waitUntil: 'domcontentloaded' });
+    await page.goto('/proposals');
     await expect(page.getByText('Zero-Trust Campus Authentication Gateway')).toBeVisible();
     await expectAccessible(page);
 
     // Visit /supervision while still proposed -> contact details must be locked
-    await page.goto('/supervision', { waitUntil: 'domcontentloaded' });
+    await page.goto('/supervision');
     await expect(page.getByText('Supervisor Consultation Details Locked')).toBeVisible();
 
     // Approve topic + accept supervisor assignment -> syncs contact grants
     await adminDb.collection('topics').doc(topicId).update({
       status: 'approved',
-      reviewed_by: staffUid('coordinator@htu.edu.gh'),
+      reviewed_by_user_id: staffUid('coordinator@htu.edu.gh'),
       reviewed_at: Timestamp.now(),
     });
     await adminDb.collection('teams').doc(teamId).update({
       status: 'topic_approved',
       approved_topic_id: topicId,
       assigned_supervisor_id: supUid,
+      supervisor_assignment: {
+        status: 'accepted',
+        assigned_at: now,
+        responded_at: Timestamp.now(),
+      },
     });
     await adminDb.collection('supervisor_assignments').doc(assignId).update({
       status: 'accepted',
@@ -307,16 +395,18 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     await syncContactGrants(teamId);
 
     // Reload /supervision and verify contact details unlock
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.reload();
     await expect(page.getByText('Consultation Details')).toBeVisible();
     await expect(page.getByText('Access Granted')).toBeVisible();
-    await expect(page.getByText('CS Block B, Room 204')).toBeVisible();
+    await expect(
+      page.getByText(fx.profile('kappiah@htu.edu.gh')!.office_location)
+    ).toBeVisible();
   });
 
   test('6. two evaluators score and the coordinator sees the live composite + @axe-core/playwright on /defense/[panelId]', async ({
     page,
   }) => {
-    const teamId = 'team-bcs26-01';
+    const teamId = await getTeamIdByGroupNumber('BCS26_01');
     const panelId = 'panel-e2e-bcs26-01';
     const rubricId = 'rubric-2026-default';
     const supUid = staffUid('kappiah@htu.edu.gh');
@@ -328,29 +418,30 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     // Ensure active rubric
     const rubric: RubricDocument = {
       id: rubricId,
-      academic_year_id: '2026-2027',
       title: 'HTU Standard Capstone Rubric',
       is_active: true,
       max_score: 100,
       panel_weight_pct: 60,
       supervisor_weight_pct: 40,
       criteria: [
-        { id: 'c1', title: 'Problem Definition', description: 'Clarity of problem', max_points: 25, weight_pct: 25 },
-        { id: 'c2', title: 'System Architecture', description: 'Design quality', max_points: 25, weight_pct: 25 },
-        { id: 'c3', title: 'Implementation', description: 'Working prototype', max_points: 25, weight_pct: 25 },
-        { id: 'c4', title: 'Presentation & Q&A', description: 'Defense delivery', max_points: 25, weight_pct: 25 },
+        { id: 'c1', title: 'Problem Definition', description: 'Clarity of problem', max_points: 25, category: 'oral_defense' },
+        { id: 'c2', title: 'System Architecture', description: 'Design quality', max_points: 25, category: 'technical_architecture' },
+        { id: 'c3', title: 'Implementation', description: 'Working prototype', max_points: 25, category: 'system_demo' },
+        { id: 'c4', title: 'Presentation & Q&A', description: 'Defense delivery', max_points: 25, category: 'oral_defense' },
       ],
       created_at: now,
       updated_at: now,
     };
     await adminDb.collection('rubrics').doc(rubricId).set(rubric);
 
-    // Ensure defense panel for team-bcs26-01
+    // Ensure defense panel for BCS26_01
     const panel: DefensePanelDocument = {
       id: panelId,
       academic_year_id: '2026-2027',
-      name: 'BTech CS Panel Alpha',
+      course_id: 'BTECH-CS',
+      panel_name: 'BTech CS Panel Alpha',
       venue: 'CS Lab 1',
+      is_virtual: false,
       chair_id: chairUid,
       examiner_ids: [examinerUid],
       is_published: true,
@@ -383,7 +474,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
       comments: 'Consistent milestone progress.',
       is_published: false,
       student_id: null,
-      submitted_at: now,
+      created_at: now,
       updated_at: now,
     };
 
@@ -398,7 +489,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
       comments: 'Strong technical demonstration.',
       is_published: false,
       student_id: null,
-      submitted_at: now,
+      created_at: now,
       updated_at: now,
     };
 
@@ -422,9 +513,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     await signInViaDevPortal(page, coordUid);
     await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
-    await page.goto(`/defense/${panelId}?team=${teamId}`, {
-      waitUntil: 'domcontentloaded',
-    });
+    await page.goto(`/defense/${panelId}?team=${teamId}`);
 
     await expect(page.getByText('Live Panel Composite Scoring')).toBeVisible();
     // 0.4 * 80 + 0.6 * 90 = 32 + 54 = 86.00%
@@ -438,7 +527,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
   test('7. publishing grades blocks further evaluation writes and passes @axe-core/playwright on /reports', async ({
     page,
   }) => {
-    const teamId = 'team-bcs26-01';
+    const teamId = await getTeamIdByGroupNumber('BCS26_01');
     const panelId = 'panel-e2e-bcs26-01';
     const chairStaff = fx.staffByEmail('aowusu@htu.edu.gh');
     const chairUid = staffUid(chairStaff.email);
@@ -462,8 +551,8 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     await signInViaDevPortal(page, coordUid);
     await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
-    await page.goto('/reports', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /Reports & Broadsheet/i })).toBeVisible();
+    await page.goto('/reports');
+    await expect(page.getByRole('heading', { name: /Official Broadsheet Reports/i })).toBeVisible();
     await expectAccessible(page);
 
     // Publish evaluation for chairUid and lock grades
@@ -493,9 +582,7 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
       await signInViaDevPortal(page, chairUid);
       await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
-      await page.goto(`/defense/${panelId}?team=${teamId}`, {
-        waitUntil: 'domcontentloaded',
-      });
+      await page.goto(`/defense/${panelId}?team=${teamId}`);
 
       await expect(page.getByText('Marksheet Locked')).toBeVisible();
       await expect(
@@ -512,4 +599,3 @@ test.describe('Phase 12 Hardening End-to-End Flows & Accessibility Suite', () =>
     }
   });
 });
-

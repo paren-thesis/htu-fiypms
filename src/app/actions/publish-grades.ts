@@ -1,7 +1,7 @@
 'use server';
 
 // export const runtime = 'nodejs';
-export const maxDuration = 60;
+// export const maxDuration = 60;
 
 import { z } from 'zod';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
@@ -13,7 +13,7 @@ import { createNotification } from '@/lib/models/notification/repo';
 import { archiveCompletedTeams } from '@/lib/archive/archive-teams';
 import type { TeamDocument, AcademicYearDocument } from '@/types/firestore';
 
-export const publishGradesInSchema = z
+const publishGradesInSchema = z
   .object({
     academic_year_id: z.string().trim().min(1, 'Academic year is required'),
     preflight_only: z.boolean().optional(),

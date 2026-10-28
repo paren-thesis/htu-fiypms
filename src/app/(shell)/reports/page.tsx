@@ -235,7 +235,7 @@ export default function ReportsPage() {
                 Academic Year
               </label>
               <Select value={academicYear} onValueChange={setAcademicYear}>
-                <SelectTrigger className="w-full text-xs min-h-[44px]">
+                <SelectTrigger aria-label="Academic Year" className="w-full text-xs min-h-[44px]">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -254,7 +254,7 @@ export default function ReportsPage() {
                 Programme Track
               </label>
               <Select value={courseTrack} onValueChange={setCourseTrack}>
-                <SelectTrigger className="w-full text-xs min-h-[44px]">
+                <SelectTrigger aria-label="Programme Track" className="w-full text-xs min-h-[44px]">
                   <SelectValue placeholder="Select programme" />
                 </SelectTrigger>
                 <SelectContent>

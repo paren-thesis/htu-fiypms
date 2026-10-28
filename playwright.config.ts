@@ -1,7 +1,13 @@
+process.env.GCLOUD_PROJECT = 'demo-fypms-test';
+process.env.FIREBASE_ADMIN_PROJECT_ID = 'demo-fypms-test';
+process.env.FIREBASE_PROJECT_ID = 'demo-fypms-test';
+process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'demo-fypms-test';
+process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9199';
+process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8180';
+
 import { defineConfig } from '@playwright/test';
 
-const TEST_PORT = process.env.E2E_PORT || '3100';
-const BASE_URL = process.env.BASE_URL ?? `http://localhost:${TEST_PORT}`;
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,12 +20,11 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: `npx next dev -p ${TEST_PORT}`,
+    command: 'npx next dev -p 3000',
     url: `${BASE_URL}/login`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
-      NEXT_DIST_DIR: '.next-test',
       GCLOUD_PROJECT: 'demo-fypms-test',
       FIREBASE_ADMIN_PROJECT_ID: 'demo-fypms-test',
       FIREBASE_PROJECT_ID: 'demo-fypms-test',

@@ -1,6 +1,4 @@
 import { spawn, type ChildProcess } from 'child_process';
-import { runSeed } from '../scripts/seed';
-import { resetTestEmulator } from '../tests/helpers/reset';
 
 const AUTH_PORT = 9199;
 const FIRESTORE_PORT = 8180;
@@ -68,6 +66,9 @@ export default async function globalSetup() {
     await waitForEmulators(60_000);
   }
 
+  const { resetTestEmulator } = await import('../tests/helpers/reset');
+  const { runSeed } = await import('../scripts/seed');
+
   await resetTestEmulator();
   await runSeed({ mode: 'full' });
 
@@ -88,4 +89,3 @@ export default async function globalSetup() {
     }
   };
 }
-

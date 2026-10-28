@@ -11,7 +11,7 @@ import { writeAudit } from '@/lib/audit';
 import { createNotification } from '@/lib/models/notification/repo';
 import type { TeamDocument } from '@/types/firestore';
 
-export const amendGradeInSchema = z
+const amendGradeInSchema = z
   .object({
     team_id: z.string().trim().min(1, 'Team ID is required'),
     supervisor_score: z.number().min(0, 'Score cannot be negative').max(100, 'Score cannot exceed 100'),
