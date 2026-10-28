@@ -1,59 +1,67 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Calendar, ListChecks, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  CoordinatorDefenseView,
+  StaffDefenseView,
+  StudentDefenseView,
+} from "@/components/defense";
 
 function DefenseContent() {
-  const searchParams = useSearchParams();
-  const isMarksheet = searchParams.get("tab") === "marksheet";
+  const { activeRole, loading } = useAuth();
 
-  if (isMarksheet) {
+  if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader
-          title="Digital Marksheet"
-          description="Live real-time digital marksheet scoring interface for defense examiners."
-        />
-
-        <EmptyState
-          icon={<ListChecks className="h-6 w-6 text-primary" aria-hidden="true" />}
-          title="Select a Defense Panel Session"
-          description="Active defense sessions stream real-time rubrics and live examiner marks."
-          action={
-            <Button asChild size="sm" className="gap-1.5">
-              <Link href="/defense/panel-1">
-                <span>Open Sample Marksheet</span>
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
-            </Button>
-          }
-        />
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </div>
     );
   }
 
+  // 1. Coordinator and Admin View
+  if (activeRole === "coordinator" || activeRole === "admin") {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Defense Scheduling & Panels"
+          description="Schedule oral presentation events, assign examining panels, detect double-booking conflicts, and publish official schedules."
+        />
+        <CoordinatorDefenseView />
+      </div>
+    );
+  }
+
+  // 2. Staff: Panel Member and Project Supervisor View
+  if (activeRole === "panel_member" || activeRole === "supervisor") {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="My Defense Panels"
+          description="Oral presentation sessions, examining panel duties, candidate deliverables, and real-time digital marksheet scoring."
+        />
+        <StaffDefenseView />
+      </div>
+    );
+  }
+
+  // 3. Student View
   return (
     <div className="space-y-6">
       <PageHeader
-        title="My Panels"
-        description="Oral presentation schedules, conflict detection, examiner panels, and defense session overview."
+        title="Project Defense Session"
+        description="Official schedule, presentation time slot, examining panel details, and examination venue."
       />
-
-      <EmptyState
-        icon={<Calendar className="h-6 w-6 text-primary" aria-hidden="true" />}
-        title="No Defense Sessions Scheduled"
-        description="Defense panels and presentation time slots will be published by the coordinator upon manuscript sign-off."
-        action={
-          <Button size="sm" variant="outline" disabled>
-            View Defense Guidelines
-          </Button>
-        }
-      />
+      <StudentDefenseView />
     </div>
   );
 }
@@ -63,10 +71,14 @@ export default function DefensePage() {
     <React.Suspense
       fallback={
         <div className="space-y-6">
-          <PageHeader
-            title="Defense Panels"
-            description="Oral presentation schedules, examiner panels, and digital marksheets."
-          />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
         </div>
       }
     >
