@@ -241,7 +241,10 @@ export interface DefensePanelDocument {
   chair_id: string; // References users/{uid} (Panel Chair)
   examiner_ids: string[]; // Array of faculty UIDs
   time_slots: DefenseTimeSlot[];
+  is_published?: boolean; // Spec amendment A4a
+  published_at?: FirebaseFirestore.Timestamp; // Spec amendment A4a
   created_at: FirebaseFirestore.Timestamp;
+  updated_at?: FirebaseFirestore.Timestamp;
 }
 
 export interface RubricCriterion {
@@ -359,6 +362,8 @@ export interface AuditLogDocument {
     | "team.renamed"
     | "team.auto_grouped"
     | "defense.scheduled"
+    | "defense.published"
+    | "defense.cross_programme"
     | "supervision.override"
     | "supervision.proposed"
     | "supervision.accepted"
