@@ -150,12 +150,12 @@ describe('Server Actions: Grade Appeals (Prompt 11-03)', () => {
 
   beforeAll(async () => {
     // 1. Setup Student 1 (teammate on appeal team)
-    const s1 = fx.students[0];
+    const s1 = fx.students[0]!;
     student1Uid = studentUid(s1.index_number);
     student1Token = await createStudentToken(s1.index_number);
 
     // 2. Setup Non-Member Student
-    const s2 = fx.students[1];
+    const s2 = fx.students[1]!;
     nonMemberToken = await createStudentToken(s2.index_number);
 
     // 3. Setup Coordinator

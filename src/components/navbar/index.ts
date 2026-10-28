@@ -5,3 +5,4 @@ export { CommandPalette } from "./CommandPalette";
 export { BreadcrumbNav } from "./BreadcrumbNav";
 export { AvatarMenu } from "./AvatarMenu";
 export { MobileNavDrawer } from "./MobileNavDrawer";
+export { NotificationBell } from "./NotificationBell";
