@@ -365,6 +365,8 @@ export interface AuditLogDocument {
     | "defense.scheduled"
     | "defense.published"
     | "defense.cross_programme"
+    | "defense.aggregated"
+    | "defense.slot_concluded"
     | "supervision.override"
     | "supervision.proposed"
     | "supervision.accepted"
@@ -376,11 +378,33 @@ export interface AuditLogDocument {
     | "rubric.updated"
     | "rubric.duplicated"
     | "rubric.activated"
-    | "rubric.archived";
+    | "rubric.archived"
+    | "deliverable.submitted"
+    | "deliverable.signed_off"
+    | "grades.published"
+    | "grades.publish_override"
+    | "grades.amended"
+    | "grade_appeal.submitted"
+    | "grade_appeal.resolved";
   target_type: string;
   target_id: string;
   description: string;
   metadata?: Record<string, unknown>;
   ip_address?: string;
   timestamp: FirebaseFirestore.Timestamp;
+}
+
+export type GradeAppealStatus = "submitted" | "under_review" | "resolved" | "rejected";
+
+export interface GradeAppealDocument {
+  id: string; // '${teamId}__${studentUid}'
+  team_id: string;
+  student_id: string; // References users/{uid}
+  reason: string; // 20 to 2000 chars
+  status: GradeAppealStatus;
+  resolution_notes?: string;
+  resolved_by?: string; // References users/{uid} (Coordinator/Admin)
+  resolved_at?: FirebaseFirestore.Timestamp;
+  created_at: FirebaseFirestore.Timestamp;
+  updated_at: FirebaseFirestore.Timestamp;
 }

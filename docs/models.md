@@ -21,3 +21,5 @@ Agents read this file (not the spec) to check what exists. `fypms-create-model` 
 | InviteCodeDocument | invite_codes | none · server only | src/types/firestore.ts | spec v5.2 |
 | NotificationDocument | notifications | owner read · server create | src/types/firestore.ts | spec v5.2 |
 | AuditLogDocument | audit_logs | coordinator/admin read · server write | src/types/firestore.ts | spec v5.2 |
+| GradeAppealDocument | grade_appeals (id: `${teamId}__${studentUid}`) | owning student, coordinator/admin read · server write | src/lib/models/grade-appeal/* | 11-03 (A4) |
+

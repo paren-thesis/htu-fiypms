@@ -10,6 +10,8 @@ import {
   Edit,
   ShieldCheck,
   Send,
+  HelpCircle,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { db } from "@/lib/firebase/client";
@@ -18,13 +20,19 @@ import {
   publishGrades,
   type PreflightFailure,
 } from "@/app/actions/publish-grades";
-import type { TeamDocument, AcademicYearDocument } from "@/types/firestore";
+import type { TeamDocument, AcademicYearDocument, GradeAppealDocument } from "@/types/firestore";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +57,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AmendGradeDialog } from "./AmendGradeDialog";
+import { ResolveAppealDialog } from "./ResolveAppealDialog";
 
 const ACADEMIC_YEARS = [
   { value: "2025-2026", label: "2025/2026 Academic Year" },
@@ -79,6 +88,12 @@ export function CoordinatorGradesView() {
   // Amend Dialog state
   const [amendTeam, setAmendTeam] = React.useState<TeamDocument | null>(null);
   const [amendDialogOpen, setAmendDialogOpen] = React.useState<boolean>(false);
+
+  // Appeals state
+  const [appeals, setAppeals] = React.useState<GradeAppealDocument[]>([]);
+  const [appealFilter, setAppealFilter] = React.useState<string>("all");
+  const [selectedAppeal, setSelectedAppeal] = React.useState<GradeAppealDocument | null>(null);
+  const [resolveDialogOpen, setResolveDialogOpen] = React.useState<boolean>(false);
 
   // 1. Stream Academic Year
   React.useEffect(() => {
@@ -124,6 +139,32 @@ export function CoordinatorGradesView() {
       unsubscribe();
     };
   }, [selectedYear]);
+
+  // 3. Stream Grade Appeals
+  React.useEffect(() => {
+    let active = true;
+    const q = query(collection(db, "grade_appeals"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        if (!active) return;
+        const docs = snapshot.docs.map(
+          (d) => ({ id: d.id, ...(d.data() as Omit<GradeAppealDocument, "id">) } as GradeAppealDocument)
+        );
+        setAppeals(docs);
+      },
+      (error) => {
+        if (!active) return;
+        console.error("Failed to stream grade appeals:", error);
+      }
+    );
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
 
   // Run Pre-flight Check
   const runPreflight = async () => {
@@ -194,8 +235,35 @@ export function CoordinatorGradesView() {
     !hasMissingScores &&
     (!hasMissingSignoffs || overrideJustification.trim().length >= 10);
 
+  const teamsMap = React.useMemo(() => new Map(teams.map((t) => [t.id, t])), [teams]);
+
+  const filteredAppeals = React.useMemo(() => {
+    return appeals.filter((a) => {
+      if (appealFilter === "all") return true;
+      return a.status === appealFilter;
+    });
+  }, [appeals, appealFilter]);
+
+  const pendingAppealsCount = appeals.filter((a) => a.status === "submitted" || a.status === "under_review").length;
+
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="publication" className="space-y-6">
+        <TabsList className="bg-muted p-1">
+          <TabsTrigger value="publication" className="text-xs font-semibold">
+            Publication & Grade Records ({teams.length})
+          </TabsTrigger>
+          <TabsTrigger value="appeals" className="text-xs font-semibold flex items-center gap-1.5">
+            Grade Appeals ({appeals.length})
+            {pendingAppealsCount > 0 && (
+              <Badge variant="secondary" className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-1.5 py-0 h-4 font-mono font-bold">
+                {pendingAppealsCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="publication" className="space-y-6 mt-0">
       {/* Year Filter & Publication Controls */}
       <Card className="border shadow-sm">
         <CardHeader className="pb-3 border-b">
@@ -456,6 +524,151 @@ export function CoordinatorGradesView() {
           )}
         </CardContent>
       </Card>
+      </TabsContent>
+
+      {/* Tab 2: Grade Appeals */}
+      <TabsContent value="appeals" className="space-y-6 mt-0">
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-3 border-b">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  Student Grade Appeals
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  Review formal grade inquiries submitted within the 7-day post-publication window.
+                </CardDescription>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Select value={appealFilter} onValueChange={setAppealFilter}>
+                  <SelectTrigger className="w-48 text-xs min-h-[44px]">
+                    <SelectValue placeholder="Filter Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs">
+                      All Statuses ({appeals.length})
+                    </SelectItem>
+                    <SelectItem value="submitted" className="text-xs">
+                      Submitted (New)
+                    </SelectItem>
+                    <SelectItem value="under_review" className="text-xs">
+                      Under Review
+                    </SelectItem>
+                    <SelectItem value="resolved" className="text-xs">
+                      Resolved
+                    </SelectItem>
+                    <SelectItem value="rejected" className="text-xs">
+                      Rejected
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            {filteredAppeals.length === 0 ? (
+              <div className="text-center py-12 px-4 space-y-2">
+                <MessageSquare className="h-8 w-8 text-muted-foreground/60 mx-auto" />
+                <p className="text-sm font-semibold text-foreground">
+                  No Grade Appeals Found
+                </p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  {appealFilter === "all"
+                    ? "No student grade appeals have been recorded for this cohort."
+                    : `No appeals currently match the "${appealFilter}" status filter.`}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 text-[11px] uppercase font-bold text-muted-foreground">
+                      <TableHead className="w-44">Team</TableHead>
+                      <TableHead className="w-36">Student UID</TableHead>
+                      <TableHead className="w-28">Status</TableHead>
+                      <TableHead>Grounds for Appeal</TableHead>
+                      <TableHead className="w-48">Resolution Notes</TableHead>
+                      <TableHead className="w-28 text-right pr-4">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAppeals.map((appeal) => {
+                      const team = teamsMap.get(appeal.team_id);
+                      return (
+                        <TableRow key={appeal.id} className="text-xs hover:bg-muted/30">
+                          <TableCell className="font-semibold text-foreground">
+                            <div>{team?.name || "Team"}</div>
+                            <div className="text-[11px] font-mono text-muted-foreground font-normal">
+                              {team?.group_number || appeal.team_id}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {appeal.student_id}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={`text-[11px] font-semibold ${
+                                appeal.status === "resolved"
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                  : appeal.status === "rejected"
+                                  ? "bg-destructive/10 text-destructive border-destructive/30"
+                                  : appeal.status === "under_review"
+                                  ? "bg-blue-50 text-blue-800 border-blue-300"
+                                  : "bg-amber-100 text-amber-900 border-amber-300"
+                              }`}
+                            >
+                              {appeal.status === "submitted"
+                                ? "Submitted"
+                                : appeal.status === "under_review"
+                                ? "Under Review"
+                                : appeal.status === "resolved"
+                                ? "Resolved"
+                                : "Rejected"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <p className="line-clamp-2 text-foreground font-normal">
+                              {appeal.reason}
+                            </p>
+                          </TableCell>
+                          <TableCell className="max-w-xs text-muted-foreground text-[11px]">
+                            {appeal.resolution_notes ? (
+                              <p className="line-clamp-2 italic text-foreground">
+                                {appeal.resolution_notes}
+                              </p>
+                            ) : (
+                              <span className="text-muted-foreground/60 italic">None</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right pr-4">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedAppeal(appeal);
+                                setResolveDialogOpen(true);
+                              }}
+                              className="h-8 text-xs min-h-[44px] font-semibold"
+                            >
+                              Review
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+      </Tabs>
 
       {/* Type-to-Confirm Publication Dialog */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
@@ -529,6 +742,18 @@ export function CoordinatorGradesView() {
         onOpenChange={setAmendDialogOpen}
         onSuccess={() => {
           // Team updates stream automatically via onSnapshot
+        }}
+      />
+
+      {/* Resolve Appeal Dialog */}
+      <ResolveAppealDialog
+        appeal={selectedAppeal}
+        team={selectedAppeal ? teamsMap.get(selectedAppeal.team_id) || null : null}
+        open={resolveDialogOpen}
+        onOpenChange={setResolveDialogOpen}
+        onOpenAmend={(team) => {
+          setAmendTeam(team);
+          setAmendDialogOpen(true);
         }}
       />
     </div>

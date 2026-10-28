@@ -9,11 +9,13 @@ import {
 } from "lucide-react";
 import { db } from "@/lib/firebase/client";
 import { useAuth } from "@/context/AuthContext";
-import type { TeamDocument, EvaluationDocument, AcademicYearDocument } from "@/types/firestore";
+import type { TeamDocument, EvaluationDocument, AcademicYearDocument, GradeAppealDocument } from "@/types/firestore";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LockedCard } from "@/components/common/LockedCard";
+import { SubmitAppealDialog } from "./SubmitAppealDialog";
 
 export function StudentGradesView() {
   const { user } = useAuth();
@@ -24,6 +26,9 @@ export function StudentGradesView() {
   const [academicYear, setAcademicYear] = React.useState<AcademicYearDocument | null>(null);
   const [evaluations, setEvaluations] = React.useState<EvaluationDocument[]>([]);
   const [evaluationsLoading, setEvaluationsLoading] = React.useState<boolean>(false);
+
+  const [appeal, setAppeal] = React.useState<GradeAppealDocument | null>(null);
+  const [appealDialogOpen, setAppealDialogOpen] = React.useState<boolean>(false);
 
   // 1. Stream student's team
   React.useEffect(() => {
@@ -106,6 +111,30 @@ export function StudentGradesView() {
       setEvaluations([]);
     };
   }, [team?.id, academicYear?.grades_published]);
+
+  // 4. Stream student's appeal (if any)
+  React.useEffect(() => {
+    if (!team?.id || !user?.uid) return;
+
+    const appealDocId = `${team.id}__${user.uid}`;
+    const appealRef = doc(db, "grade_appeals", appealDocId);
+
+    const unsubscribe = onSnapshot(
+      appealRef,
+      (snap) => {
+        if (snap.exists()) {
+          setAppeal({ id: snap.id, ...(snap.data() as Omit<GradeAppealDocument, "id">) });
+        } else {
+          setAppeal(null);
+        }
+      },
+      (error) => {
+        console.error("Failed to stream grade appeal:", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [team?.id, user?.uid]);
 
   if (teamLoading) {
     return (
@@ -271,7 +300,28 @@ export function StudentGradesView() {
                 <Clock className="h-3.5 w-3.5 text-amber-600" />
                 Appeal Window
               </CardTitle>
-              {isAppealWindowOpen ? (
+              {appeal ? (
+                <Badge
+                  variant="outline"
+                  className={`text-[11px] font-semibold ${
+                    appeal.status === "resolved"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                      : appeal.status === "rejected"
+                      ? "bg-destructive/10 text-destructive border-destructive/30"
+                      : appeal.status === "under_review"
+                      ? "bg-blue-50 text-blue-800 border-blue-300"
+                      : "bg-amber-100 text-amber-900 border-amber-300"
+                  }`}
+                >
+                  {appeal.status === "submitted"
+                    ? "Appeal Submitted"
+                    : appeal.status === "under_review"
+                    ? "Under Review"
+                    : appeal.status === "resolved"
+                    ? "Appeal Resolved"
+                    : "Appeal Dismissed"}
+                </Badge>
+              ) : isAppealWindowOpen ? (
                 <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-300 text-[11px] font-semibold">
                   Active Window
                 </Badge>
@@ -282,9 +332,34 @@ export function StudentGradesView() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-0 space-y-1">
-            {isAppealWindowOpen ? (
-              <>
+          <CardContent className="pt-0 space-y-2">
+            {appeal ? (
+              <div className="space-y-2 text-xs">
+                <div className="p-2.5 bg-background rounded border space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                    Your Grounds:
+                  </span>
+                  <p className="text-foreground text-[11px] whitespace-pre-wrap leading-relaxed max-h-24 overflow-y-auto">
+                    {appeal.reason}
+                  </p>
+                </div>
+                {appeal.resolution_notes ? (
+                  <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded text-blue-950 text-[11px] space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-blue-700 block">
+                      Board Resolution:
+                    </span>
+                    <p className="whitespace-pre-wrap leading-relaxed">
+                      {appeal.resolution_notes}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    Your appeal has been received and is under official review.
+                  </p>
+                )}
+              </div>
+            ) : isAppealWindowOpen ? (
+              <div className="space-y-2">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-900">
                     {daysRemaining}d {hoursRemaining}h
@@ -294,7 +369,16 @@ export function StudentGradesView() {
                 <p className="text-[11px] text-muted-foreground">
                   Deadline: {appealDeadlineDate?.toLocaleDateString()} at {appealDeadlineDate?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
-              </>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setAppealDialogOpen(true)}
+                  className="w-full text-xs min-h-[44px] font-semibold text-amber-900 border-amber-300 bg-amber-100 hover:bg-amber-200"
+                >
+                  Submit Grade Appeal
+                </Button>
+              </div>
             ) : (
               <p className="text-xs text-muted-foreground pt-1">
                 The 7-calendar-day grade appeal period has concluded. Final records are locked.
@@ -395,6 +479,13 @@ export function StudentGradesView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Appeal Submission Dialog */}
+      <SubmitAppealDialog
+        open={appealDialogOpen}
+        onOpenChange={setAppealDialogOpen}
+        team={team}
+      />
     </div>
   );
 }
