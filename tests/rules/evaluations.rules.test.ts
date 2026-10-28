@@ -166,4 +166,21 @@ describe("Rule: Evaluations (Digital Marksheet)", () => {
       })
     );
   });
+
+  it("evaluator write denied once is_published is true", async () => {
+    const examinerDb = await ctx({
+      uid: examinerUid,
+      roles: ["panel_member"],
+      activeRole: "panel_member",
+    });
+
+    // Attempting to update an already published evaluation must be denied
+    await assertFails(
+      examinerDb.doc(`evaluations/pub_${validEvalId}`).update({
+        scores: { c1: 20 },
+        total_score: 20,
+        comments: "Post-publication tamper attempt",
+      })
+    );
+  });
 });

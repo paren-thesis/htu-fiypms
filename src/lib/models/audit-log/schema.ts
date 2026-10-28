@@ -27,6 +27,8 @@ export const auditLogActionSchema = z.enum([
   'defense.scheduled',
   'defense.published',
   'defense.cross_programme',
+  'defense.aggregated',
+  'defense.slot_concluded',
   'supervision.override',
   'supervision.proposed',
   'supervision.accepted',

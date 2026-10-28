@@ -14,7 +14,7 @@ Agents read this file (not the spec) to check what exists. `fypms-create-model` 
 | ChapterDocument | chapters (id: `${teamId}__ch${n}`) | members read · server write (submit/review actions; history[] per A3) | src/lib/models/chapter/* | 07-01 (A3) |
 | RubricDocument | rubrics | members read · coordinator/admin write | src/lib/models/rubric/* | 08-01 |
 | DefensePanelDocument | defense_panels | members read · coordinator/admin write | src/lib/models/defense-panel/* | 08-02 (A4a) |
-| EvaluationDocument | evaluations | evaluator/staff read, team after publish · evaluator write unpublished | src/types/firestore.ts | spec v5.2 |
+| EvaluationDocument | evaluations | evaluator/staff read, team after publish · evaluator write unpublished | src/lib/models/evaluation/* | 09-01 |
 | PeerEvaluationDocument | peer_evaluations | evaluator/supervisor/coordinator/admin read · team member create | src/types/firestore.ts | spec v5.2 |
 | SoftwareDeliverableDocument | software_deliverables | members read · team + assigned supervisor write | src/types/firestore.ts | spec v5.2 |
 | SupervisorContactDocument | supervisor_contacts (+grants) | owner/coordinator/admin or granted student read · server write | src/types/firestore.ts | spec v5.2 |

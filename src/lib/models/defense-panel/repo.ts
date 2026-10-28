@@ -84,3 +84,21 @@ export async function createDefensePanelDoc(
   const snap = await ref.get();
   return { id: ref.id, ...(snap.data() as Omit<DefensePanelDocument, 'id'>) };
 }
+
+/**
+ * Finds the defense panel and slot where a specific team is scheduled.
+ */
+export async function findPanelForTeam(
+  teamId: string,
+  academicYearId?: string
+): Promise<{ panel: DefensePanelDocument; slot: DefenseTimeSlot } | null> {
+  const panels = await listDefensePanels(academicYearId);
+  for (const panel of panels) {
+    const slot = panel.time_slots?.find((s) => s.team_id === teamId);
+    if (slot) {
+      return { panel, slot };
+    }
+  }
+  return null;
+}
+
