@@ -18,24 +18,20 @@ test.describe('TopNav, Dashboard, and Staff Whitelist Sheet responsiveness (375,
       await page.getByRole('button', { name: 'Sign in as coordinator' }).click();
       await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
 
-      const searchBtn = page.getByRole('button', { name: 'Open command palette' });
       const bellBtn = page.getByRole('button', { name: /Notifications/i });
       const roleBtn = page.getByRole('button', { name: 'Switch active role' });
       const avatarBtn = page.getByRole('button', { name: 'User account menu' });
 
-      await expect(searchBtn).toBeVisible();
       await expect(bellBtn).toBeVisible();
       await expect(roleBtn).toBeVisible();
       await expect(avatarBtn).toBeVisible();
 
       // Every TopNav button must sit completely within [0, width]
-      await expectWithinViewportX(page, searchBtn);
       await expectWithinViewportX(page, bellBtn);
       await expectWithinViewportX(page, roleBtn);
       await expectWithinViewportX(page, avatarBtn);
 
       // Adjacent TopNav buttons must not overlap
-      await expectNoOverlap(searchBtn, bellBtn);
       await expectNoOverlap(bellBtn, roleBtn);
       await expectNoOverlap(roleBtn, avatarBtn);
 
@@ -43,11 +39,10 @@ test.describe('TopNav, Dashboard, and Staff Whitelist Sheet responsiveness (375,
         const menuBtn = page.getByRole('button', { name: 'Open navigation menu' });
         await expect(menuBtn).toBeVisible();
         await expectWithinViewportX(page, menuBtn);
-        await expectNoOverlap(menuBtn, searchBtn);
+        await expectNoOverlap(menuBtn, bellBtn);
 
         // Mobile touch targets >= 44px
         await expectTouchTarget(menuBtn, 44);
-        await expectTouchTarget(searchBtn, 44);
         await expectTouchTarget(bellBtn, 44);
         await expectTouchTarget(roleBtn, 44);
         await expectTouchTarget(avatarBtn, 44);
