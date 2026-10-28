@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/server/**/*.test.ts'],
     fileParallelism: false,
+    isolate: false,
     testTimeout: 30000,
     setupFiles: ['tests/setup/emulator-guard.ts'],
     env: {

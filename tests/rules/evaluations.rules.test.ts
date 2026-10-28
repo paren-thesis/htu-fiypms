@@ -56,7 +56,7 @@ describe("Rule: Evaluations (Digital Marksheet)", () => {
     });
   });
 
-  it("evaluations are unreadable by students before is_published is true", async () => {
+  it("evaluations are unreadable by students before is_published is true (F-05)", async () => {
     const studentDb = await ctx({ uid: studentUid });
 
     await assertFails(studentDb.doc(`evaluations/${validEvalId}`).get());
@@ -90,7 +90,7 @@ describe("Rule: Evaluations (Digital Marksheet)", () => {
     await assertSucceeds(coordinatorDb.doc(`evaluations/${validEvalId}`).get());
   });
 
-  it("evaluation create requires id {teamId}__{uid}__team and is_published false", async () => {
+  it("evaluation create requires id {teamId}__{uid}__team and is_published false (F-08, F-15)", async () => {
     const examinerDb = await ctx({
       uid: examinerUid,
       roles: ["panel_member"],
@@ -167,7 +167,7 @@ describe("Rule: Evaluations (Digital Marksheet)", () => {
     );
   });
 
-  it("evaluator write denied once is_published is true", async () => {
+  it("evaluator write denied once is_published is true (F-07)", async () => {
     const examinerDb = await ctx({
       uid: examinerUid,
       roles: ["panel_member"],

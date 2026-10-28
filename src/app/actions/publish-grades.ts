@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 import { z } from 'zod';

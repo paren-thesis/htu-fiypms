@@ -10,7 +10,7 @@ import { listRosterStudents } from "@/lib/models/roster/repo";
 import { serializeForClient } from "@/lib/serialize";
 import { CalendarX, Users, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Timestamp } from "firebase-admin/firestore";
+
 
 export const metadata: Metadata = {
   title: "Students & Pool · FYPMS",
@@ -48,7 +48,7 @@ export default async function StudentsPage() {
   let formationDeadlineStr: string | null = null;
   if (deadline) {
     formationDeadlineStr =
-      deadline instanceof Timestamp
+      typeof (deadline as { toDate?: () => Date }).toDate === "function"
         ? deadline.toDate().toISOString()
         : new Date(deadline as unknown as string).toISOString();
   }

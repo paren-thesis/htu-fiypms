@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
       uid?: unknown;
       email?: unknown;
     };
-    const uid = typeof body.uid === 'string' ? body.uid : undefined;
-    const email = typeof body.email === 'string' ? body.email.toLowerCase() : undefined;
+    const uid = typeof body.uid === 'string' ? body.uid.trim() : undefined;
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : undefined;
 
     let targetUid = uid;
     let targetEmail = email;
@@ -40,13 +40,20 @@ export async function POST(req: NextRequest) {
         const staff = fx.staff.find((s) => s.email === targetEmail);
         if (staff) {
           targetUid = staffUid(staff.email);
+        } else {
+          try {
+            const byEmail = await adminAuth.getUserByEmail(targetEmail);
+            targetUid = byEmail.uid;
+          } catch {
+            // Fall through to 404 below
+          }
         }
       }
     }
 
     if (!targetUid) {
       return NextResponse.json(
-        { error: 'User could not be resolved from fixtures' },
+        { error: 'User could not be resolved from fixtures or Auth emulator' },
         { status: 404 }
       );
     }

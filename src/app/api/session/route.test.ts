@@ -51,7 +51,7 @@ describe('Session API Route (/api/session)', () => {
     expect(mockCookieSet).not.toHaveBeenCalled();
   });
 
-  it('rejects non-HTU email domain with 403 and does not set cookie', async () => {
+  it('rejects non-HTU email domain with 403 and does not set cookie (F-01)', async () => {
     vi.mocked(adminAuth.verifyIdToken).mockResolvedValueOnce({
       uid: 'user-1',
       email: 'student@gmail.com',

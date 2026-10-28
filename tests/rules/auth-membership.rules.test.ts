@@ -39,7 +39,7 @@ describe("Rule: Membership & Domain Access Gating", () => {
     await assertFails(db.doc("topics/topic-1").get());
   });
 
-  it("a Google account with registered: false reads nothing (users, teams, topics)", async () => {
+  it("a Google account with registered: false reads nothing (users, teams, topics) (F-01)", async () => {
     const db = await ctx({
       uid: "unregistered-user",
       email: "unregistered@htu.edu.gh",

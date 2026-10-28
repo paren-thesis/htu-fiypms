@@ -59,7 +59,7 @@ describe("Rule: Teams & Invite Codes", () => {
     );
   });
 
-  it("teams leader may only update the name field", async () => {
+  it("teams leader may only update the name field (F-10)", async () => {
     const leaderDb = await ctx({ uid: leaderUid });
 
     // Allowed: leader updating name
@@ -100,7 +100,7 @@ describe("Rule: Teams & Invite Codes", () => {
     );
   });
 
-  it("invite_codes collection is completely unreadable by clients (server-only lookup)", async () => {
+  it("invite_codes collection is completely unreadable by clients (server-only lookup) (F-06)", async () => {
     const leaderDb = await ctx({ uid: leaderUid });
     const coordDb = await ctx({
       uid: "coord-1",

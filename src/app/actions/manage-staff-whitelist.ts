@@ -1,5 +1,7 @@
 'use server';
 
+// export const runtime = 'nodejs';
+
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';
 import { HttpError } from '@/lib/errors';

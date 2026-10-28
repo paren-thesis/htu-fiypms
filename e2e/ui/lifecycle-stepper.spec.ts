@@ -25,7 +25,7 @@ test.describe('LifecycleStepper layout and indicator tests', () => {
       page,
     }) => {
       await page.setViewportSize({ width, height: 800 });
-      await page.goto('http://localhost:3000/dev/ui');
+      await page.goto('/dev/ui');
 
       const currentStepIndicators = page.locator('[aria-current="step"] > span:first-child');
       const count = await currentStepIndicators.count();
@@ -61,7 +61,7 @@ test.describe('LifecycleStepper layout and indicator tests', () => {
       ]);
 
       await page.setViewportSize({ width, height: 800 });
-      await page.goto('http://localhost:3000/');
+      await page.goto('/');
 
       const currentStepIndicator = page.locator('[aria-current="step"] > span:first-child').first();
       await expect(currentStepIndicator).toBeVisible();

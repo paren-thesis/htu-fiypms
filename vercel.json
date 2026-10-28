@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "functions": {
+    "src/app/actions/generate-broadsheet.ts": {
+      "maxDuration": 60
+    },
+    "src/app/actions/import-rosters.ts": {
+      "maxDuration": 60
+    },
+    "src/app/(shell)/reports/page.tsx": {
+      "maxDuration": 60
+    },
+    "src/app/(shell)/roster-import/page.tsx": {
+      "maxDuration": 60
+    }
+  }
+}
+

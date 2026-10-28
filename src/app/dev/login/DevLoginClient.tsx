@@ -47,6 +47,7 @@ interface DevLoginClientProps {
 export function DevLoginClient({ staff, students }: DevLoginClientProps) {
   const router = useRouter();
   const [search, setSearch] = React.useState('');
+  const [customTarget, setCustomTarget] = React.useState('');
   const [loggingInUid, setLoggingInUid] = React.useState<string | null>(null);
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -83,7 +84,7 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
       const tokenRes = await fetch('/api/dev/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid }),
+        body: JSON.stringify(uid.includes('@') ? { email: uid } : { uid }),
       });
 
       if (!tokenRes.ok) {
@@ -95,7 +96,8 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
 
       // 2. Client SDK signs in with custom token
       const userCredential = await signInWithCustomToken(auth, customToken);
-      const idToken = await userCredential.user.getIdToken();
+      const tokenResult = await userCredential.user.getIdTokenResult(true);
+      const idToken = tokenResult.token;
 
       // 3. Ensure __session cookie is synced before navigating
       await fetch('/api/session', {
@@ -105,7 +107,13 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
       });
 
       toast.success(`Signed in as ${name}`);
-      router.push('/');
+      if (tokenResult.claims.registered === false) {
+        router.push('/not-registered');
+      } else if (tokenResult.claims.profileComplete === false) {
+        router.push('/complete-profile');
+      } else {
+        router.push('/');
+      }
       router.refresh();
     } catch (err: unknown) {
       console.error('Dev login failed:', err);
@@ -152,16 +160,46 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="text"
-            placeholder="Filter by name, email, index, course, or group..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-11 rounded-lg"
-          />
+        {/* Search Bar & Custom Emulator Target */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between" data-testid="dev-login-panel">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Filter by name, email, index, course, or group..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-11 rounded-lg"
+            />
+          </div>
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (customTarget.trim()) {
+                void handleSignIn(customTarget.trim(), customTarget.trim());
+              }
+            }}
+          >
+            <Input
+              type="text"
+              data-testid="dev-login-input"
+              placeholder="Custom UID or email..."
+              value={customTarget}
+              onChange={(e) => setCustomTarget(e.target.value)}
+              className="h-11 w-56 rounded-lg text-xs font-mono"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              data-testid="dev-login-submit"
+              disabled={!customTarget.trim() || loggingInUid !== null}
+              className="h-11 px-4 text-xs font-medium"
+            >
+              Sign In
+            </Button>
+          </form>
         </div>
 
         {/* User Categories */}

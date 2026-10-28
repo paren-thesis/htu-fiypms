@@ -147,6 +147,7 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     const uid = staffUid(email);
 
     // Seed staff whitelist
+    await adminDb.collection('users').doc(uid).delete();
     const staffRef = adminDb.collection('staff_whitelist').doc(email);
     await staffRef.set({
       email,

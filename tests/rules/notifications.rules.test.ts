@@ -55,7 +55,7 @@ describe("Rule: Notifications Collection", () => {
     );
   });
 
-  it("recipient can update is_read only", async () => {
+  it("recipient can update is_read only (F-17)", async () => {
     const userDb = await ctx({ uid: recipientUid });
     await assertSucceeds(
       userDb.doc(`notifications/${notifId}`).update({

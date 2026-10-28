@@ -40,13 +40,23 @@ export interface UseNotificationsReturn {
  */
 export function useNotifications(): UseNotificationsReturn {
   const { user } = useAuth();
+  const uid = user?.uid ?? null;
   const router = useRouter();
 
-  const [items, setItems] = React.useState<NotificationDocument[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
+  const [state, setState] = React.useState<{
+    uid: string | null;
+    items: NotificationDocument[];
+  }>({ uid: null, items: [] });
 
   const isFirstSnapshot = React.useRef<boolean>(true);
   const prevItemsRef = React.useRef<NotificationDocument[]>([]);
+
+  const items = React.useMemo(
+    () => (uid && state.uid === uid ? state.items : []),
+    [uid, state]
+  );
+
+  const loading = Boolean(uid && state.uid !== uid);
 
   const unreadCount = React.useMemo(() => {
     return items.filter((item) => !item.is_read).length;
@@ -91,18 +101,16 @@ export function useNotifications(): UseNotificationsReturn {
   }, []);
 
   React.useEffect(() => {
-    if (!user) {
-      setItems([]);
-      setLoading(false);
-      isFirstSnapshot.current = true;
-      prevItemsRef.current = [];
+    isFirstSnapshot.current = true;
+    prevItemsRef.current = [];
+
+    if (!uid) {
       return;
     }
 
-    setLoading(true);
     const q = query(
       collection(db, "notifications"),
-      where("user_id", "==", user.uid),
+      where("user_id", "==", uid),
       orderBy("created_at", "desc"),
       limit(50)
     );
@@ -145,19 +153,21 @@ export function useNotifications(): UseNotificationsReturn {
         }
 
         prevItemsRef.current = nextItems;
-        setItems(nextItems);
-        setLoading(false);
+        setState({ uid, items: nextItems });
       },
       (err) => {
         console.error("Error subscribing to notifications:", err);
-        setLoading(false);
+        setState((prev) => ({
+          uid,
+          items: prev.uid === uid ? prev.items : [],
+        }));
       }
     );
 
     return () => {
       unsubscribe();
     };
-  }, [user?.uid, router, markRead]);
+  }, [uid, router, markRead]);
 
   return {
     items,

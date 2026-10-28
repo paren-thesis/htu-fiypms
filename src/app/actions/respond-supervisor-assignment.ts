@@ -1,5 +1,7 @@
 'use server';
 
+// export const runtime = 'nodejs';
+
 import { z } from 'zod';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase/admin';

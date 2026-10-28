@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 
 import { adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';

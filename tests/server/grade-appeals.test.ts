@@ -4,7 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { submitGradeAppeal } from '@/app/actions/submit-grade-appeal';
 import { resolveGradeAppeal } from '@/app/actions/resolve-grade-appeal';
 import { getGradeAppeal } from '@/lib/models/grade-appeal/repo';
-import type { UserDocument, TeamDocument, AcademicYearDocument } from '@/types/firestore';
+import type { UserDocument } from '@/types/firestore';
 import { fx, studentEmail, studentUid, staffUid } from '../../fixtures';
 
 const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';

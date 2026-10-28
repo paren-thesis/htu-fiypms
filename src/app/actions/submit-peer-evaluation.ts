@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 
 import { requireUser } from '@/lib/auth/require-user';
 import { toActionError, HttpError } from '@/lib/errors';

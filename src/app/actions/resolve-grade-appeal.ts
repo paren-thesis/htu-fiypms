@@ -1,6 +1,6 @@
 'use server';
 
-export const runtime = 'nodejs';
+// export const runtime = 'nodejs';
 
 import { Timestamp } from 'firebase-admin/firestore';
 import { requireUser } from '@/lib/auth/require-user';

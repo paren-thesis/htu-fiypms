@@ -47,7 +47,7 @@ describe("Rule: Peer Evaluations", () => {
     );
   });
 
-  it("peer evaluation rejects self-rating", async () => {
+  it("peer evaluation rejects self-rating (F-09)", async () => {
     const studentADb = await ctx({ uid: studentA });
     const selfId = `${teamId}__${studentA}__${studentA}`;
 
@@ -133,7 +133,7 @@ describe("Rule: Peer Evaluations", () => {
     );
   });
 
-  it("peer evaluation is immutable: client update and delete are denied", async () => {
+  it("peer evaluation is immutable: client update and delete are denied (F-09)", async () => {
     await seed(async (db) => {
       await db.doc(`peer_evaluations/${validPeerId}`).set({
         team_id: teamId,

@@ -44,7 +44,7 @@ describe("Rule: Users & Supervisor Contacts Access", () => {
     });
   });
 
-  it("users client writes (create, update, delete) are denied even to document owner", async () => {
+  it("users client writes (create, update, delete) are denied even to document owner (F-03)", async () => {
     const studentDb = await ctx({ uid: studentUid });
 
     // Client update denied (must go through Server Action update-profile.ts)
@@ -65,7 +65,7 @@ describe("Rule: Users & Supervisor Contacts Access", () => {
     await assertFails(studentDb.doc(`users/${studentUid}`).delete());
   });
 
-  it("supervisor_contacts is denied to a student until a grant doc exists", async () => {
+  it("supervisor_contacts is denied to a student until a grant doc exists (F-02)", async () => {
     const ungrantedDb = await ctx({ uid: ungovernedStudentUid });
 
     await assertFails(

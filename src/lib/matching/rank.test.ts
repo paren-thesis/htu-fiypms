@@ -55,7 +55,7 @@ describe('Supervisor Matching Engine: rankSupervisors (FR-04.1, FR-04.2, FR-04.2
     },
   ];
 
-  it('filters candidates strictly to active supervisors in the specified programme (FR-04.2a)', () => {
+  it('filters candidates strictly to active supervisors in the specified programme (FR-04.2a, F-04)', () => {
     const results = rankSupervisors({
       teamTags: ['Cloud Computing', 'Kubernetes'],
       courseId: 'btech-cs',

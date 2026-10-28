@@ -14,6 +14,7 @@
 # Next.js & Turbopack
 # ==========================================
 /.next/
+/.next-test/
 /out/
 /build
 .turbo/

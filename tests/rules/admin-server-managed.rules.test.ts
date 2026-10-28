@@ -54,7 +54,7 @@ describe("Rule: Admin & Server-Managed Collections", () => {
     });
   });
 
-  it("rosters client writes (create, update, delete) are denied to all clients", async () => {
+  it("rosters client writes (create, update, delete) are denied to all clients (F-16)", async () => {
     const coordDb = await ctx({
       uid: coordUid,
       roles: ["coordinator"],
@@ -79,7 +79,7 @@ describe("Rule: Admin & Server-Managed Collections", () => {
     );
   });
 
-  it("staff_whitelist client writes (create, update, delete) are denied to all clients", async () => {
+  it("staff_whitelist client writes (create, update, delete) are denied to all clients (F-16)", async () => {
     const coordDb = await ctx({
       uid: coordUid,
       roles: ["coordinator"],
@@ -105,7 +105,7 @@ describe("Rule: Admin & Server-Managed Collections", () => {
     );
   });
 
-  it("academic_years.grades_published cannot be flipped by a client (Admin SDK only)", async () => {
+  it("academic_years.grades_published cannot be flipped by a client (Admin SDK only) (F-11)", async () => {
     const coordDb = await ctx({
       uid: coordUid,
       roles: ["coordinator"],
@@ -153,7 +153,7 @@ describe("Rule: Admin & Server-Managed Collections", () => {
     await assertFails(coordDb.doc("audit_logs/log-1").delete());
   });
 
-  it("audit_logs are readable only by coordinator and admin; denied to students", async () => {
+  it("audit_logs are readable only by coordinator and admin; denied to students (F-12)", async () => {
     const coordDb = await ctx({
       uid: coordUid,
       roles: ["coordinator"],
@@ -163,5 +163,37 @@ describe("Rule: Admin & Server-Managed Collections", () => {
 
     await assertSucceeds(coordDb.doc("audit_logs/log-1").get());
     await assertFails(studentDb.doc("audit_logs/log-1").get());
+  });
+
+  it("topics, chapters, supervisor_assignments, and deliverables client writes are denied (F-12)", async () => {
+    const studentDb = await ctx({ uid: studentUid });
+    const supDb = await ctx({
+      uid: "sup-1",
+      roles: ["supervisor"],
+      activeRole: "supervisor",
+    });
+
+    await assertFails(
+      studentDb.doc("topics/topic-client-write").set({
+        title: "Bypass Server Action",
+        status: "approved",
+      })
+    );
+    await assertFails(
+      studentDb.doc("chapters/chap-client-write").set({
+        chapter_number: 1,
+        status: "approved",
+      })
+    );
+    await assertFails(
+      supDb.doc("supervisor_assignments/assign-client-write").set({
+        status: "accepted",
+      })
+    );
+    await assertFails(
+      studentDb.doc("deliverables/deliv-client-write").set({
+        status: "signed_off",
+      })
+    );
   });
 });

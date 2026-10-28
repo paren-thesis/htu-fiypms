@@ -8,7 +8,7 @@ import type { UserDocument, TeamDocument, AcademicYearDocument, EvaluationDocume
 import { fx, studentEmail, studentUid, staffUid } from '../../fixtures';
 
 const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9199';
-const YEAR_ID = '2026-2027';
+const YEAR_ID = '2026-2027-publish';
 
 async function createStudentToken(indexNumber: string): Promise<string> {
   const s = fx.student(indexNumber);

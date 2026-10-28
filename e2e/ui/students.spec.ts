@@ -35,7 +35,7 @@ test.describe('Students page layout and responsiveness', () => {
       ]);
 
       await page.setViewportSize({ width, height: 800 });
-      await page.goto('http://localhost:3000/students');
+      await page.goto('/students');
 
       // 1. Verify tabs sit above the table
       const tabsList = page.locator('[role="tablist"]').first();

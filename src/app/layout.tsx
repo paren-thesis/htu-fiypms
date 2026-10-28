@@ -10,6 +10,8 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+// export const runtime = "nodejs";
+
 export const metadata: Metadata = {
   title: "HTU FYPMS — Final Year Project Management System",
   description: "Ho Technical University Computer Science Final Year Project Management System",
