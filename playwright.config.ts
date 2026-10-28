@@ -22,7 +22,7 @@ export default defineConfig({
   webServer: {
     command: 'npx next dev -p 3000',
     url: `${BASE_URL}/login`,
-    reuseExistingServer: false,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
       GCLOUD_PROJECT: 'demo-fypms-test',

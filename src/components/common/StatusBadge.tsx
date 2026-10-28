@@ -67,7 +67,7 @@ export function StatusBadge<D extends StatusDomain>({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium tabular transition-colors select-none",
+        "inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium tabular transition-colors select-none",
         toneStyles[config.tone],
         className
       )}
@@ -92,7 +92,7 @@ export function ConflictAlertBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold tabular select-none",
+        "inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold tabular select-none",
         toneStyles[config.tone],
         className
       )}

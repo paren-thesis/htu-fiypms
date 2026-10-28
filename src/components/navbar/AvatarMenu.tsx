@@ -38,7 +38,7 @@ export function AvatarMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-8 w-8 rounded-full ring-offset-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="relative h-11 w-11 shrink-0 rounded-full ring-offset-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:h-9 sm:w-9"
           aria-label="User account menu"
         >
           <Avatar className="h-8 w-8 border border-border">

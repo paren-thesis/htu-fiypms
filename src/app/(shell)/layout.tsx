@@ -8,7 +8,7 @@ export default function ShellLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-dvh w-full overflow-hidden bg-background">
       {/* Left Sidebar (Desktop & Tablet) */}
       <React.Suspense
         fallback={
@@ -19,7 +19,7 @@ export default function ShellLayout({
       </React.Suspense>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top Slim Navigation Bar */}
         <React.Suspense
           fallback={<header className="h-14 border-b border-border bg-card" />}
@@ -28,7 +28,7 @@ export default function ShellLayout({
         </React.Suspense>
 
         {/* Page Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>

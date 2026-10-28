@@ -25,8 +25,8 @@ export function PageHeader({
         className
       )}
     >
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-2.5">
+      <div className="space-y-1.5 min-w-0">
+        <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {title}
           </h1>
@@ -38,7 +38,7 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {action && <div className="flex shrink-0 items-center gap-2.5">{action}</div>}
+      {action && <div className="flex flex-wrap shrink-0 items-center gap-2.5">{action}</div>}
       {children}
     </div>
   );

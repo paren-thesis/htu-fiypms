@@ -30,7 +30,7 @@ export function MobileNavDrawer() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 md:hidden"
+          className="h-11 w-11 shrink-0 md:hidden"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" aria-hidden="true" />

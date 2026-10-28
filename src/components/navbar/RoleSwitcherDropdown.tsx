@@ -84,22 +84,22 @@ export function RoleSwitcherDropdown() {
           variant="outline"
           size="sm"
           disabled={isSwitching}
-          className="h-8 gap-1.5 border-border bg-card px-2.5 text-xs font-medium shadow-none hover:bg-muted"
+          className="h-11 min-w-11 shrink-0 gap-1 sm:gap-1.5 border-border bg-card px-2 sm:px-2.5 text-xs font-medium shadow-none hover:bg-muted sm:h-9"
           aria-label="Switch active role"
         >
           {isSwitching ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden="true" />
+            <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" aria-hidden="true" />
           ) : (
-            <Shield className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <Shield className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
           )}
-          <span className="hidden sm:inline text-muted-foreground">Role:</span>
+          <span className="hidden md:inline text-muted-foreground">Role:</span>
           <Badge
             variant="secondary"
-            className="rounded px-1.5 py-0 text-[11px] font-semibold tracking-wide bg-accent text-accent-foreground border-none"
+            className="whitespace-nowrap shrink-0 rounded px-1.5 py-0 text-[11px] font-semibold tracking-wide bg-accent text-accent-foreground border-none"
           >
             {currentRoleInfo.label}
           </Badge>
-          <ChevronDown className="h-3 w-3 text-muted-foreground opacity-70" aria-hidden="true" />
+          <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground opacity-70" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 p-1">

@@ -31,9 +31,9 @@ export function LifecycleStepper({
   return (
     <nav
       aria-label="Project Journey"
-      className={cn("w-full overflow-x-auto p-2", className)}
+      className={cn("w-full p-1 sm:p-2", className)}
     >
-      <ol className="flex min-w-[560px] items-center justify-between gap-2">
+      <ol className="grid grid-cols-2 gap-x-3 gap-y-3 sm:grid-cols-3 md:flex md:items-center md:justify-between md:gap-2">
         {steps.map((step, index) => {
           const isCompleted = index < currentIndex;
           const isCurrent = index === currentIndex;
@@ -43,11 +43,13 @@ export function LifecycleStepper({
             <li
               key={step}
               className={cn(
-                "flex flex-1 items-center",
-                index < steps.length - 1 ? "after:h-0.5 after:flex-1 after:transition-colors" : "",
+                "flex min-w-0 items-center md:flex-1",
+                index < steps.length - 1
+                  ? "md:after:mx-2 md:after:h-0.5 md:after:flex-1 md:after:transition-colors"
+                  : "",
                 index < steps.length - 1 && isCompleted
-                  ? "after:bg-primary"
-                  : "after:bg-muted"
+                  ? "md:after:bg-primary"
+                  : "md:after:bg-muted"
               )}
             >
               <div
@@ -61,7 +63,7 @@ export function LifecycleStepper({
                   }
                 }}
                 className={cn(
-                  "group flex items-center gap-2.5 text-xs font-medium transition-all select-none",
+                  "group flex min-w-0 items-center gap-2 sm:gap-2.5 text-xs font-medium transition-all select-none",
                   onStepClick ? "cursor-pointer" : "cursor-default"
                 )}
                 aria-current={isCurrent ? "step" : undefined}
@@ -85,7 +87,7 @@ export function LifecycleStepper({
                 </span>
                 <span
                   className={cn(
-                    "whitespace-nowrap transition-colors",
+                    "whitespace-nowrap truncate transition-colors",
                     isCurrent && "font-semibold text-primary",
                     isCompleted && "font-medium text-foreground",
                     isUpcoming && "text-muted-foreground"

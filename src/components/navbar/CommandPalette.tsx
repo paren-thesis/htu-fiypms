@@ -46,15 +46,15 @@ export function CommandPalette() {
         variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
-        className="h-8 w-full max-w-[200px] justify-between border-border bg-card px-2.5 text-xs text-muted-foreground shadow-none hover:bg-muted md:w-56"
+        className="h-11 min-w-11 flex-1 max-w-[140px] justify-between border-border bg-card px-2.5 text-xs text-muted-foreground shadow-none hover:bg-muted sm:h-9 sm:w-48 sm:max-w-none sm:flex-initial md:w-56"
         aria-label="Open command palette"
       >
-        <span className="flex items-center gap-2">
-          <Search className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="hidden sm:inline">Search navigation...</span>
-          <span className="sm:hidden">Search...</span>
+        <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+          <Search className="h-4 w-4 shrink-0 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+          <span className="hidden sm:inline truncate">Search navigation...</span>
+          <span className="sm:hidden truncate">Search...</span>
         </span>
-        <kbd className="pointer-events-none hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
+        <kbd className="pointer-events-none hidden shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
           ⌘K
         </kbd>
       </Button>

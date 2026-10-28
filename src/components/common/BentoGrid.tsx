@@ -66,14 +66,14 @@ export function BentoCard({
       {(title || description || icon || action) && (
         <CardHeader className={cn("space-y-1 pb-3", headerClassName)}>
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               {icon && (
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   {icon}
                 </div>
               )}
               {title && (
-                <CardTitle className="text-base font-semibold leading-tight text-foreground">
+                <CardTitle className="truncate text-base font-semibold leading-tight text-foreground">
                   {title}
                 </CardTitle>
               )}
