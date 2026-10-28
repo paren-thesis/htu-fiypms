@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { adminDb } from '@/lib/firebase/admin';
-import type { TopicDocument } from '@/types/firestore';
+import type { TopicDocument, ArchivedProjectDocument } from '@/types/firestore';
 import type { ApprovedTopicCandidate } from '@/lib/topics/similar';
 
 export async function getTopic(id: string): Promise<TopicDocument | null> {
@@ -48,14 +48,13 @@ export async function listApprovedHistoricalTopics(
   excludeYearId?: string,
   limitCount = 300
 ): Promise<ApprovedTopicCandidate[]> {
-  const snap = await adminDb
-    .collection('topics')
-    .where('status', '==', 'approved')
-    .limit(limitCount)
-    .get();
+  const [topicsSnap, archivedSnap] = await Promise.all([
+    adminDb.collection('topics').where('status', '==', 'approved').limit(limitCount).get(),
+    adminDb.collection('archived_projects').limit(limitCount).get(),
+  ]);
 
   const results: ApprovedTopicCandidate[] = [];
-  for (const doc of snap.docs) {
+  for (const doc of topicsSnap.docs) {
     const data = doc.data();
     if (excludeYearId && data.academic_year_id === excludeYearId) {
       continue;
@@ -65,6 +64,21 @@ export async function listApprovedHistoricalTopics(
       id: doc.id,
       title: data.title || '',
       tech_stack: data.tech_stack || [],
+      academic_year_id: data.academic_year_id,
+    });
+  }
+
+  for (const doc of archivedSnap.docs) {
+    const data = doc.data() as Omit<ArchivedProjectDocument, 'id'>;
+    if (excludeYearId && data.academic_year_id === excludeYearId) {
+      continue;
+    }
+
+    results.push({
+      id: doc.id,
+      title: data.title || '',
+      tech_stack: data.keywords || [],
+      keywords: data.keywords || [],
       academic_year_id: data.academic_year_id,
     });
   }

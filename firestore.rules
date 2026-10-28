@@ -280,6 +280,11 @@ service cloud.firestore {
     // ==========================================
     // 14. Grade Appeals (Spec Amendment A4)
     // ==========================================
+    match /archived_projects/{projectId} {
+      allow read: if isMember();
+      allow create, update, delete: if false;
+    }
+
     match /grade_appeals/{appealId} {
       allow read: if isMember() && (
         resource.data.student_id == request.auth.uid ||

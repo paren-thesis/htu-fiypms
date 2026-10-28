@@ -10,6 +10,7 @@ import { requireUser } from '@/lib/auth/require-user';
 import { toActionError, HttpError } from '@/lib/errors';
 import { writeAudit } from '@/lib/audit';
 import { createNotification } from '@/lib/models/notification/repo';
+import { archiveCompletedTeams } from '@/lib/archive/archive-teams';
 import type { TeamDocument, AcademicYearDocument } from '@/types/firestore';
 
 export const publishGradesInSchema = z
@@ -284,6 +285,9 @@ export async function publishGrades(
         });
       }
     }
+
+    // Archive completed teams idempotently (FR-11.1, A5)
+    await archiveCompletedTeams(academic_year_id);
 
     // Record audit log
     await writeAudit({

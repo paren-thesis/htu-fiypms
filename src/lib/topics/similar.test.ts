@@ -4,9 +4,10 @@ import {
   computeTopicSimilarity,
   findSimilarTopics,
   type ApprovedTopicCandidate,
+  type ArchivedProjectCandidate,
 } from './similar';
 
-describe('Topic Similarity Detection (FR-03.5)', () => {
+describe('Topic Similarity Detection (FR-03.5, FR-11.3)', () => {
   describe('tokenizeText', () => {
     it('removes punctuation, lowercases, and excludes stopwords', () => {
       const text = 'A Smart Campus Attendance System using IoT & RFID on Cloud';
@@ -73,6 +74,14 @@ describe('Topic Similarity Detection (FR-03.5)', () => {
       },
     ];
 
+    const archivedProjects: ArchivedProjectCandidate[] = [
+      {
+        id: 'archived-team-1',
+        title: 'Biometric Fingerprint Voting Machine for Campus Elections',
+        keywords: ['arduino', 'fingerprint', 'biometric', 'voting', 'campus', 'elections'],
+      },
+    ];
+
     it('flags topics with score >= 0.6 threshold', () => {
       const candidate = {
         title: 'Smart IoT Energy Monitoring',
@@ -87,13 +96,35 @@ describe('Topic Similarity Detection (FR-03.5)', () => {
       expect(firstWarning.score).toBeGreaterThanOrEqual(0.6);
     });
 
+    it('also compares candidate against archived_projects', () => {
+      const candidate = {
+        title: 'Biometric Fingerprint Voting System for Campus Elections',
+        tech_stack: ['Arduino'],
+      };
+
+      const warnings = findSimilarTopics(
+        candidate,
+        historicalApproved,
+        0.6,
+        archivedProjects
+      );
+      expect(warnings.length).toBe(1);
+      expect(warnings[0]?.topic_id).toBe('archived-team-1');
+      expect(warnings[0]?.score).toBeGreaterThanOrEqual(0.6);
+    });
+
     it('returns empty warnings when no topic exceeds threshold', () => {
       const candidate = {
         title: 'Autonomous Drone Delivery Navigation in Urban Environments',
         tech_stack: ['ROS', 'Python', 'OpenCV'],
       };
 
-      const warnings = findSimilarTopics(candidate, historicalApproved, 0.6);
+      const warnings = findSimilarTopics(
+        candidate,
+        historicalApproved,
+        0.6,
+        archivedProjects
+      );
       expect(warnings).toEqual([]);
     });
   });

@@ -385,7 +385,8 @@ export interface AuditLogDocument {
     | "grades.publish_override"
     | "grades.amended"
     | "grade_appeal.submitted"
-    | "grade_appeal.resolved";
+    | "grade_appeal.resolved"
+    | "projects.archived";
   target_type: string;
   target_id: string;
   description: string;
@@ -407,4 +408,20 @@ export interface GradeAppealDocument {
   resolved_at?: FirebaseFirestore.Timestamp;
   created_at: FirebaseFirestore.Timestamp;
   updated_at: FirebaseFirestore.Timestamp;
+}
+
+
+// Spec amendment A5: permanent searchable repository of completed projects
+export interface ArchivedProjectDocument {
+  id: string; // teamId
+  title: string;
+  abstract: string;
+  keywords: string[];
+  search_tokens: string[];
+  academic_year_id: string;
+  course_id: string;
+  group_number: string;
+  github_repository_url?: string;
+  manuscript_url?: string;
+  created_at: FirebaseFirestore.Timestamp;
 }
