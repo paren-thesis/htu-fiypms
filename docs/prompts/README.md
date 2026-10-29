@@ -1,6 +1,6 @@
 # FYPMS JSON prompt pack (spec v5.2)
 
-39 ready-to-run JSON prompts that take the project from Phase 0 (scaffold) to Phase 12 (release). Together they build all 18 models in the spec plus two additions (`grade_appeals`, `archived_projects`).
+40 ready-to-run JSON prompts that take the project from Phase 0 (scaffold) to Phase 12 (release). Together they build all 18 models in the spec plus two additions (`grade_appeals`, `archived_projects`).
 
 ## How to use
 1. Unzip into your project root. It adds `docs/prompts/` and `docs/models.md` and does not touch `AGENTS.md`, your spec or your skills.
@@ -42,6 +42,7 @@ Each prompt names the skills to load, the spec parts to read (FR ids only), the 
 
 - `03-01` Staff whitelist model and admin page (models: StaffWhitelistDocument)
 - `03-02` Roster model and CSV import (models: RosterStudentDocument)
+- `03-03` Student records CRUD (coordinator/admin) (models: RosterStudentDocument)
 
 **Phase 04**
 
@@ -102,6 +103,7 @@ Each prompt names the skills to load, the spec parts to read (FR ids only), the 
 - **A4a** DefensePanelDocument.is_published/published_at if missing (08-02)
 - **A4** New model grade_appeals (11-03)
 - **A5** New model archived_projects (12-02)
+- **A6** RosterStudentDocument is_active and audit fields (03-03)
 
 ## Assumptions to confirm (the spec is silent; each prompt also lists its own)
 - Any team member drafts topics, only the leader submits; teams need at least 4 members to submit.

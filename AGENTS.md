@@ -13,7 +13,7 @@ Spec: v5.2 (`docs/fypms-docs.md`). §13 lists review findings already folded int
 - **Final mark is per team** (every member gets the team composite). No grade classification yet (`grade_classification` stays unset). `evaluations.student_id` is always null in v1.
 - **Roster CSV columns:** `index_number, full_name, contact` (contact = phone, stored on the roster doc only).
 - **No email in v1** (FR-09.3 deferred). Notifications are in-app only (Firestore + toasts).
-- **Roster CSV import and staff whitelist management: coordinator and admin only** (supervisors get 403 and never see those pages).
+- **Roster CSV import, student record CRUD and staff whitelist management: coordinator and admin only** (supervisors and all other roles get 403 and never see those pages).
 - TypeScript strict, no `any`. Doc types live in `src/types/firestore.ts`. Firestore fields are `snake_case`.
 - Every Server Action: `'use server'` → `adminAuth.verifyIdToken(token)` → role/ownership check → Zod parse → mutate (transaction/batch) → write `audit_logs`. Node runtime.
 - **Test and seed data comes only from `fixtures/testusers.json` and `fixtures/staff-profiles.json`** (via `fixtures/index.ts`). Never invent users, index numbers, emails, phones or groups (`fypms-test-data`).

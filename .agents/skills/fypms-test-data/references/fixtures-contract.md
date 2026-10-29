@@ -11,7 +11,7 @@
 | courses | btech-cs, btech-ict, hnd-cs, hnd-ict | per CourseDocument (prefix BCS, BICT, HCS, HICT) |
 | academic_years | one current, start year 2026 | per AcademicYearDocument, deadlines default |
 | academic_years/{y}/counters | each course id | `next_sequence: 1` |
-| rosters/{y}/students | index_number | index_number, full_name, contact, email = studentEmail(index), course_id, user_uid null, signup_completed_at null, import_batch_id `fixture-base` (group_number is NOT written) |
+| rosters/{y}/students | index_number | index_number, full_name, contact, email = studentEmail(index), course_id, user_uid null, signup_completed_at null, import_batch_id `fixture-base`, `is_active` true (group_number is NOT written) |
 | staff_whitelist | email | full_name, roles, department, programmes, is_active, added_by_uid `fixture`, user_uid null |
 No Auth users, no users docs.
 
@@ -23,7 +23,7 @@ No Auth users, no users docs.
 - Teams via `createTeamInTx` in fixture order so group numbers equal the fixture (BCS26_01, BCS26_02, ...); leader and members from `groups`; then `assigned_supervisor_id` and `supervisor_assignment.status: 'accepted'`. Counters end at 3 per programme. Status stays `formation`. Contact grants are not seeded (they need an approved topic).
 
 ## check:data rules (report `{ok, checks[], unknown[]}`)
-1. Roster docs: index set equals fixture; `email == studentEmail(index)`; contact and course_id equal the fixture.
+1. Roster docs: index set equals fixture; `email == studentEmail(index)`; contact and course_id equal the fixture; `is_active` is true (missing counts as true).
 2. Staff whitelist: email set equals fixture; roles and programmes equal.
 3. Auth users (if any): every email is a fixture email; uid matches the helper; claims match `claimsFor`.
 4. users docs (if any): only fixture uids; course_id equals roster course.

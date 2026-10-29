@@ -22,7 +22,8 @@
     "A3": "ChapterDocument.history[] (07-01)",
     "A4a": "DefensePanelDocument.is_published/published_at if missing (08-02)",
     "A4": "New model grade_appeals (11-03)",
-    "A5": "New model archived_projects (12-02)"
+    "A5": "New model archived_projects (12-02)",
+    "A6": "RosterStudentDocument is_active and audit fields (03-03)"
   },
   "prompts": [
     {
@@ -207,6 +208,19 @@
       ],
       "depends_on": [
         "03-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "id": "03-03",
+      "phase": 3,
+      "file": "phase-03-staff-and-roster/03-03-student-records-crud.json",
+      "title": "Student records CRUD (coordinator/admin)",
+      "models": [
+        "RosterStudentDocument"
+      ],
+      "depends_on": [
+        "03-02"
       ],
       "status": "todo"
     },
@@ -611,7 +625,8 @@
     "RosterStudentDocument": [
       "02-03",
       "03-02",
-      "11-01"
+      "11-01",
+      "03-03"
     ],
     "StaffWhitelistDocument": [
       "02-03",

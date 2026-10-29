@@ -1,0 +1,13 @@
+docs(spec): add student record CRUD for coordinator and admin
+
+- Add FR-01.12 and decision D-06 (create, read, update, deactivate,
+  delete; every operation audited)
+- Roster document gains is_active and audit fields; sign-in flow step
+  4c2 blocks inactive students
+- FR-01.10: course change available to coordinators and admins with a
+  justification
+- Update personas, diagram, tree, rules comment, tests (spec 5.2.2)
+- Update roster-import, ui, auth and testing skills, AGENTS.md, prompts
+  03-03, 04-03 and 12-03
+
+Refs: FR-01.10, FR-01.12

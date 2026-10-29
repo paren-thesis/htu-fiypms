@@ -3,6 +3,7 @@ feat(teams): add unassigned pool and auto-grouping
 - Add pure autoGroup that never mixes courses
 - Add preview and commit action with audit and notifications
 - Add pool tab on /students above the content
+- Exclude inactive students from the pool
 
 Prompt: 04-03
 Models: TeamDocument

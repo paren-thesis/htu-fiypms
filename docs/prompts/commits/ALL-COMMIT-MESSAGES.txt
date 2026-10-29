@@ -161,6 +161,19 @@ Prompt: 03-02
 Models: RosterStudentDocument
 Refs: FR-01.4, FR-01.5
 
+===== 03-03 =====
+feat(roster): add student record CRUD for coordinator and admin
+
+- Add create, update, deactivate, reactivate and delete actions with
+  audit
+- Add audited change-student-course and is_active roster field
+- Block inactive students at sign-in; skip them in the pool
+- Add /students add/edit/delete UI with 403 for other roles
+
+Prompt: 03-03
+Models: RosterStudentDocument
+Refs: FR-01.4, FR-01.10, FR-01.12
+
 ===== 04-01 =====
 feat(teams): add team model with create, join and invite codes
 
@@ -190,6 +203,7 @@ feat(teams): add unassigned pool and auto-grouping
 - Add pure autoGroup that never mixes courses
 - Add preview and commit action with audit and notifications
 - Add pool tab on /students above the content
+- Exclude inactive students from the pool
 
 Prompt: 04-03
 Models: TeamDocument
@@ -415,7 +429,7 @@ Refs: FR-11.1, FR-11.2, FR-11.3
 feat(admin): add audit log viewer, admin users and team overrides
 
 - Add filtered, paginated /audit-logs
-- Add role, session revoke and course change admin actions
+- Add role and session revoke admin actions
 - Add team size, transfer and disband overrides
 
 Prompt: 12-03

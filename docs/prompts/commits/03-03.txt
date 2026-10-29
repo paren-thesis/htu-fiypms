@@ -1,0 +1,11 @@
+feat(roster): add student record CRUD for coordinator and admin
+
+- Add create, update, deactivate, reactivate and delete actions with
+  audit
+- Add audited change-student-course and is_active roster field
+- Block inactive students at sign-in; skip them in the pool
+- Add /students add/edit/delete UI with 403 for other roles
+
+Prompt: 03-03
+Models: RosterStudentDocument
+Refs: FR-01.4, FR-01.10, FR-01.12

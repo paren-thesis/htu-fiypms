@@ -38,10 +38,10 @@
   ],
   "build": [
     "/audit-logs (coordinator/admin): filters (action, actor, date range, target), cursor pagination, detail drawer showing the details payload (old/new values); add any needed composite indexes.",
-    "src/app/actions/admin-users.ts (admin only): updateRoles (keeps users.roles, staff_whitelist.roles and custom claims consistent; cannot remove the last admin), forceRevokeSession (revokeRefreshTokens), changeStudentCourse (the only way course_id changes: written justification, student must not be on a team, updates users and the roster entry, audited).",
+    "src/app/actions/admin-users.ts (admin only): updateRoles (keeps users.roles, staff_whitelist.roles and custom claims consistent; cannot remove the last admin), forceRevokeSession (revokeRefreshTokens). Student course changes are handled by change-student-course from 03-03 (coordinator and admin).",
     "src/app/actions/admin-team-override.ts (admin only): changeMaxMembers, transferMember between teams of the same course (transaction, counts, grants and invite data kept consistent), disbandTeam (status disbanded, revoke contact grants, free members, notify members with team_update). Everything audited.",
     "/admin/users: users table with role badges and the actions above; a 'Teams' tab for team overrides.",
-    "Tests for each action including the last-admin guard, course change blocked when on a team, transfer rejected across programmes."
+    "Tests for each action including the last-admin guard, transfer rejected across programmes."
   ],
   "files": [
     "src/app/audit-logs/page.tsx",

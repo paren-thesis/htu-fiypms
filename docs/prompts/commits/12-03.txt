@@ -1,7 +1,7 @@
 feat(admin): add audit log viewer, admin users and team overrides
 
 - Add filtered, paginated /audit-logs
-- Add role, session revoke and course change admin actions
+- Add role and session revoke admin actions
 - Add team size, transfer and disband overrides
 
 Prompt: 12-03

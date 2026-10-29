@@ -55,5 +55,8 @@
   "verify": [
     "npx vitest run src/lib/teams",
     "npm run test:server"
+  ],
+  "rules": [
+    "Skip roster students with is_active false (03-03) in the pool and in auto-group"
   ]
 }

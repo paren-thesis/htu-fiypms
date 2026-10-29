@@ -22,13 +22,14 @@ Left sidebar (icon-only collapse at ≤1024px, slide-over drawer on mobile) + sl
 - coordinator: Dashboard · Students & Pool · Staff Whitelist · Matching · Rubrics · Defense · Reports · Audit Logs
 - panel_member: Dashboard · My Panels · Marksheet
 - admin: Students & Pool · Staff Whitelist · Users & Roles · Audit Logs · Overrides · Backups
-Roster import (`/students`) and the staff whitelist are coordinator/admin only (spec D-05): never show them to supervisors, and guard the routes too.
+Roster import, student record CRUD (`/students`) and the staff whitelist are coordinator/admin only (spec D-05, D-06): never show them to supervisors or other roles, and guard the routes too.
 
 # Page patterns
 - **Dashboard home = bento grid** (`grid grid-cols-1 md:grid-cols-6 gap-4`, cards spanning 2–3 cols): Project Journey stepper (full width) · Next deadline · Team · Supervisor · Latest feedback · Notifications.
 - **Lifecycle stepper**: Formation → Topic → Supervisor → Chapters → Defense → Grades, derived from `team.status` + `academic_year.deadlines`.
 - **Tables**: shadcn Table (+ TanStack Table when sort/filter needed); sticky header, search + filter chips toolbar, row hover, server-side pagination for audit logs, empty state with CTA.
 - **Forms**: RHF + Zod + shadcn Form; label above, inline error, submit button spinner+disabled, toast on result.
+- **Record management** (e.g. students): Add button in the toolbar, row action menu (Edit, Change course, Deactivate/Reactivate, Delete) with disabled items explained by a tooltip, destructive actions confirmed by typing the record's key.
 - **Gated content**: dashed-border muted card + Lock icon + "Unlocks when your topic is approved".
 - **Loading**: layout-matching skeletons via `loading.tsx`; no page-level spinners.
 - **Motion**: 150–200 ms opacity/translate on state changes only; respect `prefers-reduced-motion`.

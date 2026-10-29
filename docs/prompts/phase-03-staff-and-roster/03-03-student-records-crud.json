@@ -1,0 +1,89 @@
+{
+  "prompt_id": "03-03",
+  "phase": 3,
+  "phase_name": "staff-and-roster",
+  "title": "Student records CRUD (coordinator/admin)",
+  "agent_directive": "This JSON is the complete task spec. First read docs/prompts/_standards.json once, then load the skills in `skills`. Read only the `spec_sections` of docs/fypms-docs.md (grep the FR id; never open the whole file). Build only what `build` lists and reply with `reply_format` from _standards.json.",
+  "skills": [
+    "fypms-roster-import",
+    "fypms-firestore-data",
+    "fypms-auth-gating",
+    "fypms-ui-design-system",
+    "fypms-testing",
+    "fypms-ui-qa",
+    "fypms-test-data"
+  ],
+  "depends_on": [
+    "03-02"
+  ],
+  "spec_sections": [
+    "FR-01.4",
+    "FR-01.10",
+    "FR-01.12",
+    "section 5.2 (signin-flow reference, step 4 c2)",
+    "section 8.1 (RosterStudentDocument)",
+    "section 13.1 (D-05, D-06)"
+  ],
+  "models": [
+    {
+      "name": "RosterStudentDocument",
+      "collection": "rosters/{year}/students",
+      "work": "add is_active and audit fields; create, update, deactivate, reactivate, delete and course-change actions; /students UI"
+    }
+  ],
+  "build": [
+    "Spec amendment A6: add `is_active: boolean` (default true; a missing value counts as true), `updated_at?`, `updated_by?`, `deactivated_at?`, `deactivated_by?`, `deactivation_reason?` to RosterStudentDocument in src/types/firestore.ts, the roster Zod schema/repo, docs/models.md and the fixtures contract. import-rosters and seed.ts write is_active true. Existing documents without the field are treated as active (no migration needed).",
+    "src/lib/roster/student-guards.ts: getStudentState(indexNumber, yearId) -> {exists, linked, uid, onActiveTeam, teamId?, active}; isStudentOnActiveTeam(uid, yearId) queries teams where member_ids array-contains uid and status != 'disbanded' (returns false when there are no teams yet). Unit-tested with fakes.",
+    "src/app/actions/manage-student.ts (coordinator and admin only; every other role gets 403): createStudent (Zod: index_number ^[0-9]{10}$, full_name, contact normalised as in the CSV rules, course_id must exist in courses; email only via studentEmail(); duplicate -> 409; is_active true, user_uid null, audit student.created), updateStudent (full_name and contact only; reject index_number, email, course_id, user_uid in the payload; audit with old/new values), deactivateStudent (reason >= 10 chars; refused with 409 when on an active team; sets is_active false and deactivated_*; when linked call revokeRefreshTokens(uid); audit student.deactivated), reactivateStudent (clears deactivation; audit), deleteStudent (hard delete only when user_uid and signup_completed_at are null and no team; otherwise 409 'Deactivate instead'; audit student.deleted with a snapshot).",
+    "src/app/actions/change-student-course.ts (coordinator and admin): justification >= 20 chars; refused (409) when the student is on an active team; updates the roster course_id and, when linked, users.profile.course_id; audit student.course_changed {old, new, justification}. This replaces the changeStudentCourse item formerly planned in 12-03.",
+    "Patch complete-signup (02-03): a roster entry with is_active === false is treated as not registered; return the 'inactive' result code, audit signup.blocked_inactive, and make /not-registered show 'Your student record is inactive. Contact your coordinator.' A missing is_active counts as true. Extend its emulator tests.",
+    "Patch the pool query and auto-group (04-03) when they exist: skip students whose roster entry is inactive.",
+    "/students UI (Cohort Roster tab; visible only to coordinator and admin): toolbar with search (index, name), filters (programme, status), Add student button (sheet form with RHF + Zod, programme select from courses); status badges Active, Inactive, Linked, Pending sign-in; row action menu Edit, Change course, Deactivate or Reactivate, Delete, with disabled items explained by tooltips (linked, on a team); delete confirmed by typing the index number; detail sheet showing linkage and team read-only; toasts and inline errors for 409 and 403 responses.",
+    "Layout per fypms-ui-qa: tabs above the table, table inside its own overflow-x container, no sideways page scroll, checked at 375, 768 and 1280 px; supervisors never see the page or its nav item (route gate from 02-02 already redirects them).",
+    "Tests: server tests (supervisor, panel member and student get 403 on every action; create duplicate; update rejects forbidden fields; delete refused for linked or on-team students and allowed for an unlinked one; deactivate revokes sessions and blocks sign-in; course change guards and audit), unit tests for student-guards, Playwright test for role visibility and layout. Use only fixture students and the test emulator."
+  ],
+  "files": [
+    "src/types/firestore.ts",
+    "src/lib/models/roster/*",
+    "src/lib/roster/student-guards.ts",
+    "src/app/actions/manage-student.ts",
+    "src/app/actions/change-student-course.ts",
+    "src/app/actions/complete-signup.ts",
+    "src/app/not-registered/page.tsx",
+    "src/app/students/page.tsx",
+    "src/components/students/*",
+    "scripts/seed.ts",
+    "tests/server/student-records.test.ts",
+    "e2e/ui/students.spec.ts",
+    "docs/models.md"
+  ],
+  "rules": [
+    "Index number and derived email are immutable; fix a wrong index by deleting an unlinked record and creating a new one",
+    "Student records are changed only through these Server Actions (rules keep rosters server-write only)",
+    "No bulk edit or bulk delete in this prompt"
+  ],
+  "assumptions": [
+    "Delete is permanent only for never-signed-in students with no team; everyone else is deactivated, not deleted",
+    "Both coordinator and admin may change a student's programme (spec FR-01.10 as amended by D-06)",
+    "A deactivated student on an active team is blocked until the team is changed by an admin override (12-03)"
+  ],
+  "out_of_scope": [
+    "Bulk edit/delete",
+    "Restoring a deleted record",
+    "Student self-service profile edits",
+    "Team transfers (12-03)"
+  ],
+  "acceptance": [
+    "Coordinator and admin can add, edit, deactivate, reactivate and delete eligible students from /students",
+    "A supervisor calling any student action gets 403 and sees no student management UI",
+    "Deleting a linked or on-team student is refused with a clear message; deactivating revokes sessions and blocks sign-in with the inactive message",
+    "Every operation writes an audit entry with before and after values",
+    "Playwright layout checks pass at 375, 768 and 1280 px"
+  ],
+  "verify": [
+    "npx vitest run src/lib/roster",
+    "npm run test:server",
+    "npx playwright test e2e/ui/students.spec.ts",
+    "npx tsc --noEmit"
+  ]
+}

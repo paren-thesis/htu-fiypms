@@ -1,6 +1,6 @@
 # **FINAL YEAR PROJECT MANAGEMENT SYSTEM**
 
-### **System Requirements & Technical Specification Manual — Version 5.2.1 (Google Sign-In + Roster Gating · Review Amendments)**
+### **System Requirements & Technical Specification Manual — Version 5.2.2 (Google Sign-In + Roster Gating · Review Amendments)**
 **Ho Technical University — Department of Computer Science**  
 *Technology Stack: Next.js 15 (App Router) · Vercel · Firebase Authentication · Cloud Firestore · Tailwind CSS · TypeScript 5*  
 *October 2026*
@@ -35,8 +35,8 @@ The platform employs a dynamic Role-Based Access Control (RBAC) model allowing a
          ┌───────────────────────────┼───────────────────────────┐
          │                           │                           │
     🎓 Student                 👨‍🏫 Supervisor               📋 Coordinator
-(Teams, Proposals, Drive   (Topic Review, Chapter       (Roster Import, Whitelist,
-Reviews, Deliverables,     Feedback, Continuous         Workload Allocations,
+(Teams, Proposals, Drive   (Topic Review, Chapter       (Student Records & Roster
+Reviews, Deliverables,     Feedback, Continuous         Import, Whitelist, Workloads,
 Peer Evals, Grade Views)   Assessment, Repo Sign-off)   Rubrics, Defense, Broadsheets)
          │                           │                           │
          └───────────────────────────┼───────────────────────────┘
@@ -88,6 +88,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)   Rubrics, Defense, Broads
 - Configure active academic sessions (`2025/2026`), semesters, and course tracks (`BTECH-CS`, `BTECH-ICT`, `HND-CS`, `HND-ICT`).
 - Manage the staff whitelist — adding, updating, and deactivating faculty access (coordinators and admins only, D-05).
 - Import student rosters via CSV to `/rosters` (filename-detected course with confirmation; no Auth users created at import time). Admins have the same permission; supervisors do not (D-05).
+- Create, view, edit, deactivate and delete individual student records, and change a student's programme only through the audited course-change action (D-06).
 - Manage unassigned student pool with auto-grouping tools and manual overrides.
 - Compute supervisor match scores using the mathematically bounded Jaccard tag similarity and capacity formula, scoped to supervisors whose `programmes[]` include the team's `course_id`.
 - Build and activate department defense rubrics with custom criteria, maximum points, and percentage weights (e.g. Supervisor: 40%, Defense Panel: 60%).
@@ -99,7 +100,7 @@ Peer Evals, Grade Views)   Assessment, Repo Sign-off)   Rubrics, Defense, Broads
 *Role: IT personnel managing platform security, user permissions, and audit logs.*
 
 **Primary Goals**
-- Import student roster CSVs and manage the staff whitelist, with the same permissions as the coordinator (D-05).
+- Import student roster CSVs and manage the staff whitelist, with the same permissions as the coordinator (D-05), including student record CRUD (D-06).
 - Manage user accounts, role assignments, and permission matrices via Firebase Custom Claims.
 - Execute global administrative overrides (e.g. forced group disbanding, emergency deadline extensions, member transfers).
 - Monitor immutable system audit trails with action badges, actor metadata, and payload JSON deltas.
@@ -176,8 +177,9 @@ graph TD
 | **FR-01.7** | **Faculty Whitelist Gating:** Supervisors, coordinators, panel members, and admins MUST be added to `staff_whitelist/{email}` by a coordinator or admin (never by a supervisor, D-05) before they can access the system. On first Google Sign-In, if the email does not match the student pattern, the Server Action reads `staff_whitelist/{email}`. If found and `is_active` is true, the Server Action creates `users/{uid}` with `profile_complete: false` and mints claims `{ roles: staffDoc.roles, activeRole: staffDoc.roles[0], registered: true, profileComplete: false }`. If not found, the user is redirected to `/not-registered` with a coordinator/HoD contact message. | High |
 | **FR-01.8** | **Unregistered Access Handling:** Users whose Google account is not in the roster or staff whitelist see an unclosable `/not-registered` page with: (a) the attempted email, (b) a category-specific error message, (c) a contact email for the coordinator, and (d) a sign-out button. All routes redirect to `/not-registered` while `token.registered == false`. Unregistered users are NOT deleted from Firebase Auth — they remain for audit purposes but cannot reach any authenticated route. | High |
 | **FR-01.9** | **Profile Completion Gate (Faculty):** Newly registered faculty have `profileComplete: false`. Middleware redirects them to `/complete-profile` until they set `office_location`, `consultation_hours`, `research_interests[]`, and `max_team_capacity`. Students skip this gate (auto-profileComplete: true). | High |
-| **FR-01.10** | **Category Integrity (Cross-Cutting):** A student's `course_id` is authoritatively set from their roster entry at first sign-in. It is immutable thereafter except via a dedicated admin action. Category integrity is enforced at five points: (1) team join validates joining student's `course_id` matches `team.course_id`; (2) `group_number` prefix is derived from `course_id`; (3) supervisor matching filters candidates to those whose staff `programmes[]` includes the team's `course_id`; (4) broadsheet export groups strictly by `course_id`; (5) defense panel assignment filters examiners by programme match, with coordinator override logged to `audit_logs`. | High |
+| **FR-01.10** | **Category Integrity (Cross-Cutting):** A student's `course_id` is authoritatively set from their roster entry at first sign-in. It is immutable thereafter except via the dedicated `change-student-course` Server Action, available to coordinators and admins with a written justification and only while the student is on no active team (D-06). Category integrity is enforced at five points: (1) team join validates joining student's `course_id` matches `team.course_id`; (2) `group_number` prefix is derived from `course_id`; (3) supervisor matching filters candidates to those whose staff `programmes[]` includes the team's `course_id`; (4) broadsheet export groups strictly by `course_id`; (5) defense panel assignment filters examiners by programme match, with coordinator override logged to `audit_logs`. | High |
 | **FR-01.11** | **Staff Whitelist Management:** Coordinators and admins can add, edit, and deactivate staff whitelist entries via a UI form. Each entry records `{ email, full_name, roles[], department, programmes[], is_active, added_by_uid, added_at }`. Deactivation sets `is_active: false` and revokes the user's custom claims on their next token refresh (documented as a 1-hour delayed effect in §9). | High |
+| **FR-01.12** | **Student Record Management (D-06):** Coordinators and admins can create, read, update, deactivate and delete individual student records (the roster entries) from `/students`; every other role is rejected with 403. **Create:** index number (`^[0-9]{10}$`), full name, contact and programme; the email is always derived and duplicates are rejected. **Read:** searchable list showing status (Active, Inactive, Linked, Pending sign-in) and team. **Update:** full name and contact only; the index number is immutable and the programme changes only through FR-01.10. **Deactivate:** sets `is_active: false` with a written reason, revokes the student's sessions and blocks sign-in; refused while the student is on an active team. **Delete:** permanent, allowed only for a record that has never signed in and is on no team; otherwise refused and Deactivate is offered. Every operation writes an audit log entry with before and after values. | High |
 
 ### **5.1 Student Roster Import (Roster-First, No Auth Writes)**
 
@@ -205,6 +207,7 @@ Triggered by the client after successful Google Sign-In, with the fresh ID token
    - a) Extract `indexNumber = email.localPart`.
    - b) Read `rosters/{currentYear}/students/{indexNumber}`.
    - c) If missing $\rightarrow$ 403 "Not in current final-year cohort. Contact your coordinator." Client redirects to `/not-registered`.
+   - c2) If present and `is_active === false` $\rightarrow$ treat as not registered: 403 "Your student record is inactive. Contact your coordinator." and append `/audit_logs` `{ action: 'signup.blocked_inactive', index_number, email }`. A missing `is_active` field counts as `true` (D-06).
    - d) If present and `user_uid === null` $\rightarrow$ begin Firestore transaction: update roster doc with `{ user_uid: uid, signup_completed_at: serverTimestamp() }`; set `users/{uid}` `{ name, email, role: 'student', roles: ['student'], active_role: 'student', profile: { index_number, course_id, registered: true, profile_complete: true }, created_at, updated_at }`. Commit. Set custom claims `{ roles: ['student'], activeRole: 'student', registered: true, profileComplete: true }`. Return `{ ok: true, activeRole: 'student' }`.
    - e) If present and `user_uid === uid` $\rightarrow$ idempotent success. Return `{ ok: true }`.
    - f) If present and `user_uid` is a DIFFERENT `uid` $\rightarrow$ append `/audit_logs` `{ action: 'identity_conflict', index_number, email, attempted_uid, existing_uid }`. Return 409 "This index is already linked to another account. Contact the coordinator."
@@ -549,6 +552,12 @@ interface RosterStudentDocument {
   import_batch_id: string;          // groups rows from a single CSV upload
   user_uid: string | null;          // write-once, set on first successful signup
   signup_completed_at: FirebaseFirestore.Timestamp | null;
+  is_active: boolean;               // D-06: default true; false = deactivated (a missing value counts as true)
+  updated_at?: FirebaseFirestore.Timestamp;
+  updated_by?: string;              // uid of the coordinator/admin who last edited the record
+  deactivated_at?: FirebaseFirestore.Timestamp;
+  deactivated_by?: string;
+  deactivation_reason?: string;
 }
 ```
 
@@ -897,7 +906,9 @@ service cloud.firestore {
         resource.data.user_uid == request.auth.uid ||
         hasAnyRole(['coordinator', 'admin'])
       );
-      allow create, update, delete: if false;   // import-rosters.ts / complete-signup.ts only
+      allow create, update, delete: if false;   // import-rosters.ts / manage-student.ts / change-student-course.ts / complete-signup.ts only
+      allow create, update, delete: if false;   // manage-student.ts          # Server Action: student create/update/deactivate/reactivate/delete (coordinator/admin only)
+      allow create, update, delete: if false;   // change-student-course.ts   # Server Action: audited programme change (coordinator/admin only)
     }
 
     match /staff_whitelist/{email} {
@@ -1352,6 +1363,8 @@ To guarantee institutional reliability and satisfy external reviewers, the platf
   - Students cannot read `/evaluations` before `is_published`; peer ratings reject self-rating, non-teammates, duplicates and scores outside 1 to 10 (F-04, F-09).
   - Roster CSV rows missing or with an invalid `contact` are rejected with a per-row error (D-04).
   - A supervisor calling `import-rosters` or `manage-staff-whitelist` receives 403; the roster import controls, `/students` and the staff whitelist page are hidden from supervisors (D-05).
+  - A supervisor, panel member or student calling `manage-student` or `change-student-course` receives 403; the Add student button and row actions are hidden from them (D-06).
+  - `deleteStudent` is refused (409) for a linked student or one on an active team; `deactivateStudent` is refused for a student on an active team; `change-student-course` needs a justification and no active team; an inactive roster entry cannot complete signup (D-06).
 
 ### **12.3 End-to-End System Testing (Playwright)**
 - **Authentication & Onboarding Flow:**
@@ -1398,10 +1411,7 @@ A security and consistency review of v5.1 found the issues below. Each one has b
 | **D-03** | **Email deferred:** Resend is removed from v5.2 scope. No email provider is integrated; FR-09.3 is deferred and notifications are in-app only. |
 | **D-04** | **CSV columns:** The roster import CSV is `index_number`, `full_name`, `contact` (required phone number, stored on the roster document only). The broadsheet CSV exports `index_number`, `full_name`, `contact` followed by the team's scores (FR-10.1b). |
 | **D-05** | **Roster and whitelist permissions:** Only coordinators and admins may import student roster CSVs and manage the staff whitelist. Supervisors have neither permission. This supersedes the FR-01.4 wording in v5.1 and v5.2, which allowed supervisors to import. |
-| **A-02** | **Supervisor assignment workflow:** Added `supervisor_assignment` to `TeamDocument` (`status: 'proposed' | 'accepted' | 'declined'`, `proposed_by`, `proposed_at`, `window_expires_at`, `responded_at?`, `decline_reason?`, `override_reason?`). Assignment begins as `proposed` by coordinator/admin with a 72-hour expiration window (`SUPERVISOR_RESPONSE_WINDOW_HOURS`). Supervisor accepts (transactional capacity check: `current_assigned_count < max_capacity` else 409) or declines (clearing `assigned_supervisor_id` and recording reason). Gated contact grants are created only after both topic is approved AND assignment is accepted. |
-| **A-03** | **Chapter revision history:** Added `history: { version: number; document_url: string; submitted_at: Timestamp; reviewed_at?: Timestamp; status: string }[]` to `ChapterDocument`. On resubmission after `revision_needed`, prior submission snapshot is pushed into `history[]`, version is incremented, and status returns to `pending`. |
-| **A-04** | **Grade appeals model:** Added `GradeAppealDocument` in collection `grade_appeals` with deterministic id `${teamId}__${studentUid}`. Enables individual students to submit one grade appeal within the 7-day appeal window (`grade_appeal_deadline`). Coordinators and admins review and resolve appeals (`under_review`, `resolved`, `rejected`) with notes; score modifications require `amend-grade.ts`. |
-| **A-05** | **Archived projects model:** Added `ArchivedProjectDocument` in collection `archived_projects` with deterministic id `${teamId}` (`id`, `title`, `abstract`, `keywords: string[]`, `search_tokens: string[]`, `academic_year_id`, `course_id`, `group_number`, `github_repository_url?`, `manuscript_url?`, `created_at`). Populated idempotently when grades are published (`publish-grades.ts`) or via coordinator/admin backfill (`archive-projects.ts`), and searched via token matching (`array-contains-any` on `search_tokens`). |
+| **D-06** | **Student record CRUD:** Coordinators and admins can create, read, update, deactivate and delete individual student records (FR-01.12). Defaults: index number immutable; full name and contact editable; programme changes only through `change-student-course` (justification, no active team); delete only for never-signed-in students on no team, otherwise deactivate; every operation audited. Adds `is_active` and audit fields to the roster document. |
 
 ## **13.2 Open Items**
 
@@ -1415,6 +1425,7 @@ A security and consistency review of v5.1 found the issues below. Each one has b
 
 | **Version** | **Changes** |
 | :--- | :--- |
+| **5.2.2** | Student record CRUD for coordinators and admins (D-06, FR-01.12): roster document gains `is_active` and audit fields, sign-in flow step 4c2, FR-01.10 course change opened to coordinators, personas, diagram, directory tree and rules comment, new test cases in §12.2. |
 | **5.2.1** | Roster import and staff whitelist management restricted to coordinators and admins (D-05). Updated personas, FR-01.4, FR-01.7, architecture diagram, directory-tree comments and a 403 test case in §12.2. |
 | **5.2** | Added §13 review findings and decisions. Rewrote §9 Firestore rules (F-01 to F-14, F-17). Added collections `supervisor_contacts` (+`grants`), `invite_codes`, `teams/{id}/private`, `academic_years/{id}/counters` (§8). Added `contact` to roster schema and CSV (D-04). Team-level final mark and optional `grade_classification` (D-02). Email deferred (D-03). Light-mode only, HTU blue and white (D-01). Expanded directory tree and Server Actions (§11). Added FR-06.6 and FR-10.1b. Added rules tests to §12.2. |
 | 5.1 | Google Sign-In and roster gating. |
