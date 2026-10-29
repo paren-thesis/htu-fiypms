@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { AlertCircle, LogOut, Mail, GraduationCap } from "lucide-react";
+import { AlertCircle, LogOut, Mail } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -49,15 +50,20 @@ export default function NotRegisteredPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-6 lg:p-8">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="w-full max-w-lg space-y-6">
         {/* Brand Header */}
-        <div className="flex flex-col items-center text-center space-y-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <GraduationCap className="h-7 w-7" aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="flex flex-col items-center text-center space-y-2.5">
+          <Image
+            src="/logo.svg"
+            alt="Ho Technical University Crest"
+            width={64}
+            height={66}
+            priority
+            className="h-14 w-14 sm:h-16 sm:w-16 object-contain drop-shadow-xs"
+          />
+          <div className="space-y-0.5">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               HTU · FYPMS
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -121,6 +127,17 @@ export default function NotRegisteredPage() {
             </Button>
           </CardFooter>
         </Card>
+
+        {/* Institutional Lockup Footer */}
+        <div className="flex flex-col items-center justify-center pt-2">
+          <Image
+            src="/logo-with-text.svg"
+            alt="Ho Technical University"
+            width={160}
+            height={46}
+            className="h-7 sm:h-8 w-auto max-w-[180px] object-contain opacity-90"
+          />
+        </div>
       </div>
     </div>
   );

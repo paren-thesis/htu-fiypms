@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { GraduationCap } from "lucide-react";
 import { cn } from "cn";
 import { useAuth } from "@/context/AuthContext";
 import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
@@ -26,20 +26,32 @@ export function AppSidebar({ className }: { className?: string }) {
       aria-label="Sidebar Navigation"
     >
       {/* Brand Header */}
-      <div className="flex h-14 items-center border-b border-border px-3 lg:px-5">
+      <div className="flex h-14 items-center justify-center lg:justify-start border-b border-border px-2 lg:px-4">
         <Link
           href="/"
           className="flex items-center gap-2.5 overflow-hidden font-semibold text-foreground"
           aria-label="HTU FYPMS Home"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <GraduationCap className="h-5 w-5" aria-hidden="true" />
-          </div>
+          <Image
+            src="/logo.svg"
+            alt="HTU Crest"
+            width={34}
+            height={35}
+            className="h-8 w-8 shrink-0 object-contain lg:hidden"
+          />
+          <Image
+            src="/logo-with-text.svg"
+            alt="Ho Technical University"
+            width={116}
+            height={34}
+            className="hidden lg:block h-8 w-auto max-w-[116px] shrink-0 object-contain"
+          />
+          <div className="hidden lg:block h-5 w-px shrink-0 bg-border" aria-hidden="true" />
           <div className="hidden lg:flex flex-col overflow-hidden">
-            <span className="text-sm font-bold tracking-tight text-foreground truncate">
-              HTU · FYPMS
+            <span className="text-xs font-bold tracking-tight text-foreground truncate leading-tight">
+              FYPMS
             </span>
-            <span className="text-[10px] text-muted-foreground truncate leading-none">
+            <span className="text-[10px] text-muted-foreground truncate leading-tight">
               Computer Science
             </span>
           </div>

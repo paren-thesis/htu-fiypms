@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { GraduationCap, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "cn";
 import { useAuth } from "@/context/AuthContext";
 import { getNavItemsForRole, isNavItemActive } from "@/config/nav";
@@ -37,15 +38,20 @@ export function MobileNavDrawer() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0 flex flex-col bg-card">
-        <SheetHeader className="h-14 border-b border-border px-5 flex flex-row items-center gap-2.5 space-y-0 text-left">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <GraduationCap className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <SheetTitle className="text-sm font-bold tracking-tight text-foreground">
-              HTU · FYPMS
+        <SheetHeader className="h-14 border-b border-border px-4 pr-12 flex flex-row items-center gap-2.5 space-y-0 text-left">
+          <Image
+            src="/logo-with-text.svg"
+            alt="Ho Technical University"
+            width={116}
+            height={34}
+            className="h-8 w-auto max-w-[116px] shrink-0 object-contain"
+          />
+          <div className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />
+          <div className="min-w-0">
+            <SheetTitle className="text-xs font-bold tracking-tight text-foreground truncate leading-tight">
+              FYPMS
             </SheetTitle>
-            <p className="text-[10px] text-muted-foreground leading-none">
+            <p className="text-[10px] text-muted-foreground truncate leading-tight">
               Computer Science
             </p>
           </div>

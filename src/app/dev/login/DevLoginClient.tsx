@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
 import { toast } from 'sonner';
 import {
-  GraduationCap,
   LogIn,
   Search,
   ShieldAlert,
@@ -141,9 +141,14 @@ export function DevLoginClient({ staff, students }: DevLoginClientProps) {
         {/* Brand & Mode Banner */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <GraduationCap className="h-6 w-6" aria-hidden="true" />
-            </div>
+            <Image
+              src="/logo.svg"
+              alt="HTU Crest"
+              width={44}
+              height={45}
+              priority
+              className="h-11 w-11 shrink-0 object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground">
                 HTU · FYPMS Dev Login

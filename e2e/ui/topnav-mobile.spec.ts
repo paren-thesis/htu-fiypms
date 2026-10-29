@@ -8,12 +8,36 @@ import {
   expectSingleIndicator,
 } from './helpers';
 
-test.describe('TopNav, Dashboard, and Staff Whitelist Sheet responsiveness (375, 768, 1280px)', () => {
+test.describe('Login, TopNav, Dashboard, and Staff Whitelist Sheet responsiveness (375, 768, 1280px)', () => {
   for (const width of widths) {
-    test(`TopNav controls, LifecycleStepper, and Staff Whitelist Sheet all fit cleanly at ${width}px`, async ({
+    test(`Login page, TopNav controls, LifecycleStepper, and Staff Whitelist Sheet all fit cleanly at ${width}px`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height: 812 });
+
+      // 1. Verify /login page copy, logos, and responsiveness
+      await page.goto('/login');
+      await expect(page.getByText('Institutional Sign In')).toBeVisible();
+      await expect(
+        page.getByText(/Only verified @htu\.edu\.gh accounts are permitted\./i)
+      ).toBeVisible();
+      await expect(
+        page.getByText(/Access the Final Year Project Management System using your official university account\./i)
+      ).toHaveCount(0);
+
+      const crestLogo = page.locator('img[src="/logo.svg"]');
+      const textLogo = page.locator('img[src="/logo-with-text.svg"]');
+      await expect(crestLogo).toBeVisible();
+      await expect(textLogo).toBeVisible();
+      await expectWithinViewportX(page, crestLogo);
+      await expectWithinViewportX(page, textLogo);
+      await expectNoHorizontalScroll(page);
+
+      await page.screenshot({
+        path: `docs/screenshots/login-${width}.png`,
+        fullPage: false,
+      });
+
       await page.goto('/dev/login');
       await page.getByRole('button', { name: 'Sign in as coordinator' }).click();
       await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
