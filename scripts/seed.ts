@@ -121,6 +121,7 @@ export async function runSeed(options?: string | SeedOptions) {
       user_uid: null,
       signup_completed_at: null,
       import_batch_id: 'fixture-base',
+      is_active: true,
       imported_by_uid: 'fixture',
       imported_at: now,
     });

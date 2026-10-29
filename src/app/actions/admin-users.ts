@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 import { requireUser } from '@/lib/auth/require-user';
+import { changeStudentCourse as changeStudentCourseCore } from '@/app/actions/change-student-course';
 import { toActionError, HttpError } from '@/lib/errors';
 import { writeAudit } from '@/lib/audit';
 import type {
@@ -38,16 +39,6 @@ const forceRevokeSessionSchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
-const changeStudentCourseSchema = z.object({
-  uid: z.string().trim().min(1, 'Student UID is required'),
-  new_course_id: z.string().trim().min(1, 'New course ID is required'),
-  justification: z
-    .string()
-    .trim()
-    .min(10, 'Written justification must be at least 10 characters')
-    .max(2000),
-  academic_year_id: z.string().trim().optional(),
-});
 
 const queryAuditLogsSchema = z.object({
   action: z.string().trim().optional(),
@@ -370,164 +361,18 @@ export async function changeStudentCourse(
 ): Promise<ChangeStudentCourseResult> {
   try {
     const { idToken, rawInput } = extractTokenAndPayload(idTokenOrInput, maybeInput);
-    const caller = await requireUser(idToken, ['admin']);
-
-    const normalizedInput = {
-      uid: String(
-        rawInput.uid ??
-          rawInput.user_id ??
-          rawInput.student_uid ??
-          rawInput.userId ??
-          ''
-      ).trim(),
-      new_course_id: String(
-        rawInput.new_course_id ?? rawInput.course_id ?? rawInput.courseId ?? ''
-      )
-        .toLowerCase()
-        .trim(),
+    const res = await changeStudentCourseCore(idToken, {
+      uid: String(rawInput.uid ?? rawInput.user_id ?? rawInput.student_uid ?? rawInput.userId ?? '').trim() || undefined,
+      new_course_id: String(rawInput.new_course_id ?? rawInput.course_id ?? rawInput.courseId ?? '').toLowerCase().trim() || undefined,
       justification: String(rawInput.justification ?? rawInput.reason ?? '').trim(),
-      academic_year_id:
-        typeof rawInput.academic_year_id === 'string' &&
-        rawInput.academic_year_id.trim().length > 0
-          ? rawInput.academic_year_id.trim()
-          : undefined,
-    };
-
-    const parsed = changeStudentCourseSchema.safeParse(normalizedInput);
-    if (!parsed.success) {
-      throw new HttpError(
-        400,
-        'VALIDATION_ERROR',
-        parsed.error.issues[0]?.message || 'Invalid course change input'
-      );
-    }
-
-    const { uid, new_course_id, justification, academic_year_id } = parsed.data;
-
-    const userRef = adminDb.collection('users').doc(uid);
-    const userSnap = await userRef.get();
-    if (!userSnap.exists) {
-      throw new HttpError(404, 'USER_NOT_FOUND', `Student ${uid} not found`);
-    }
-
-    const userData = userSnap.data() as UserDocument;
-    const isStudent =
-      userData.role === 'student' ||
-      (Array.isArray(userData.roles) && userData.roles.includes('student'));
-
-    if (!isStudent) {
-      throw new HttpError(
-        400,
-        'NOT_A_STUDENT',
-        'Course track re-allocation only applies to student accounts.'
-      );
-    }
-
-    // Verify student is NOT on any active (non-disbanded) team
-    const activeTeamsSnap = await adminDb
-      .collection('teams')
-      .where('member_ids', 'array-contains', uid)
-      .get();
-
-    const activeTeams = activeTeamsSnap.docs
-      .map((d) => ({ id: d.id, ...(d.data() as Omit<TeamDocument, 'id'>) }))
-      .filter((t) => t.status !== 'disbanded');
-
-    if (activeTeams.length > 0) {
-      const teamLabel = activeTeams[0]?.group_number || activeTeams[0]?.id;
-      throw new HttpError(
-        409,
-        'STUDENT_IN_ACTIVE_TEAM',
-        `Cannot change student course while student belongs to an active team (${teamLabel}). Remove or disband the team first.`
-      );
-    }
-
-    const oldCourseId = userData.profile?.course_id || '';
-    const indexNumber =
-      userData.profile?.index_number ||
-      userData.email?.split('@')[0]?.trim() ||
-      '';
-
-    // Update users/{uid}
-    await userRef.update({
-      'profile.course_id': new_course_id,
-      updated_at: FieldValue.serverTimestamp(),
-    });
-
-    // Update matching roster document(s) across academic years
-    const yearIds = new Set<string>();
-    if (academic_year_id) yearIds.add(academic_year_id);
-
-    const [yearsSnap, rosterRootDocs] = await Promise.all([
-      adminDb.collection('academic_years').get(),
-      adminDb.collection('rosters').listDocuments(),
-    ]);
-
-    for (const d of yearsSnap.docs) yearIds.add(d.id);
-    for (const ref of rosterRootDocs) yearIds.add(ref.id);
-    // Also include common fixture years
-    yearIds.add('2025-2026');
-    yearIds.add('2026-2027');
-
-    const updatedRosterYears: string[] = [];
-    for (const yrId of yearIds) {
-      if (indexNumber) {
-        const studentRosterRef = adminDb
-          .collection('rosters')
-          .doc(yrId)
-          .collection('students')
-          .doc(indexNumber);
-        const snap = await studentRosterRef.get();
-        if (snap.exists) {
-          await studentRosterRef.update({
-            course_id: new_course_id,
-          });
-          updatedRosterYears.push(yrId);
-        }
-      }
-
-      // Also check by user_uid in case indexNumber differed
-      const byUidSnap = await adminDb
-        .collection('rosters')
-        .doc(yrId)
-        .collection('students')
-        .where('user_uid', '==', uid)
-        .get();
-
-      for (const rDoc of byUidSnap.docs) {
-        await rDoc.ref.update({
-          course_id: new_course_id,
-        });
-        if (!updatedRosterYears.includes(yrId)) {
-          updatedRosterYears.push(yrId);
-        }
-      }
-    }
-
-    await writeAudit({
-      actor: {
-        uid: caller.uid,
-        email: caller.email,
-        role: 'admin',
-      },
-      action: 'student.course_changed',
-      target_type: 'user',
-      target_id: uid,
-      description: `Changed student ${indexNumber || uid} course track from ${oldCourseId || 'none'} to ${new_course_id}`,
-      metadata: {
-        index_number: indexNumber,
-        old: { course_id: oldCourseId },
-        new: { course_id: new_course_id },
-        justification,
-        updated_roster_years: updatedRosterYears,
-      },
+      academic_year_id: typeof rawInput.academic_year_id === 'string' ? rawInput.academic_year_id.trim() : undefined,
     });
 
     return {
       ok: true,
-      uid,
-      old_course_id: oldCourseId,
-      new_course_id,
+      uid: res.uid,
+      old_course_id: res.old_course_id,
+      new_course_id: res.new_course_id,
     };
   } catch (error) {
     const actionErr = toActionError(error);

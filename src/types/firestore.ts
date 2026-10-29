@@ -67,6 +67,12 @@ export interface RosterStudentDocument {
   import_batch_id: string; // groups rows from a single CSV upload
   user_uid: string | null; // write-once, set on first successful signup
   signup_completed_at: FirebaseFirestore.Timestamp | null;
+  is_active?: boolean; // Spec amendment A6: default true; missing value counts as true
+  updated_at?: FirebaseFirestore.Timestamp;
+  updated_by?: string;
+  deactivated_at?: FirebaseFirestore.Timestamp;
+  deactivated_by?: string;
+  deactivation_reason?: string;
 }
 
 export interface StaffWhitelistDocument {
@@ -390,6 +396,12 @@ export interface AuditLogDocument {
     | "user.roles_updated"
     | "user.session_revoked"
     | "student.course_changed"
+    | "student.created"
+    | "student.updated"
+    | "student.deactivated"
+    | "student.reactivated"
+    | "student.deleted"
+    | "signup.blocked_inactive"
     | "team.max_members_changed"
     | "team.member_transferred"
     | "team.disbanded";

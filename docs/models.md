@@ -4,7 +4,7 @@ Agents read this file (not the spec) to check what exists. `fypms-create-model` 
 | Model | Collection | Access | Code location | Added |
 |---|---|---|---|---|
 | UserDocument | users | members read · server write | src/types/firestore.ts | spec v5.2 |
-| RosterStudentDocument | rosters/{year}/students | owner/coordinator/admin read · server write (import, student CRUD) | src/types/firestore.ts | spec v5.2 |
+| RosterStudentDocument | rosters/{year}/students | owner/coordinator/admin read · server write (import, student CRUD) | src/types/firestore.ts | spec v5.2, A6 (is_active, audit fields) |
 | StaffWhitelistDocument | staff_whitelist | coordinator/admin read · server write | src/types/firestore.ts | spec v5.2 |
 | CourseDocument | courses | members read · coordinator/admin write | src/types/firestore.ts | spec v5.2 |
 | AcademicYearDocument | academic_years (+counters) | members read · coordinator/admin write (not grades_published) | src/types/firestore.ts | spec v5.2 |

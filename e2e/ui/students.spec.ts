@@ -19,9 +19,22 @@ const mockCoordinatorPayload = {
 
 const mockCoordToken = `${Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify(mockCoordinatorPayload)).toString('base64url')}.`;
 
-test.describe('Students page layout and responsiveness', () => {
+const mockSupervisorPayload = {
+  sub: 'staff-kappiah',
+  user_id: 'staff-kappiah',
+  email: 'kappiah@htu.edu.gh',
+  email_verified: true,
+  roles: ['supervisor'],
+  activeRole: 'supervisor',
+  registered: true,
+  profileComplete: true,
+};
+
+const mockSupToken = `${Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify(mockSupervisorPayload)).toString('base64url')}.`;
+
+test.describe('Students page layout and role visibility', () => {
   for (const width of widths) {
-    test(`renders /students with tabs above table, no horizontal scroll at ${width}px`, async ({
+    test(`renders /students for coordinator with tabs above table, no horizontal scroll at ${width}px`, async ({
       page,
       context,
     }) => {
@@ -70,4 +83,28 @@ test.describe('Students page layout and responsiveness', () => {
       }
     });
   }
+
+  test('supervisor role is blocked from /students and never sees the nav item', async ({
+    page,
+    context,
+  }) => {
+    await context.addCookies([
+      {
+        name: '__session',
+        value: mockSupToken,
+        domain: 'localhost',
+        path: '/',
+      },
+    ]);
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/students');
+
+    // Supervisors are redirected away from /students
+    await expect(page).not.toHaveURL(/\/students$/);
+
+    // Sidebar navigation does not contain Students link for supervisor
+    const studentsNavLink = page.locator('aside nav a[href="/students"]');
+    await expect(studentsNavLink).toHaveCount(0);
+  });
 });

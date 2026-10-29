@@ -135,8 +135,9 @@ export async function autoGroupStudents(
       }
     }
 
-    // 3. Fetch cohort roster students
-    const rosterStudents = await listRosterStudents(currentYear.id);
+    // 3. Fetch cohort roster students (skip inactive records per A6)
+    const allRosterStudents = await listRosterStudents(currentYear.id);
+    const rosterStudents = allRosterStudents.filter((r) => r.is_active !== false);
     const notYetSignedIn = rosterStudents.filter((r) => !r.user_uid);
     const linkedRosterStudents = rosterStudents.filter((r) => Boolean(r.user_uid));
 

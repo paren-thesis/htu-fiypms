@@ -84,6 +84,8 @@ export async function completeSignup(
     const userRef = adminDb.collection('users').doc(uid);
 
     let notFound = false;
+    let isInactive = false;
+    let deactivationReason: string | undefined;
     let studentCourseId: string | undefined;
     let studentConflictUid: string | undefined;
 
@@ -98,6 +100,13 @@ export async function completeSignup(
 
       const rosterData = rosterSnap.data() as RosterStudentDocument;
       studentCourseId = rosterData.course_id;
+
+      // Spec amendment A6: Inactive students are blocked from signup
+      if (rosterData.is_active === false) {
+        isInactive = true;
+        deactivationReason = rosterData.deactivation_reason;
+        return;
+      }
 
       if (rosterData.user_uid === null || rosterData.user_uid === undefined) {
         // First sign-in: Link UID (write-once)
@@ -161,6 +170,33 @@ export async function completeSignup(
         'IDENTITY_CONFLICT',
         'This index is already linked to another account. Contact the coordinator.'
       );
+    }
+
+    if (isInactive) {
+      await adminAuth.setCustomUserClaims(uid, {
+        roles: ['student'],
+        activeRole: 'student',
+        registered: false,
+        profileComplete: false,
+      });
+
+      await writeAudit({
+        actor: { uid, email, role: 'student' },
+        action: 'signup.blocked_inactive',
+        target_type: 'roster',
+        target_id: indexNumber,
+        description: `Student ${indexNumber} signup blocked: record is inactive`,
+        metadata: {
+          index_number: indexNumber,
+          reason: deactivationReason,
+        },
+      });
+
+      return {
+        ok: false,
+        code: 'inactive',
+        error: 'Your student record is inactive. Contact your coordinator.',
+      };
     }
 
     if (notFound) {

@@ -8,7 +8,7 @@ import profileFile from './staff-profiles.json';
 export type CourseId = 'btech-cs' | 'btech-ict' | 'hnd-cs' | 'hnd-ict';
 export type Role = 'student' | 'supervisor' | 'coordinator' | 'admin' | 'panel_member';
 
-export interface FxStudent { index_number: string; full_name: string; contact: string; email: string; course_id: CourseId; group_number: string }
+export interface FxStudent { index_number: string; full_name: string; contact: string; email: string; course_id: CourseId; group_number: string; is_active?: boolean }
 export interface FxStaff { email: string; full_name: string; roles: Role[]; department: string; programmes: CourseId[]; is_active: boolean }
 export interface FxGroup { group_number: string; course_id: CourseId; leader: string; members: string[] }
 export interface FxAssignment { supervisor: string; assignments: string[]; note?: string }

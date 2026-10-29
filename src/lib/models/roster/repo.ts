@@ -3,7 +3,7 @@ import 'server-only';
 import { adminDb } from '@/lib/firebase/admin';
 import type { RosterStudentDocument } from '@/types/firestore';
 
-function getStudentsCollection(yearId: string) {
+export function getStudentsCollection(yearId: string) {
   return adminDb.collection('rosters').doc(yearId).collection('students');
 }
 
@@ -17,12 +17,17 @@ export async function getRosterStudent(
   const docRef = getStudentsCollection(yearId).doc(indexNumber.trim());
   const snap = await docRef.get();
   if (!snap.exists) return null;
-  return snap.data() as RosterStudentDocument;
+  const data = snap.data() as RosterStudentDocument;
+  return {
+    ...data,
+    is_active: data.is_active !== false,
+  };
 }
 
 export interface ListRosterFilter {
   course_id?: string;
   isLinked?: boolean;
+  isActive?: boolean;
 }
 
 /**
@@ -34,7 +39,13 @@ export async function listRosterStudents(
 ): Promise<RosterStudentDocument[]> {
   const collectionRef = getStudentsCollection(yearId);
   const snap = await collectionRef.get();
-  let list = snap.docs.map((d) => d.data() as RosterStudentDocument);
+  let list = snap.docs.map((d) => {
+    const data = d.data() as RosterStudentDocument;
+    return {
+      ...data,
+      is_active: data.is_active !== false,
+    };
+  });
 
   if (filter?.course_id) {
     const courseId = filter.course_id.toLowerCase().trim();
@@ -43,6 +54,10 @@ export async function listRosterStudents(
 
   if (filter?.isLinked !== undefined) {
     list = list.filter((item) => (item.user_uid !== null) === filter.isLinked);
+  }
+
+  if (filter?.isActive !== undefined) {
+    list = list.filter((item) => (item.is_active !== false) === filter.isActive);
   }
 
   // Sort by index_number ascending
@@ -99,7 +114,14 @@ export async function batchCommitRosterStudents(
 
     for (const student of chunk) {
       const docRef = collectionRef.doc(student.index_number);
-      batch.set(docRef, student, { merge: false });
+      batch.set(
+        docRef,
+        {
+          ...student,
+          is_active: student.is_active !== false,
+        },
+        { merge: false }
+      );
     }
 
     await batch.commit();

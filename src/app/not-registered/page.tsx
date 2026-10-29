@@ -31,8 +31,12 @@ export default function NotRegisteredPage() {
     process.env.NEXT_PUBLIC_COORDINATOR_EMAIL || "coordinator@htu.edu.gh";
 
   const isStudent = isStudentEmail(attemptedEmail);
+  const reason = searchParams.get("reason") || searchParams.get("code");
+  const isInactive = reason === "inactive";
 
-  const categoryMessage = isStudent
+  const categoryMessage = isInactive
+    ? "Your student record is inactive. Contact your coordinator."
+    : isStudent
     ? "Your 10-digit student index number is not listed in the current final-year cohort roster. Please contact your Department Coordinator to verify your roster onboarding."
     : "Your faculty email is not on the active supervisor whitelist for this academic year. Please contact the Department Coordinator or HoD to verify your whitelist status.";
 

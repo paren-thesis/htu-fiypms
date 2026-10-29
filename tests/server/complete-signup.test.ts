@@ -332,4 +332,42 @@ describe('Server Action: completeSignup (Spec §5.2)', () => {
     expect(userSnap.exists).toBe(true);
     expect(userSnap.data()?.uid).toBe(uid);
   });
+
+  it('8. inactive student record blocks sign-in with code inactive (A6)', async () => {
+    const s = fx.students[4]!;
+    const indexNumber = s.index_number;
+    const email = studentEmail(indexNumber);
+    const uid = studentUid(indexNumber);
+
+    const rosterRef = adminDb
+      .collection('rosters')
+      .doc(currentYearId)
+      .collection('students')
+      .doc(indexNumber);
+
+    await rosterRef.set({
+      index_number: indexNumber,
+      full_name: s.full_name,
+      course_id: s.course_id,
+      contact: s.contact,
+      user_uid: null,
+      is_active: false,
+      deactivation_reason: 'Academic deferral for semester',
+    });
+
+    const idToken = await getEmulatorIdToken(uid, email, s.full_name);
+    const res = await completeSignup(idToken);
+
+    expect(res.ok).toBe(false);
+    expect(res.code).toBe('inactive');
+    expect(res.error).toBe('Your student record is inactive. Contact your coordinator.');
+
+    // Verify audit log for blocked inactive signup
+    const auditSnap = await adminDb
+      .collection('audit_logs')
+      .where('action', '==', 'signup.blocked_inactive')
+      .where('target_id', '==', indexNumber)
+      .get();
+    expect(auditSnap.empty).toBe(false);
+  });
 });

@@ -213,6 +213,7 @@ export async function importRosters(
       import_batch_id: importBatchId,
       user_uid: null,
       signup_completed_at: null,
+      is_active: true,
     });
   }
 
