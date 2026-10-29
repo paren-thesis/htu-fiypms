@@ -92,7 +92,7 @@ test.describe('Login, TopNav, Dashboard, and Staff Whitelist Sheet responsivenes
         fullPage: false,
       });
 
-      // Verify /admin/staff-whitelist Add Staff Member sheet padding & layout as admin
+      // Verify /admin/staff-whitelist Add Staff Member dialog padding & layout as admin
       await page.goto('/dev/login');
       await page.getByRole('button', { name: 'Sign in as admin' }).click();
       await page.waitForURL((url) => url.pathname === '/', { timeout: 20_000 });
@@ -102,24 +102,24 @@ test.describe('Login, TopNav, Dashboard, and Staff Whitelist Sheet responsivenes
       await expect(addBtn).toBeVisible();
       await addBtn.click();
 
-      const sheet = page.locator('[data-slot="sheet-content"]');
+      const modal = page.locator('[data-slot="dialog-content"]');
       const fullNameInput = page.locator('#staff-fullname');
-      await expect(sheet).toBeVisible();
+      await expect(modal).toBeVisible();
       await expect(fullNameInput).toBeVisible();
 
-      const [sheetBox, inputBox] = await Promise.all([
-        sheet.boundingBox(),
+      const [modalBox, inputBox] = await Promise.all([
+        modal.boundingBox(),
         fullNameInput.boundingBox(),
       ]);
-      expect(sheetBox && inputBox).toBeTruthy();
-      // Input must have at least 16px horizontal padding inside the sheet on both left and right
-      expect(inputBox!.x - sheetBox!.x).toBeGreaterThanOrEqual(16);
+      expect(modalBox && inputBox).toBeTruthy();
+      // Input must have at least 16px horizontal padding inside the dialog on both left and right
+      expect(inputBox!.x - modalBox!.x).toBeGreaterThanOrEqual(16);
       expect(
-        sheetBox!.x + sheetBox!.width - (inputBox!.x + inputBox!.width)
+        modalBox!.x + modalBox!.width - (inputBox!.x + inputBox!.width)
       ).toBeGreaterThanOrEqual(16);
 
       await page.screenshot({
-        path: `docs/screenshots/staff-whitelist-sheet-${width}.png`,
+        path: `docs/screenshots/staff-whitelist-dialog-${width}.png`,
         fullPage: false,
       });
     });

@@ -26,13 +26,13 @@ import {
 } from "@/app/actions/manage-defense-panel";
 import { ConflictAlertBadge } from "@/components/common/StatusBadge";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 export type CourseId = "btech-cs" | "btech-ict" | "hnd-cs" | "hnd-ict";
@@ -394,10 +393,10 @@ function PanelFormContent({
   };
 
   return (
-    <>
+    <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Live Conflict Warning Banner */}
       {liveConflicts.length > 0 && (
-        <div className="mx-6 mt-4 p-3 rounded-lg border border-danger/40 bg-danger-soft/30 flex items-start gap-2.5">
+        <div className="mx-6 mt-4 p-3 rounded-lg border border-danger/40 bg-danger-soft/30 flex items-start gap-2.5 shrink-0">
           <AlertTriangle className="h-4 w-4 text-danger shrink-0 mt-0.5" aria-hidden="true" />
           <div className="space-y-1 text-xs">
             <div className="flex items-center gap-2">
@@ -415,17 +414,15 @@ function PanelFormContent({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 p-6 space-y-6">
-          <div className="space-y-6 pr-4">
-            {/* 1. Basic Info */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
+        {/* 1. Basic Info */}
             <div className="space-y-4">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Panel Session Details
               </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 [&>*]:min-w-0">
+                <div className="space-y-1.5 min-w-0">
                   <Label htmlFor="panel-course" className="text-xs font-medium">
                     Academic Programme
                   </Label>
@@ -434,7 +431,7 @@ function PanelFormContent({
                     value={courseId}
                     onValueChange={(val) => setCourseId(val as CourseId)}
                   >
-                    <SelectTrigger id="panel-course" className="h-9 text-xs">
+                    <SelectTrigger id="panel-course" className="h-9 w-full text-xs">
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -447,7 +444,7 @@ function PanelFormContent({
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 min-w-0">
                   <Label htmlFor="panel-name" className="text-xs font-medium">
                     Panel Identifier / Name
                   </Label>
@@ -457,7 +454,7 @@ function PanelFormContent({
                     value={panelName}
                     onChange={(e) => setPanelName(e.target.value)}
                     required
-                    className="h-9 text-xs"
+                    className="h-9 w-full text-xs"
                   />
                 </div>
               </div>
@@ -799,9 +796,8 @@ function PanelFormContent({
               )}
             </div>
           </div>
-        </ScrollArea>
 
-        <SheetFooter className="p-4 border-t bg-muted/20 flex flex-row items-center justify-end gap-2">
+        <DialogFooter className="p-4 border-t bg-muted/20 flex flex-row items-center justify-end gap-2 shrink-0">
           <Button
             type="button"
             variant="outline"
@@ -823,11 +819,10 @@ function PanelFormContent({
               ? "Update Defense Panel"
               : "Create Defense Panel"}
           </Button>
-        </SheetFooter>
+        </DialogFooter>
       </form>
-    </>
-  );
-}
+    );
+  }
 
 export interface PanelFormSheetProps {
   isOpen: boolean;
@@ -849,19 +844,18 @@ export function PanelFormSheet({
   onSaved,
 }: PanelFormSheetProps) {
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-2xl p-0 flex flex-col h-full bg-background border-l shadow-xl"
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        className="w-full sm:max-w-3xl h-[90vh] max-h-[90vh] p-0 flex flex-col bg-background shadow-xl overflow-hidden"
       >
-        <SheetHeader className="p-6 pb-4 border-b">
-          <SheetTitle className="text-lg font-bold text-foreground">
+        <DialogHeader className="p-6 pb-4 border-b shrink-0 text-left">
+          <DialogTitle className="text-lg font-bold text-foreground">
             {editingPanel ? `Edit Defense Panel — ${editingPanel.panel_name}` : "Create New Defense Panel"}
-          </SheetTitle>
-          <SheetDescription className="text-xs text-muted-foreground">
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
             Configure panel session details, examiner allocations, and presentation slot schedules.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         {isOpen && (
           <PanelFormContent
@@ -874,7 +868,7 @@ export function PanelFormSheet({
             onSaved={onSaved}
           />
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

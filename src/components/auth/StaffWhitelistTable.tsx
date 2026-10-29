@@ -38,14 +38,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -570,19 +562,19 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
         </Table>
       </div>
 
-      {/* Add / Edit Staff Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-card">
-          <SheetHeader className="px-6 pt-6 pb-4 pr-12 border-b border-border text-left shrink-0">
-            <SheetTitle>
+      {/* Add / Edit Staff Dialog */}
+      <Dialog open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <DialogContent className="w-full sm:max-w-lg h-[90vh] max-h-[90vh] p-0 flex flex-col gap-0 bg-card shadow-xl overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 pr-12 border-b border-border text-left shrink-0">
+            <DialogTitle>
               {editingStaff ? "Edit Staff Whitelist Entry" : "Add Staff Member"}
-            </SheetTitle>
-            <SheetDescription className="text-xs">
+            </DialogTitle>
+            <DialogDescription className="text-xs">
               {editingStaff
                 ? "Update faculty roles, department, and assigned supervision tracks."
                 : "Whitelist faculty members prior to their first institutional sign-in."}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <form
             onSubmit={handleSubmitSheet}
@@ -730,7 +722,7 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
               </div>
             </div>
 
-            <SheetFooter className="px-6 py-4 border-t border-border bg-muted/20 flex-row justify-end gap-2 shrink-0">
+            <DialogFooter className="px-6 py-4 border-t border-border bg-muted/20 flex-row justify-end gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -744,10 +736,10 @@ export function StaffWhitelistTable({ initialStaff }: StaffWhitelistTableProps) 
                 {isSubmitting && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                 {editingStaff ? "Save Changes" : "Add to Whitelist"}
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Deactivate / Reactivate Confirm Dialog */}
       <Dialog

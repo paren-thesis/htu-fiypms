@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 export const metadata: Metadata = {
-  title: "Students & Pool · FYPMS",
+  title: "Students Management · FYPMS",
   description:
     "Manage cohort student rosters, track course assignments, monitor account linkages, and execute auto-grouping.",
 };
@@ -56,8 +56,8 @@ export default async function StudentsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Students & Pool"
-        description={`Manage ${currentYear.code} cohort student onboarding, track course track allocations, and oversee unassigned group formation.`}
+        title="Students Management"
+        description={`Manage ${currentYear.code} student onboarding, allocate course tracks, and oversee unassigned groups.`}
       />
 
       <Tabs defaultValue="roster" className="w-full flex flex-col">

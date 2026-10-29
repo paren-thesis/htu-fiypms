@@ -29,7 +29,7 @@ test.describe('Dev Login & Navigation E2E', () => {
     await expect(page).toHaveURL(/\/$/);
 
     // Verify coordinator nav elements exist
-    await expect(page.getByRole('link', { name: /Students & Pool/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /^Students$/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /Staff Whitelist/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /Matching/i })).toBeVisible();
   });

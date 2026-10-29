@@ -24,8 +24,8 @@ export default async function StaffWhitelistPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Staff Whitelist Management"
-        description="Maintain departmental faculty members, configure superviseable programme tracks, and assign institutional roles."
+        title="Staff Allowlist"
+        description="Manage staff access, assign roles, and configure supervised tracks."
       />
 
       <StaffWhitelistTable key={staffKey} initialStaff={staffMembers} />

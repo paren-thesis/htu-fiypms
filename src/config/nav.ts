@@ -55,7 +55,7 @@ export const ROLE_NAV_CONFIG: Record<UserRole, NavItem[]> = {
   ],
   coordinator: [
     { title: "Dashboard", href: "/", icon: LayoutDashboard },
-    { title: "Students & Pool", href: "/students", icon: GraduationCap },
+    { title: "Students", href: "/students", icon: GraduationCap },
     { title: "Staff Whitelist", href: "/admin/staff-whitelist", icon: ShieldCheck },
     { title: "Matching", href: "/supervision", icon: UserCheck },
     { title: "Rubrics", href: "/rubrics", icon: ListChecks },
@@ -71,7 +71,7 @@ export const ROLE_NAV_CONFIG: Record<UserRole, NavItem[]> = {
   admin: [
     // Spec D-05: Admin sees both Students and Staff Whitelist
     { title: "Dashboard", href: "/", icon: LayoutDashboard },
-    { title: "Students & Pool", href: "/students", icon: GraduationCap },
+    { title: "Students", href: "/students", icon: GraduationCap },
     { title: "Staff Whitelist", href: "/admin/staff-whitelist", icon: ShieldCheck },
     { title: "Users & Roles", href: "/admin/users", icon: UserCog },
     { title: "Audit Logs", href: "/audit-logs", icon: ScrollText },
@@ -87,7 +87,7 @@ export const ALL_ROUTES_LIST: { title: string; href: string; category?: string }
   { title: "Defense Schedule & Panels", href: "/defense", category: "Defense" },
   { title: "Rubric Builder", href: "/rubrics", category: "Grading" },
   { title: "Broadsheet Reports", href: "/reports", category: "Reports" },
-  { title: "Students & Roster Pool", href: "/students", category: "Administration" },
+  { title: "Students Management", href: "/students", category: "Administration" },
   { title: "Peer Evaluation", href: "/peer-evaluation", category: "Grading" },
   { title: "Deliverables & Sign-off", href: "/deliverables", category: "Projects" },
   { title: "Grades & Results", href: "/grades", category: "Grading" },
