@@ -15,6 +15,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "HTU FYPMS — Final Year Project Management System",
   description: "Ho Technical University Computer Science Final Year Project Management System",
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
   other: {
     "color-scheme": "light",
   },
